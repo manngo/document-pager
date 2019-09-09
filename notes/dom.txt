@@ -1,0 +1,31 @@
+						|	body
+						|		header
+	h1					|			h1
+	formControl			|			form#control
+						|				button[about]
+						|				input[show-highlight]+label
+						|				label+input[upload]
+	about					|		aside#about
+						|			h2
+						|		main
+	tabPane				|			ul#tabs
+	pager				|			div#pager
+	indexDiv			|				div#index
+	indexHeading		|					h2
+	indexUL				|					ul
+						|					p#raw-message
+	contentDiv			|				div#content
+	contentHeading		|					h2
+	divContentPre		|					pre
+	codeElement			|						code
+	highlightButton		|					button#highlight
+						|					p#font-size
+	smallerButton		|						button#smaller
+	defaultButton		|						button#default
+	largerButton		|						button#larger
+						|					p#navigation
+	previousButton		|						button#previous
+	nextButton			|						button#next
+						|		footer
+	footerLanguage		|			span#footer-language
+	footerHeading		|			span#footer-heading

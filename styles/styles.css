@@ -1,0 +1,85 @@
+/*	Core
+	================================================ */
+
+	html {
+		font-family: "Source Sans Pro", sans-serif;
+		font-size: 100%;
+		color: #333;
+	}
+
+	body,html {
+		margin: 0;
+		padding: 0;
+		background-color: white;
+	}
+
+	main {
+		qwidth: 48em;
+		qmargin: auto;
+		qpadding: 1em 2em;
+		qbackground-color: white;
+	}
+	p {
+		margin: .5em 0;
+		line-height: 1.5;
+	}
+	td, th {
+		vertical-align: top;
+		text-align: left;
+	}
+
+	h1,h2 {
+		font-family: "Source Sans Pro", sans-serif;
+	}
+
+	header {
+		background: linear-gradient(to bottom, #eee,#ddd);
+		border-bottom: thin solid #ccc;
+	}
+	h1 {
+		font-family: "Source Sans Pro", sans-serif;
+		font-size: 2em;
+		font-weight: normal;
+		color: #333;
+		margin: 0 0 0 0;
+		padding: .125em .25em .25em;
+		text-shadow: 0 -1px 0 #ddd;
+
+		font-size: 1em;
+		text-align: center;
+	}
+
+
+	h2 {
+		color: rgb(47, 79, 79);
+		margin: .25em 0em .25em 0em;
+	}
+
+/*	Misc
+	================================================ */
+
+	a[href="index.html"] {
+		text-decoration: none;
+		color: rgb(132, 156, 156);
+		font-weight: bold;
+		padding-bottom: .125em;
+	}
+	a[href="index.html"]:hover {
+		border-bottom: thin solid;
+	}
+
+	span.nonenglish {
+		font-style: italic;
+		font-family: "Source Serif Pro", serif;
+	}
+
+	span.key {
+		border: thin solid #999;
+		font-size: .9em;
+		padding: .0625em .5em .25em;
+		border-radius: .25em;
+		box-shadow: .125em .125em .125em #999;
+		background-color: #f8f8f8;
+		text-shadow: 0 1px 0 white;
+		margin: 0 .25em 0 .125em;
+	}

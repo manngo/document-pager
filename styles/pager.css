@@ -1,0 +1,478 @@
+/*	Pager
+	================================================ */
+
+/*	Nativefier Application
+	================================================ */
+
+	header,footer {
+	  -webkit-app-region: drag;
+	}
+
+	/* but any buttons inside the header shouldn't be draggable */
+	header form {
+	  -webkit-app-region: no-drag;
+	}
+
+	button {
+		outline: none;
+	}
+
+/*	Layout
+	================================================ */
+
+	body {
+		display: flex;
+
+		height: 100vh;
+		flex-direction: column;
+	}
+
+	header,aside,main,footer {
+		box-sizing: border-box;
+		margin: 0em;
+	}
+
+		header {
+height: 2.25em;
+		}
+
+		main {
+			flex: auto;
+			flex: 1;
+			width: 100vw;
+			display: flex;
+			flex-direction: column;
+		}
+			ul#tabs {
+
+			}
+
+			div#pager {
+				display: flex;
+				flex-direction: row;
+			}
+
+				div#index,
+				div#content {
+					max-height: calc(100vh - 6.5em);
+				}
+				div#index {
+					overflow: auto;
+					width: 18em;
+				}
+
+				div#content {
+					overflow: hidden;
+					flex: 1;
+				}
+
+
+
+	div#index,
+	div#content {
+		background-color: white;
+	}
+
+
+
+	footer {
+		background-color: #ddd;
+		margin: 0;
+		height: 1.75em;
+	}
+/*	Pager
+	================================================ */
+
+	body {
+		background-color: rgb(221, 221, 221);
+		--monospace: "Source Code Pro", monospace;
+	}
+
+	header {
+		position: relative;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		padding: .25em .5em .25em;
+		background: linear-gradient(to bottom, #666, #555);
+	}
+	header>h1 {
+		flex: 1;
+		padding-left: 4em;
+		text-align: left;
+	}
+	header>form {
+		margin-right: 2em;
+	}
+	div#index>h2,
+	div#content>h2 {
+		box-sizing: border-box;
+		color: #333;
+		font-weight: normal;
+		margin: 0;
+		border-bottom: thin solid #666;
+		padding: .25em .25em .25em .75em;
+		width: 100%;
+	}
+
+	main {
+		qmargin: auto;
+		qbackground-color: white;
+	}
+
+	div#pager {
+		margin: 0;
+	}
+
+
+footer>p {
+	margin: 0;
+	display: flex;
+	justify-content: flex-end;
+}
+	footer span#footer-language,
+	footer span#footer-heading {
+		border: thin solid #ccc;
+		border: none;
+		font-size: .8em;
+		color: #666;
+		width: 8em;
+		text-align: center;
+		padding: .25em .25em .375em .25em;
+		background-color: white;
+		background-color: transparent;
+		font-family: var(--monospace);
+		text-shadow: 0 1px 0 white;
+	}
+
+/*	Control
+	================================================ */
+
+	form#control {
+		display: flex;
+		justify-content: flex-end;
+		background-color: transparent;
+		qwidth: 100%;
+	}
+	form#control>p {
+		margin: 0;
+		pading: 0;
+	}
+	form#control hr {
+		width: .5em;
+		border: none;
+	}
+/*	Button Appearances
+	============================================ */
+	form#control button,
+	form#control input[name="show-highlight"]+label {
+		background-color: #f8f8f8;
+		border-radius: 4px;
+
+		border: thin solid #ccc;
+		padding: .25em .75em;
+		font-size: .85em;
+		color: #333;
+		margin: 0;
+	}
+
+	/*	About
+		============================================ */
+
+
+	/*	Highlighted
+		============================================
+		👍👎👓🕶
+		============================================ */
+
+		form#control input[name="show-highlight"] {
+			display: none;
+		}
+		form#control input[name="show-highlight"]+label {
+
+		}
+
+		form#control input[name="show-highlight"]:hover+label {
+			background-color: #ddd;
+			animation: none;
+		}
+		/*	Highlighted Icon
+			============================================
+			form#control input[name="show-highlight"]+label:before {
+				content: "🕶";
+				position: relative;
+				top: .125em;
+				margin-right: .5em;
+			}
+			form#control input[name="show-highlight"]:checked+label:before {
+				content: "👓";
+			}
+			============================================ */
+		form#control input[name="show-highlight"]:checked+label {
+			color: #333;
+		}
+
+/*	Tabs
+	============================================ */
+
+	ul#tabs {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: row;
+		background: linear-gradient(to bottom, rgb(238, 238, 238),rgb(221, 221, 221));
+		height: 2em;
+	}
+
+	ul#tabs>li {
+		padding: .25em .5em;
+		min-width: 8em;
+		text-align: center;
+		display: flex;
+		justify-content: space-between;
+		border-right: thin solid #ccc;
+		text-shadow: 0 1px 0 white;
+	}
+
+	ul#tabs>li:nth-child(n+2) {
+
+	}
+	ul#tabs>li.selected {
+		background: none #f9f9fa;
+	}
+
+	ul#tabs>li>button {
+		box-sizing: border-box;
+		border: thin solid transparent;
+		margin-left: 1em;
+		display: inline-block;
+		padding: .25em;
+		background-color: transparent;
+		border-radius: .25em;
+	}
+	ul#tabs>li>button:hover {
+		background-color: #ccc;
+		border: thin solid #ddd;
+	}
+
+/*	Index
+	============================================ */
+
+	div#index {
+		box-sizing: border-box;
+		padding: .25em 1em;
+		padding: 0 0 0 0;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		border: thin #ccc;
+		border-style: none solid none none;
+	}
+	div#index>h2 {
+
+	}
+	div#index>ul {
+		overflow: auto;
+		list-style: none;
+		margin: 0 0 0 1em;
+		padding: 0;
+		border: thin #666;
+		border-style: none none solid none;
+	}
+	div#index>ul>li {
+		padding: .5em;
+		cursor: default;
+	}
+	div#index>ul>li:nth-child(n+2) {
+		border-top: thin solid #999;
+	}
+
+	div#index>ul>li:hover {
+		background-color: #eee;
+	}
+
+	div#index>ul>li.selected {
+		background-color: #ddd;
+	}
+
+
+	div#index {
+		position: relative;
+	}
+	div#index:after {
+		cursor: col-resize;
+		content: "";
+		position: absolute;
+		height: 100%;
+		right: 0;
+		top: 0;
+		width: 6px;
+		margin: 0;
+	}
+p#raw-message {
+	margin-left: 1em;
+}
+
+/*	Content
+	============================================ */
+
+	div#content>pre {
+		--font-size:   1em;
+		font-size: var(--font-size);
+	}
+
+	div#content h2 {
+
+	}
+
+	div#content h2:hover {
+		background-color: #eee;
+		text-shadow: 0 1px white;
+	}
+
+	div#content {
+		border: thin #ccc;
+		border-style: none none none none;
+		padding: 1em;
+		position: relative;
+		qborder-radius: .25em;
+		padding: 0;
+
+	}
+	div#content>pre {
+		margin: 0;
+		box-sizing: border-box;
+		overflow: auto;
+		qheight: calc(100vh - 9.5rem);
+		height: 100%;
+		height: calc(100% - 4em);
+		padding: 1em;
+		border: thin solid #ccc;
+		border-style:  none;
+	}
+	div#content>pre>code {
+		white-space: pre;
+		font-family: "Source Code Pro", monospace;
+		font-size: .8em;
+		-moz-tab-size: 4;
+		tab-size: 4;
+		padding: 1em;
+		width: 100%;
+	}
+
+	div#content>pre>code.markdown {
+		white-space: normal;
+	}
+
+	button#previous,
+	button#next {
+		border: thin solid;
+		color: #2F5FA1;
+		background-color: white;
+		border-radius: .125em;
+	}
+
+	div#content.empty>p#navigation {
+		display: none;
+	}
+
+	p#navigation {
+		position: absolute;
+		right: 1em;
+		top: 3em;
+		padding: .5em;
+	}
+	button#previous,
+	button#next {
+		font-size: 2em;
+		padding: 0 .25em .1875em;
+		line-height: .5em;
+		opacity: .25;
+		transition: opacity .25s;
+	}
+	p#navigation:hover>button#previous,
+	p#navigation:hover>button#next {
+		font-size: 2em;
+		padding: 0 .25em .1875em;
+		line-height: .5em;
+		opacity: 1;
+	}
+
+
+/*	Prism
+	================================================ */
+
+	pre[class*="language-"] {
+		background-color: white;
+	}
+
+	div#content>pre code {
+
+	}
+
+	pre .token.tab,
+	pre .token.crlf,
+	pre .token.lf,
+	pre .token.cr {
+		visibility: hidden;
+    }
+
+/*	About
+	================================================ */
+
+	aside#about {
+		border: thin solid darkgreen;
+	}
+
+	aside#about {
+		position: fixed;
+		top: 0; bottom: 0; left: 0; right: 0;
+		width: 400px; height: 600px;
+		margin: auto;
+		background-color: white;
+		border: thick solid rgb(47, 79, 79);
+		padding: 1em;
+		box-shadow: 4px 4px 4px #666;
+		overflow: auto;
+		-moz-tab-size: 4;
+		tab-size: 4;
+		z-index: 2;
+		display: none;
+	}
+
+	aside#about p.about {
+		font-weight: bold;
+	}
+	aside#about li {
+		line-height: 1.8;
+	}
+
+	aside#about pre {
+		margin: 0 2em;
+	}
+
+	aside#about h2, aside#about h3 {
+		color: rgb(47, 79, 79);
+	}
+	aside#about a {
+		text-decoration: none;
+		color: rgb(47, 79, 79);
+		font-weight: bold;
+	}
+	aside#about a::after {
+		content: attr(href);
+		font-weight: normal;
+		margin-left: .5em;
+	}
+	div#about-background {
+		position: fixed;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(127,127,127,.5);
+		top: 0;
+		left: 0;
+
+		z-index: 1;
+		display: none;
+	}

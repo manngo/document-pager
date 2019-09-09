@@ -1,0 +1,19 @@
+{
+	"version": "0.1.0",
+	"headings": {
+		"title": "Document Pager",
+		"h1": "Document Pager",
+		"index": "Content",
+		"content": "Content"
+	},
+	"breaks": {
+		"js": "/**",
+		"javascript": "/**",
+		"php": "/**",
+		"sql": "/**",
+		"css": "/**",
+		"md": "#?#",
+		"markdown": "#?#",
+		"*": "#?#"
+	}
+}

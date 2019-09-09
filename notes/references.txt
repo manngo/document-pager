@@ -1,0 +1,11 @@
+	Technique References:
+		FileReader - Web APIs | MDN
+			https://developer.mozilla.org/en-US/docs/Web/API/FileReader
+		File - Web APIs | MDN
+			https://developer.mozilla.org/en-US/docs/Web/API/File
+		Using files from web applications - Web APIs | MDN
+			https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications
+		EventTarget.dispatchEvent() - Web APIs | MDN
+			https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/dispatchEvent
+		Creating and triggering events - Developer guides | MDN
+			https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Creating_and_triggering_events
