@@ -55,8 +55,8 @@
 				{	label: 'About …', id: 'ABOUT', click: send },
 				{	label: 'Instructions …', id: 'INSTRUCTIONS', click: send },
 				{	type:'separator' },
-				{	label: 'Edit Virtual Hosts Home', icon: path.join(__dirname, 'images/external.png'), click: () => { shell.openExternal('https://github.com/manngo/edit-virtual-hosts'); } },
-				{	label: 'Internotes Virtual Hosts', icon: path.join(__dirname,'images/external.png'), click: () => { shell.openExternal('https://www.internotes.net/virtual-hosts'); }
+				{	label: 'Document Pager Home', icon: path.join(__dirname, 'images/external.png'), click: () => { shell.openExternal('https://github.com/manngo/document-pager'); } },
+				{	label: 'Internotes Pager', icon: path.join(__dirname,'images/external.png'), click: () => { shell.openExternal('https://pager.internotes.net/'); }
 				},
 			]
 		}

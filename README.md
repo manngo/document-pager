@@ -1,4 +1,4 @@
-#	Document Pager 0.2.4
+#	Document Pager 0.1.0
 
 Document Pager © Mark Simon
 See also https://pager.internotes.net/
