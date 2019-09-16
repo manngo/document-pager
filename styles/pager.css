@@ -18,6 +18,15 @@
 	}
 
 /*	Layout
+	================================================
+	body
+		header
+		main
+			ul#tabs
+			div#pager
+				div#index
+				div#content
+		footer
 	================================================ */
 
 	body {
@@ -31,9 +40,8 @@
 		box-sizing: border-box;
 		margin: 0em;
 	}
-
 		header {
-height: 2.25em;
+			height: 2.25em;
 		}
 
 		main {
@@ -44,16 +52,23 @@ height: 2.25em;
 			flex-direction: column;
 		}
 			ul#tabs {
-
+				box-sizing: border-box;
 			}
 
 			div#pager {
+				box-sizing: border-box;
 				display: flex;
 				flex-direction: row;
+				flex: 1;
 			}
+				div#index,
+				div#content {
+					background-color: white;
+				}
 
 				div#index,
 				div#content {
+					box-sizing: border-box;
 					max-height: calc(100vh - 6.5em);
 				}
 				div#index {
@@ -65,15 +80,6 @@ height: 2.25em;
 					overflow: hidden;
 					flex: 1;
 				}
-
-
-
-	div#index,
-	div#content {
-		background-color: white;
-	}
-
-
 
 	footer {
 		background-color: #ddd;
@@ -315,12 +321,9 @@ p#raw-message {
 }
 
 /*	Content
+	============================================
+	See also: content.css
 	============================================ */
-
-	div#content>pre {
-		--font-size:   1em;
-		font-size: var(--font-size);
-	}
 
 	div#content h2 {
 
@@ -338,31 +341,12 @@ p#raw-message {
 		position: relative;
 		qborder-radius: .25em;
 		padding: 0;
-
 	}
-	div#content>pre {
-		margin: 0;
+	div#content>iframe {
 		box-sizing: border-box;
-		overflow: auto;
-		qheight: calc(100vh - 9.5rem);
-		height: 100%;
-		height: calc(100% - 4em);
-		padding: 1em;
-		border: thin solid #ccc;
-		border-style:  none;
-	}
-	div#content>pre>code {
-		white-space: pre;
-		font-family: "Source Code Pro", monospace;
-		font-size: .8em;
-		-moz-tab-size: 4;
-		tab-size: 4;
-		padding: 1em;
 		width: 100%;
-	}
-
-	div#content>pre>code.markdown {
-		white-space: normal;
+		height: 100%;
+		border: none;
 	}
 
 	button#previous,
@@ -398,25 +382,6 @@ p#raw-message {
 		line-height: .5em;
 		opacity: 1;
 	}
-
-
-/*	Prism
-	================================================ */
-
-	pre[class*="language-"] {
-		background-color: white;
-	}
-
-	div#content>pre code {
-
-	}
-
-	pre .token.tab,
-	pre .token.crlf,
-	pre .token.lf,
-	pre .token.cr {
-		visibility: hidden;
-    }
 
 /*	About
 	================================================ */

@@ -26,6 +26,6 @@ To view the unhighlighted version, you can either:
 
 Syntax Highlighting is made available through [Prism](https://prismjs.com/) by [Lea Verou](https://lea.verou.me/).
 
-The Markdown Parser is [Simple Markdown](https://github.com/Khan/simple-markdown).
+The Markdown Parser is [Marked](https://marked.js.org/).
 
 E & OE. Share & Enjoy

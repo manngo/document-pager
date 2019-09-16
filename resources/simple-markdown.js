@@ -1560,7 +1560,7 @@ var defaultRules /* : DefaultRules */ = {
             return htmlTag("u", output(node.content, state));
         }
     },
-    del: {
+    qdel: {
         order: currOrder++,
         match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
         parse: parseCaptureInline,
@@ -1913,4 +1913,3 @@ if (typeof module !== "undefined" && module.exports) {
 
 // Close the IIFE
 /*:: (function() { */})();
-

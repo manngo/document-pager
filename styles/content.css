@@ -1,0 +1,83 @@
+/*	Content Text Properties
+	============================================ */
+	pre {
+		--font-size:   1em;
+		font-size: var(--font-size);
+	}
+
+	pre>code, div.line-numbers {
+		font-family: "Source Code Pro", monospace;
+		font-size: .8em;
+		padding: .5em 0;
+		line-height: 1.5;
+	}
+
+/*	Content
+	============================================ */
+
+	pre {
+		margin: 0;
+		box-sizing: border-box;
+		overflow: auto;
+		height: 100%;
+		padding: 0 1em 3em 1em;
+		border: thin solid #ccc;
+		border-style:  none;
+	}
+	pre>code {
+		white-space: pre;
+		tab-size: 4;
+	}
+
+	pre>code.markdown {
+		white-space: normal;
+	}
+
+/*	Prism
+	================================================ */
+
+	pre[class*="language-"] {
+		background-color: white;
+	}
+
+	pre code {
+
+	}
+
+	pre .token.tab,
+	pre .token.crlf,
+	pre .token.lf,
+	pre .token.cr {
+		visibility: hidden;
+    }
+
+/*	Line Numbers
+	================================================
+	pre
+		div.line-numbers
+		code
+	================================================ */
+
+	pre {
+		display: flex;
+	}
+
+	div.line-numbers {
+		box-sizing: border-box;
+		white-space: pre;
+		text-align: right;
+		padding-right: .5rem;
+		margin-right: .5rem;
+		qbackground-color: #eee;
+		overflow: auto;
+		border-right: thin solid #ccc;
+		background-color: #2A5F5B;
+		color: white;
+		flex: 0 0 4em;
+	}
+	div.line-numbers::-webkit-scrollbar {
+	    display: none;
+	}
+	code {
+		flex: 1;
+	}

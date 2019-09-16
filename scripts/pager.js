@@ -5,6 +5,15 @@
 //	window.onerror=function(message,url,line) {
 //		alert('Error: '+message+'\n'+url+': '+line);
 //	};
+	document.ondragover = document.ondrop = (event) => {
+		event.preventDefault();
+	};
+
+	document.body.ondrop = (event) => {
+		console.log(JSON.stringify(event.dataTransfer.files[0].path));
+		openFile(event.dataTransfer.files[0].path.toString());
+		event.preventDefault();
+	};
 
 //	Development
 	const {DEVELOPMENT}=require('../settings.js');
@@ -35,6 +44,7 @@
 	const normalize = require('normalize-path');
 //	const dialog = remote.require('dialog');
 
+	const marked = require('marked');
 
 	const window=remote.getCurrentWindow();
 	window.webContents.on('new-window', function(event, url) {
@@ -98,22 +108,27 @@
 
 
 	function main() {
+//		elements.codeElement=elements.codeElement.contentWindow.document.querySelector('pre>code')
+		var promise=
 		load(path.join(__dirname, '../settings.json'))
 		.then(data=>settings=JSON.parse(data))
 		.then(()=>documentTitle=settings.headings.title+' '+settings.version)
+		.then(()=>load(path.join(__dirname, '../data/about.md')))
+		.then((data)=>addDocument(data,'md','about.md',`${__dirname}/about.md`));
+
 //		.then(()=>load({path: 'data/exercises.sql', language: 'sql'}))
-		.then(()=>load('data/exercises.sql'))
-//		.then(data=>console.log(data))
-		.then((data)=>addDocument(data,'sql','exercises.sql'))
-//.then(()=>console.log(JSON.stringify(settings)))
+		if(DEVELOPMENT) promise.then(()=>load('data/exercises.sql'))
+		.then((data)=>addDocument(data,'sql','exercises.sql',`${__dirname}/exercises.sql`))
+		.then(()=>load('data/diy.php'))
+		.then((data)=>addDocument(data,'php','diy.php',`${__dirname}/diy.php`))
 		;
+//.then(()=>console.log(JSON.stringify(settings)))
 	}
 
 
 
 //	Constants
 //	var documentTitle=settings.headings.title+' '+settings.version;
-
 	//	Document Tabs
 		var currentTab;
 		var currentItem;
@@ -135,7 +150,8 @@
 				contentDiv: document.querySelector('div#content'),
 				contentHeading: document.querySelector('div#content>h2'),
 				divContentPre: document.querySelector('div#content>pre'),
-				codeElement: document.querySelector('div#content>pre>code'),
+//				codeElement: document.querySelector('div#content>pre>code'),
+				codeElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('pre>code'),
 				highlightButton: document.querySelector('button#highlight'),
 				smallerButton: document.querySelector('button#smaller'),
 				defaultButton: document.querySelector('button#default'),
@@ -148,14 +164,30 @@
 				footerHeading: document.querySelector('span#footer-heading'),
 		};
 
+
+	addLineNumbers(elements.codeElement);
+	elements.codeElement.setLineNumbers();
+
+	function addLineNumbers(element) {
+		var lineNumbers=document.createElement('div');
+//		var styles=BrowserWindow.webContents.getComputedStyle(element);
+		lineNumbers.classList.add('line-numbers');
+		element.insertAdjacentElement('beforebegin',lineNumbers);
+		element.setLineNumbers=function() {
+			var lines=element.textContent.split(/\r?\n/).length;
+			lineNumbers.textContent=Array.from({length: lines},(v,i)=>i+1).join('\n');
+		};
+		return lineNumbers;
+	}
+
 //	Add Document
-	function addDocument(text,language,fileName) {
+	function addDocument(text,language,fileName,path) {
 		var tab=document.createElement('li');
 			tab.textContent=fileName;
-			tab.data={text: text, language: language, fileName: fileName, item: 0, highlighted: 1 };
+			tab.data={text: text, language: language, fileName: fileName, path: path, item: 0, highlighted: 1 };
 			tab.onclick=doTab;
 		var close=document.createElement('button');
-			close.innerHTML='✖️';
+			close.innerHTML='⨉';	//	✖️
 			close.onclick=closeTab.bind(tab);
 		var refresh=document.createElement('button');
 			refresh.innerHTML='↻';
@@ -197,7 +229,7 @@
 	}
 
 	function doPager(data) {
-console.log(`function doPager(${data.fileName})`);
+		var br;
 	//	Adjust Environment
 		elements.indexHeading.innerHTML=data.fileName;
 
@@ -208,11 +240,17 @@ console.log(`function doPager(${data.fileName})`);
 	//	Heading Regular Expressions(Hard Code for Now):
 		var breaks=settings.breaks[data.language]||settings.breaks['*']||'##';
 		elements.footerHeading.innerHTML=`Breaks: ${breaks}`;
-		var special=/[-\/\\^$*+?.()|[\]{}]/g;
-		var special=/[-\/\\^$*+.()|[\]{}]/g;
-		breaks=breaks.replace(special,'\\$&');
-		headingsRE=new RegExp('(?:\\n)(?='+breaks+')');
-		headingRE=new RegExp(breaks+'\\s*(.*?)\\r?\\n');
+		var literals=/[-\/\\^$*+.()|[\]{}]/g;
+		if(Array.isArray(breaks)) {
+			br=[];
+			breaks.forEach((value,i)=>br[i]=value.replace(literals,'\\$&'));
+			br=br.join('|');
+		}
+		else br=breaks.replace(literals,'\\$&');
+
+		headingsRE=new RegExp(`(?:\\n\\s*)(?=${br})`);
+		headingRE=new RegExp(`(?:${br})\\s*(.*?)\\r?\\n`);
+
 	//	Populate Index
 		var items=data.text.split(headingsRE);
 		elements.indexUL.innerHTML='';
@@ -267,14 +305,19 @@ console.log(`function doPager(${data.fileName})`);
 			elements.codeElement.classList.remove('markdown');
 			var language=['js','javascript','sql','php'].indexOf(data.language)>-1;
 			elements.codeElement.innerHTML=item;
+
+console.log(elements.codeElement)
 			if(language && doHighlight) elements.codeElement.innerHTML=Prism.highlight(item, Prism.languages[data.language], data.language);
 			else if(data.language=='md' && doHighlight) {
-				elements.codeElement.innerHTML=marked(item);
+console.log(`Path: ${data.path}`)
+				elements.codeElement.innerHTML=marked(item,{baseUrl: `${data.path}/${data.fileName}`});
 				elements.codeElement.classList.add('markdown')
 			}
 			document.title=documentTitle+': '+data.fileName+' — '+title;
-			elements.h1.innerHTML=documentTitle+': '+data.fileName+' — '+title;
+//			elements.h1.innerHTML=documentTitle+': '+data.fileName+' — '+title;
 			elements.contentHeading.innerHTML=title;
+elements.codeElement.setLineNumbers();
+
 		}
 		function setHighlightButton() {
 			elements.highlightButton.classList.toggle('highlight',!elements.highlightButton.doHighlight);
@@ -282,10 +325,31 @@ console.log(`function doPager(${data.fileName})`);
 		}
 	}
 
+	function openFile(path) {
+		path=normalize(path).split('/');
+		var fileName=path.pop();
+		path=path.join('/');
+		var language=fileName.split('.').pop();
+		load(`${path}/${fileName}`)
+		.then(function(data) {
+			addDocument(data,language,fileName,path);
+		});
+	}
+
+	function footerMessage(message) {
+		elements.footerMessage.textContent=message;
+	}
+
 //	IPC
 
 	ipcRenderer.on('DOIT',(event,action,data,more)=>{
 		switch(action) {
+			case 'open':
+				openFile(data);
+				break;
+			case 'message':
+				footerMessage(data);
+				break;
 			case 'find':
 				// searchData={
 				// 	string: data,
@@ -343,8 +407,8 @@ console.log(`function doPager(${data.fileName})`);
 						var language=fileName.split('.').pop();
 						load(path)
 						.then(function(data) {
-							addDocument(data,language,fileName);
-					});
+							addDocument(data,language,fileName,path);
+						});
 					}
 				);	//	.then(data=>console.log(data))
 				break;

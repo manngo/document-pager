@@ -8,14 +8,12 @@
 	<link rel="stylesheet" type="text/css" href="styles/SourceSerifPro/SourceSerifPro.css">
 	<link rel="stylesheet" type="text/css" href="styles/styles.css">
 	<link rel="stylesheet" type="text/css" href="styles/pager.css">
-	<link rel="stylesheet" type="text/css" href="resources/prism/prism.css">
 	<script type="text/javascript" src="scripts/utilities.js" crossorigin></script>
 	<script type="text/javascript" src="resources/prism/prism.js" crossorigin></script>
-	<!--script type="text/javascript" src="resources/simple-markdown.min.js" crossorigin></script-->
-	<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 	<link rel="icon" href="/favicon.png">
 	<script>
-		document.addEventListener('DOMContentLoaded',init);
+//		document.addEventListener('DOMContentLoaded',init);
+		window.addEventListener('load',init);
 		function init() {
 			require('./scripts/pager.js');
 		}
@@ -43,8 +41,7 @@
 	</header>
 	<aside id="about" data-load="/content/about.html"></aside>
 	<main>
-		<ul id="tabs">
-		</ul>
+		<ul id="tabs"></ul>
 		<div id="pager">
 			<div id="index">
 				<h2>Content</h2>
@@ -52,9 +49,12 @@
 				<p id="raw-message">Hold <span class="key">option / alt</span> for Raw Data</p>
 			</div>
 			<div id="content" class="empty">
-			<p id="navigation"><button type="button" id="previous">«</button><button type="button" id="next">»</button></p>
+				<p id="navigation"><button type="button" id="previous">«</button><button type="button" id="next">»</button></p>
 				<h2>Content</h2>
+<!--
 				<pre><code></code></pre>
+-->
+				<iframe src="content/content.html"></iframe>
 			</div>
 		</div>
 	</main>

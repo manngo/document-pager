@@ -22,10 +22,16 @@ To view the unhighlighted version, you can either:
 - Turn off the Highlight Syntax button
 - Click on the Raw button near the content.
 
+###	MarkDown Documents
+
+You can also page through MarkDown documents. Here the `##` heading is used for paging.
+
+If you include images, you can either use absolute references to them or you can include images relative to the document itself.
+
 ##	Credits
 
 Syntax Highlighting is made available through [Prism](https://prismjs.com/) by [Lea Verou](https://lea.verou.me/).
 
-The Markdown Parser is [Simple Markdown](https://github.com/Khan/simple-markdown).
+The Markdown Parser is [Marked](https://marked.js.org/).
 
 E & OE. Share & Enjoy

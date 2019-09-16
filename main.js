@@ -11,6 +11,18 @@
 	//	console.log(require.resolve('electron'))
 	const path = require('path');
 
+//	Startup
+
+    if(app.requestSingleInstanceLock()) {
+        app.on('second-instance', (event, argv, cwd) => {
+            console.log(JSON.stringify(argv));
+            window.webContents.send('DOIT','message',JSON.stringify(argv));
+        });
+    }
+    else {
+        app.quit();
+    }
+
 //	Global Variables
 	var window, menu;
 
@@ -121,3 +133,15 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
 	app.on('activate', function () {
 	  	if (window === null) init();
 	});
+
+//    process.argv.forEach(onOpen);
+
+    app.on('open-file', onOpen);
+    app.on('open-url', onOpen);
+
+    function onOpen(path) {
+console.log(131)
+        if(!path) return;
+        console.log(JSON.stringify(arguments));
+		window.webContents.send('DOIT','open',path);
+    }

@@ -1,4 +1,4 @@
-	rm -rf "../release-builds/Document Pager*";
+	rm -rf ../release-builds/Document\ Pager*;
 
 	electron-packager . --overwrite --platform=darwin --arch=x64 --prune=true --out="../release-builds/" # --icon ./images/edit-virtual-hosts.icns;
 	electron-packager . --overwrite --platform=win32 --arch=x64 --prune=true --out="../release-builds" # --icon images/edit-virtual-hosts.ico;

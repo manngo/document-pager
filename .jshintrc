@@ -23,6 +23,7 @@
 		"module": true,
 		"process": true,
 		"console": true,
-		"Prism": true
+		"Prism": true,
+		"marked": true
 	}
 }
