@@ -16,7 +16,7 @@
 	};
 
 //	Development
-	const {DEVELOPMENT}=require('../settings.js');
+	const {DEVELOPMENT,cwd}=require('../settings.js');
 
 //	Generic
 
@@ -74,16 +74,6 @@
 		});
 	}
 
-	// function openDialog() {
-	// 	dialog.showOpenDialog({
-	// 		title: tabs[tab].title,
-	// 		defaultPath: tabs[tab].path
-	// 	},function(filePaths){
-	// 		tabs[tab].path=filePaths.toString();
-	// 		load(tab);
-	// 	});
-	// }
-
 //	Environment
 
 	var platform=process.platform;
@@ -100,27 +90,25 @@
 //	Main
 	main();
 
-
-//			var elements=document.querySelectorAll('[data-load]');
-//			var promise=Promise.resolve();
-//			if(elements) elements.forEach(element=>promise=promise.then(()=>get(element.dataset.load)).then(data=>element.innerHTML=data));
-
-
-
 	function main() {
 //		elements.codeElement=elements.codeElement.contentWindow.document.querySelector('pre>code')
+
+
 		var promise=
-		load(path.join(__dirname, '../settings.json'))
-		.then(data=>settings=JSON.parse(data))
-		.then(()=>documentTitle=settings.headings.title+' '+settings.version)
-		.then(()=>load(path.join(__dirname, '../data/about.md')))
-		.then((data)=>addDocument(data,'md','about.md',`${__dirname}/about.md`));
+			load(path.join(cwd, '/settings.json'))
+			.then(data=>settings=JSON.parse(data))
+			.then(()=>documentTitle=settings.headings.title+' '+settings.version)
+
+			.then(()=>load(path.join(cwd, '/data/about.md')))
+			.then(data=>addDocument(data,'md','about.md',path.join(cwd, '/data/about.md')));
 
 //		.then(()=>load({path: 'data/exercises.sql', language: 'sql'}))
-		if(DEVELOPMENT) promise.then(()=>load('data/exercises.sql'))
-		.then((data)=>addDocument(data,'sql','exercises.sql',`${__dirname}/exercises.sql`))
-		.then(()=>load('data/diy.php'))
-		.then((data)=>addDocument(data,'php','diy.php',`${__dirname}/diy.php`))
+		if(DEVELOPMENT)
+			promise.then(()=>load(path.join(cwd,'data/exercises.sql')))
+			.then((data)=>addDocument(data,'sql','exercises.sql',path.join(cwd,'data/exercises.sql')))
+
+			.then(()=>load(path.join(cwd,'data/diy.php')))
+			.then((data)=>addDocument(data,'php','diy.php',path.join(cwd,'data/diy.php')))
 		;
 //.then(()=>console.log(JSON.stringify(settings)))
 	}
@@ -187,18 +175,28 @@
 			tab.data={text: text, language: language, fileName: fileName, path: path, item: 0, highlighted: 1 };
 			tab.onclick=doTab;
 		var close=document.createElement('button');
-			close.innerHTML='⨉';	//	✖️
+			// var img=document.createElement('img');
+			// img.src=
+			close.innerHTML=`<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="8" height="8" viewBox="0, 0, 24, 24">
+    <path d="M3.141,24 L-0,24 L10.332,11.935 L-0,0 L3.401,0 L12,9.06 L20.924,0 L24,0 L13.581,11.935 L24,24 L20.664,24 L12,14.33 z" fill="#000000"/>
+</svg>`;	//	'⨉';	//	✖️
 			close.onclick=closeTab.bind(tab);
+			close.id='tab-close';
 		var refresh=document.createElement('button');
 			refresh.innerHTML='↻';
 			refresh.onclick=refreshTab.bind(tab);
+			refresh.id='tab-refresh';
 		//	Add to DOM
 			tab.appendChild(close);
-//					tab.insertAdjacentElement('afterbegin',refresh);
+//			tab.insertAdjacentElement('afterbegin',refresh);
 			elements.tabPane.appendChild(tab);
 
 		//	Activate
 			tab.click();
+
+		//	Track
+			tabs.push(tab);
+			currentTab=tab;
 
 		function doTab(event) {
 			if(currentTab!==undefined) currentTab.classList.remove('selected');
@@ -223,10 +221,11 @@
 			}
 			event.stopPropagation();
 		}
-		function refreshTab(event) {
-
-		}
 	}
+	function refreshTab(event) {
+		load(currentTab.data.path).then(text=>currentTab.data.text=text).then(()=>currentTab.click());
+	}
+
 
 	function doPager(data) {
 		var br;
@@ -306,12 +305,10 @@
 			var language=['js','javascript','sql','php'].indexOf(data.language)>-1;
 			elements.codeElement.innerHTML=item;
 
-console.log(elements.codeElement)
 			if(language && doHighlight) elements.codeElement.innerHTML=Prism.highlight(item, Prism.languages[data.language], data.language);
 			else if(data.language=='md' && doHighlight) {
-console.log(`Path: ${data.path}`)
 				elements.codeElement.innerHTML=marked(item,{baseUrl: `${data.path}/${data.fileName}`});
-				elements.codeElement.classList.add('markdown')
+				elements.codeElement.classList.add('markdown');
 			}
 			document.title=documentTitle+': '+data.fileName+' — '+title;
 //			elements.h1.innerHTML=documentTitle+': '+data.fileName+' — '+title;
@@ -413,7 +410,7 @@ elements.codeElement.setLineNumbers();
 				);	//	.then(data=>console.log(data))
 				break;
 			case 'LOAD':
-				load(tab);
+				refreshTab();
 				break;
 			case 'SAVE':
 //				save();

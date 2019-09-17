@@ -1,5 +1,7 @@
 //	Development
-	const DEVELOPMENT=false;
+	const DEVELOPMENT=true;
+
+//	Environment
 
 //	Export
-	module.exports={DEVELOPMENT};
+	module.exports={DEVELOPMENT,cwd: __dirname};

@@ -140,7 +140,6 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
     app.on('open-url', onOpen);
 
     function onOpen(path) {
-console.log(131)
         if(!path) return;
         console.log(JSON.stringify(arguments));
 		window.webContents.send('DOIT','open',path);
