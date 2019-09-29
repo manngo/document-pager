@@ -297,7 +297,36 @@
 	jx.allowTab(element[,spaces]);
 	================================================ */
 
-	jx.stretch=function(element,right,bottom) {
+	jx.stretch=function(element,edge) {
+		edge.addEventListener('mousedown',stretch);
+		function stretch(event) {
+//			var box=element.getBoundingClientRect();
+			var	width=parseInt(window.getComputedStyle(element).width);
+			var x=event.clientX;
+			document.addEventListener('mousemove',goHorizontal);
+			document.addEventListener('mouseup',stop);
+
+			// edge.addEventListener('mouseout',function(event) {
+			// 	console.log('too far');
+			// 	document.removeEventListener('mousemove',goHorizontal);
+			// 	document.removeEventListener('mouseup',stop);
+			// });
+
+			function goHorizontal(event) {
+//console.log(element.offsetWidth)
+				element.style.width=width+event.clientX-x+'px';
+			}
+			function stop(event) {
+console.log('bye')
+				document.removeEventListener('mousemove',goHorizontal);
+				document.removeEventListener('mouseup',stop);
+			}
+		}
+		return;
+
+
+
+
 		element.addEventListener('mousedown',start);
 
 		function start(event) {

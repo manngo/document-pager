@@ -1,0 +1,16 @@
+<plist>
+	<dict>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>php</string>
+				<string>sql</string>
+				<string>md</string>
+				<string>txt</string>
+			</array>
+		</dict>
+	</array>
+	</dict>
+</plist>

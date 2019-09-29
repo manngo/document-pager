@@ -2,16 +2,16 @@
 	================================================
 	================================================ */
 
-/**	: One to Many
+/*	One to Many
 	================================================
 	See also: Price List
 	================================================ */
 
-/**	: One to Maybe
+/*	One to Maybe
 	================================================
 	================================================ */
 
-/**	: Associative Tables
+/*	Associative Tables
 	================================================
 	================================================ */
 
@@ -115,7 +115,7 @@
 
 	--	Check Constraint
 
-/**	: zary Tables
+/*	zary Tables
 	================================================
 	SELECT … INTO also copies the IDENTITY property
 	================================================ */
@@ -140,7 +140,7 @@
 	================================================
 	================================================ */
 
-/**	: Indexes
+/*	Indexes
 	================================================
 	create table indexed (
 		id int identity(1,1) primary key,
@@ -199,7 +199,7 @@
 			SELECT * FROM books WHERE name='Dracula';
 			SELECT * FROM books WHERE title='Dracula';
 
-/**	: Unique Index
+/*	Unique Index
 	================================================ */
 
 	USE employees;
@@ -211,7 +211,7 @@
 			CREATE UNIQUE INDEX uq_customers_phone ON customers(phone)
 			WHERE phone IS NOT NULL;
 
-/**	: Other Constraints
+/*	Other Constraints
 	================================================
 	================================================ */
 
@@ -252,7 +252,7 @@
 	SET phone='…'
 	WHERE email='…';
 
-/**	: Set Operation
+/*	Set Operation
 	================================================
 	================================================ */
 
@@ -272,7 +272,7 @@
 
 	--	EXCEPT (MINUS)
 
-/**	: Copy Table
+/*	Copy Table
 	================================================
 	================================================ */
 
@@ -296,7 +296,7 @@
 		INSERT INTO #temp(id,name)
 		SELECT id,givenname+' '+familyname FROM customers WHERE state='vic'
 
-/**	: : Archive
+/*	: Archive
 	================================================
 	Using Temporary Tables for Example
 	1	Copy First Archive Rows
@@ -346,7 +346,7 @@
 		WHERE id IN (SELECT id FROM #archive);
 
 
-/**	: Inserting INTO Related Table
+/*	Inserting INTO Related Table
     ================================================
     Method:
 	-	Add a row INTO the sales table
@@ -435,19 +435,19 @@
 			round(@value,3) AS round3;
 
 
-/**	: SELECT
+/*	SELECT
     ================================================
     ================================================ */
 
-/**	: WHERE
+/*	WHERE
     ================================================
     ================================================ */
 
-/**	: ORDER BY
+/*	ORDER BY
     ================================================
     ================================================ */
 
-/**	: Variables
+/*	Variables
     ================================================
     ================================================ */
 
@@ -457,7 +457,7 @@
 		price,price*@tax AS gst,price*(1+@tax) AS total
 	FROM paintings;
 
-/**	: Functions
+/*	Functions
 	================================================ */
 
 	--	SQL Server: Format
@@ -470,7 +470,7 @@
 		DECLARE @name varchar(60)='Stan, the Man,Lee';
 		SELECT replace(@name,',',' ');
 
-/**	: Cast
+/*	Cast
 	================================================ */
 
 	USE bookgenres;
@@ -500,7 +500,7 @@
 			givenname+' '+familyname+coalesce(': '+CAST(height AS varchar),'')
 		 FROM customers;
 
-/**	: CASE
+/*	CASE
  	================================================ */
 
 /**	Case Operator
@@ -570,7 +570,7 @@
 				END AS height
 		FROM customers;
 
-/**	: Coalesce
+/*	Coalesce
 	================================================
 	coalesce(price,0)
 	coalesce(quantity,0)
@@ -591,7 +591,7 @@
 		followed by OFFSET 0 ROWS
     ================================================ */
 
-/**	: Computed Columns
+/*	Computed Columns
     ================================================
     ================================================ */
 
@@ -609,7 +609,7 @@
 
 	USE printsDB;
 
-/**	: Some Aggregate Examples
+/*	Some Aggregate Examples
     ================================================
 	These are variations ON simple aggregate functions:
     ================================================ */
@@ -667,7 +667,7 @@
 			count(CASE WHEN height>=170 THEN 1 END) AS tall
 		FROM customers;
 
-/**	: Groups
+/*	Groups
     ================================================
     ================================================ */
 
@@ -682,7 +682,7 @@
 	--	SELECT town,state,count(*) AS population
 	ORDER BY population DESC,state,town;
 
-/**	: :GROUP BY calculation
+/*	:GROUP BY calculation
 	================================================ */
 
 	USE printsDB;
@@ -711,7 +711,7 @@
 	FROM cte
 	GROUP BY decade;
 
-/**	: : GROUP BY month
+/*	: GROUP BY month
 	================================================
 	To display the month name and ORDER BY month number
 	we need to GROUP BY month twice.
@@ -728,7 +728,7 @@
 	GROUP BY datename(month,dob), datepart(month,dob)
 	ORDER BY datepart(month,dob);
 
-/**	: : 	GROUP BY Aggregates
+/*	: 	GROUP BY Aggregates
     ================================================
     ================================================ */
 --	GROUP BY Aggregates
@@ -770,7 +770,7 @@
 		FROM cte
 		GROUP BY age;
 
-/**	: Group Concatenation
+/*	Group Concatenation
     ================================================
 	Standard:
 		string_agg(data,delimiter) AS data
@@ -817,7 +817,7 @@
 
 	--	The above CTE could also have been a VIEW
 
-/**	: Agregate Filter
+/*	Agregate Filter
     ================================================
     ================================================ */
 
@@ -865,7 +865,7 @@
 /**	Window Functions
 	================================================ */
 
-/**	: Aggregate Examples
+/*	Aggregate Examples
 	================================================
 	================================================ */
 
@@ -1013,7 +1013,7 @@
 		ORDER BY dob OFFSET 5 rows FETCH FIRST /* | NEXT */ 5 ROWS ONLY;
 
 
-/**	: : Using Variables
+/*	Using Variables
 	================================================
 	See Also Functions & Procedures
 	================================================ */
@@ -1035,7 +1035,7 @@
 		Oldest Customer
 	================================================ */
 
-/**	: in WHERE clause
+/*	in WHERE clause
 	================================================ */
 	SELECT
 		*
@@ -1046,7 +1046,7 @@
 	FROM sales
 	WHERE customerid IN (SELECT id FROM customers WHERE state='nsw');
 
-/**	: Find Duplicates
+/*	Find Duplicates
 	================================================ */
 
 	SELECT *
@@ -1095,7 +1095,7 @@
 		FROM cte
 		WHERE monthname='January'
 
-/**	: Recursive CTE
+/*	Recursive CTE
     ================================================
     ================================================ */
 
@@ -1155,7 +1155,7 @@
     ================================================
     ================================================ */
 
-/**	: Hand-Made
+/*	Hand-Made
     ================================================
     ================================================ */
 	--	PostgreSQL
@@ -1200,7 +1200,7 @@
 		FROM expenses
 		GROUP BY date;
 
-/**	: MSSQL Pivot Table
+/*	MSSQL Pivot Table
 	================================================
 	Usually need a CTE or Sub Query since table data
 	is generally unsuitable.

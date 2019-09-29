@@ -1,5 +1,5 @@
 {
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"headings": {
 		"title": "Document Pager",
 		"h1": "Document Pager",
@@ -7,13 +7,13 @@
 		"content": "Content"
 	},
 	"breaks": {
-		"js": "/**",
-		"javascript": "/**",
-		"php": ["/**","/*:"],
-		"sql": "/**",
-		"css": "/**",
-		"md": "#?#",
-		"markdown": "#?#",
-		"*": "#?#"
+		"js": { "major": "/**", "minor": "/*"},
+		"php": { "major": ["/**","/*:"], "minor": "/*" },
+		"javascript": { "major": "/**", "minor": "/*" },
+		"sql": { "major": "/**", "minor": "/*" },
+		"css": { "major": "/**", "minor": "/*" },
+		"md": { "major": "##"},
+		"markdown": { "major": "##", "minor": "###" },
+		"*": { "major": "##", "minor": "###" }
 	}
 }

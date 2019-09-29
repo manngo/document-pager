@@ -1,9 +1,9 @@
 <?php
-	/*:	DIY
+	/*:	Chapter 7
 		================================================
 		================================================ */
 
-	/**	DIY 7.1: The makeThumbnail() stub
+	/*:	DIY 7.1: The makeThumbnail() stub
 		================================================
 		You already have a library file, library.php in
 		your includes folder. Add the following function
@@ -25,7 +25,7 @@
 		    //  return data when finished
 		}
 
-	/**	DIY 7.3: Using the switch() statement
+	/*:	DIY 7.3: Using the switch() statement
 		================================================
 		Add the following to your function:
 		================================================ */
@@ -103,6 +103,7 @@
 		    //  Save image file
 		        saveImage($thumbnail, $destination, $mime);
 		}
+
 	/*:	DIY 7.8: Creating and Empty Image
 		================================================
 		Add the following to your code:
@@ -114,8 +115,8 @@
 		}
 
 	/*:	DIY 7.9: Using imagecopyresampled()
-		================================================
-		Add the following variables to your code:
+		================================================ */
+	/*	Step 1: Add the following variables to your code:
 		================================================ */
 		function makeThumbnail(…) {
 		    …
@@ -127,8 +128,7 @@
 		        //  $sw and $sh already determined previously
 		    …
 		}
-	/*	================================================
-		Now Add the function call to your code:
+	/*	Step 2: Now Add the function call to your code:
 		================================================ */
 		function makeThumbnail(…) {
 		    …
@@ -144,21 +144,19 @@
 		}
 
 	/*:	DIY 7.10: The Upload Page
-		================================================
-		Add the following near the beginning of your images.inc.php page:
+		================================================ */
+	/*	Step 1: Add the following near the beginning of your images.inc.php page:
 		================================================ */
 		require_once 'includes/library.php';
 
-	/*	================================================
-		For convenience, copy the images nested array into into a variable, and use the new variable:
+	/*	Step 2:  For convenience, copy the images nested array into into a variable, and use the new variable:
 		================================================ */
 		//  Keep Original
 		    $settings = $CONFIG['images'];
 		    move_uploaded_file($_FILES['image']['tmp_name'],
 		        "{$settings['originals/path']}/$name");
 
-	/*	================================================
-		Add the function call to create your thumbnail:
+	/*	Step 3: Add the function call to create your thumbnail:
 		================================================ */
 		if(!$errors) {
 		    …

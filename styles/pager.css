@@ -1,6 +1,18 @@
 /*	Pager
 	================================================ */
 
+	@keyframes intro {
+		from	{ opacity: 0;}
+		to		{ opacity: 1; }
+	}
+
+html {
+	animation: intro 1s;
+	-webkit-user-select: none;
+	-webkit-app-region: drag;
+}
+
+
 /*	Nativefier Application
 	================================================ */
 
@@ -82,12 +94,22 @@
 					overflow: hidden;
 					flex: 1;
 				}
+				div#content>p#content-footer {
+					background-color: #ddd;
+					padding: .25em .5em;
+					margin: 0;
+					border-bottom: thin solid #999;
+					display: flex;
+					justify-content: flex-end;
+				}
 
 	footer {
 		background-color: #ddd;
 		margin: 0;
-		height: 1.75em;
 	}
+
+
+
 /*	Pager
 	================================================ */
 
@@ -137,20 +159,27 @@ footer>p {
 	margin: 0;
 	display: flex;
 	justify-content: flex-end;
+	padding: .25rem;
 }
-	footer span#footer-language,
-	footer span#footer-heading {
+	footer span {
+		box-sizing: border-box;
+	}
+	span#footer-message,
+	span#footer-language,
+	span#footer-heading {
 		border: thin solid #ccc;
-		border: none;
-		font-size: .8em;
+		qborder: none;
+		font-size: .8rem;
 		color: #666;
-		width: 8em;
+		min-width: 8em;
 		text-align: center;
-		padding: .25em .25em .375em .25em;
-		background-color: white;
+		padding: .25em .5em .375em .5em;
 		background-color: transparent;
 		font-family: var(--monospace);
 		text-shadow: 0 1px 0 white;
+	}
+	footer span:empty {
+		display: none;
 	}
 
 /*	Control
@@ -182,6 +211,10 @@ footer>p {
 		font-size: .85em;
 		color: #333;
 		margin: 0;
+
+		box-shadow:
+			inset 2px 2px 2px white,
+			inset -2px -2px 2px #ddd
 	}
 
 	/*	About
@@ -218,6 +251,10 @@ footer>p {
 			============================================ */
 		form#control input[name="show-highlight"]:checked+label {
 			color: #333;
+			background-color: #ddd;
+			box-shadow:
+				inset 1px 1px 1px #ccc,
+				inset -1px -1px 1px white
 		}
 
 /*	Tabs
@@ -267,14 +304,41 @@ footer>p {
 	============================================ */
 
 	div#index {
+		display: grid;
+		grid-template-areas:
+			"h2 h2"
+			"ul ul"
+			"p resize"
+		;
+		grid-template-rows: 3em auto 3em;
+		grid-template-columns: 1fr 14px;
+	}
+	div#index>h2	{ grid-area: h2; }
+	div#index>ul	{ grid-area: ul; }
+	div#index>p		{ grid-area: p; }
+	div#index>span	{ grid-area: resize; }
+
+	div#index>span#resize-index {
+		display: block;
+		cursor: col-resize;
+		margin: 0;
+		background-color: #eee;
+		background: repeating-linear-gradient(
+			to right,
+			#ddd 0, #ddd 1px,
+			white 1px, white 3px)
+	}
+
+	div#index {
 		box-sizing: border-box;
 		padding: .25em 1em;
 		padding: 0 0 0 0;
 		overflow: hidden;
-		display: flex;
-		flex-direction: column;
+		qdisplay: flex;
+		qflex-direction: column;
 		border: thin #ccc;
 		border-style: none solid none none;
+height: 100% !important;
 	}
 	div#index>h2 {
 
@@ -288,35 +352,53 @@ footer>p {
 		border-style: none none solid none;
 	}
 	div#index>ul>li {
-		padding: .5em;
 		cursor: default;
 	}
 	div#index>ul>li:nth-child(n+2) {
 		border-top: thin solid #999;
 	}
 
-	div#index>ul>li:hover {
+	div#index ul>li:not(.selected)>span {
+		background-color: none;
+	}
+
+	div#index ul>li.selected>span {
 		background-color: #eee;
 	}
-
-	div#index>ul>li.selected {
-		background-color: #ddd;
+	div#index ul>li:not(.selected) {
+		background-color: white;
+	}
+	div#index ul>li>span {
+		display: block;
+	}
+	div#index>ul>li>span {
+		padding: .25em .5em;
+	}
+	div#index>ul>li>ul>li>span {
+		padding: .25em .5em .25em 1.25em;
+	}
+	div#index ul>li>span:hover {
+		background-color: #ddd !important;
 	}
 
+/*	Major & Minor
+	============================================ */
 
-	div#index {
-		position: relative;
+	div#index>ul>li {
+		font-weight: bold;
 	}
-	div#index:after {
-		cursor: col-resize;
-		content: "";
-		position: absolute;
-		height: 100%;
-		right: 0;
-		top: 0;
-		width: 6px;
+
+	div#index>ul>li>ul {
+		list-style: none;
+		padding: 0;
+	}
+
+	div#index>ul>li>ul>li {
+		border-top: thin solid #999;
+		font-weight: normal;
 		margin: 0;
 	}
+
 p#raw-message {
 	margin-left: 1em;
 }
