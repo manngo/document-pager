@@ -690,5 +690,27 @@ console.log('bye')
 		}
 		return show;
 	};
+
+
+	jx.addLineNumbers=function(element) {
+		var styles=['line-height','font-family','padding-top','padding-bottom','font-size'];
+		var lineNumbers=document.createElement('div');
+		return jx.setLineNumbers(element,lineNumbers);
+	};
+	jx.setLineNumbers=function(element,lineNumbers) {
+		var styles=['line-height','font-family','padding-top','padding-bottom','font-size'];
+		var computedStyles=window.getComputedStyle(element);
+		styles.forEach(style=>lineNumbers.style[style]=computedStyles[style]);
+		lineNumbers.classList.add('line-numbers');
+		element.insertAdjacentElement('beforebegin',lineNumbers);
+		element.setLineNumbers=function() {
+			var lines=element.textContent.split(/\r?\n/).length;
+			lineNumbers.textContent=Array.from({length: lines},(v,i)=>i+1).join('\n');
+		};
+		return lineNumbers;
+	};
+
+
+
 //	Export
 	module.exports={jx,DOM};

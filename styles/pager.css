@@ -6,11 +6,11 @@
 		to		{ opacity: 1; }
 	}
 
-html {
-	animation: intro 1s;
-	-webkit-user-select: none;
-	-webkit-app-region: drag;
-}
+	html {
+		animation: intro 1s;
+		-webkit-user-select: none;
+		-webkit-app-region: drag;
+	}
 
 
 /*	Nativefier Application

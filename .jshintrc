@@ -24,6 +24,8 @@
 		"process": true,
 		"console": true,
 		"Prism": true,
-		"marked": true
+		"marked": true,
+		"getComputedStyle": true
+
 	}
 }
