@@ -5,7 +5,7 @@
 		font-size: var(--font-size);
 	}
 
-	pre>code, div.line-numbers {
+	pre>code {
 		font-family: "Source Code Pro", monospace;
 		font-size: .8em;
 		padding: .5em 0;
@@ -15,7 +15,7 @@
 /*	Content
 	============================================ */
 
-	pre {
+	body>pre {
 		margin: 0;
 		box-sizing: border-box;
 		overflow: auto;
@@ -24,12 +24,12 @@
 		border: thin solid #ccc;
 		border-style:  none;
 	}
-	pre>code {
+	body>pre>code {
 		white-space: pre;
 		tab-size: 4;
 	}
 
-	pre>code.markdown {
+	body>pre>code.markdown {
 		white-space: normal;
 	}
 
@@ -80,4 +80,10 @@
 	}
 	code {
 		flex: 1;
+	}
+
+	h2+div {
+		border: thin solid #999;
+		box-shadow: 2px 2px 2px #999;
+		padding: .5em 1em;
 	}

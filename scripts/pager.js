@@ -1,25 +1,33 @@
-/*	Document Pager
+/**	Document Pager
 	================================================
 	================================================ */
+
 	'use strict';
-//	window.onerror=function(message,url,line) {
-//		alert('Error: '+message+'\n'+url+': '+line);
-//	};
+	//	window.onerror=function(message,url,line) {
+	//		alert('Error: '+message+'\n'+url+': '+line);
+	//	};
+
+/**	Drag & Drop … ?
+	================================================ */
+
 	document.ondragover = document.ondrop = (event) => {
-console.log('dragover | drop');
+		console.log('dragover | drop');
 		event.preventDefault();
 	};
 
 	document.body.ondrop = (event) => {
-//console.log(JSON.stringify(event.dataTransfer.files[0].path));
-//		openFile(event.dataTransfer.files[0].path.toString());
+		//console.log(JSON.stringify(event.dataTransfer.files[0].path));
+		//		openFile(event.dataTransfer.files[0].path.toString());
 		event.preventDefault();
 	};
 
-//	Development
+/**	settings.js
+	================================================ */
+
 	const {DEVELOPMENT,cwd}=require('../settings.js');
 
-//	Generic
+/**	Generic
+	================================================ */
 
 	const iterableProperties={
 		enumerable: false,
@@ -28,35 +36,57 @@ console.log('dragover | drop');
 		}
 	};
 
-//	Requires
-	const path = require('path');
-	const fs = require('fs');
-	const fsp = require('fs').promises;
-	const { ipcRenderer, shell} = require('electron');
-	const { dialog } = require('electron').remote;
-//	const dialog = require('electron').remote.dialog;
+/**	Requires
+	================================================ */
 
 	const electron=require('electron');
-
-	const remote=electron.remote;
-	const app=remote.app;
-	const BrowserWindow = remote.BrowserWindow;
-
+		const { ipcRenderer, shell, remote } = require('electron');
+			const app=remote.app;
+			const BrowserWindow = remote.BrowserWindow;
+			const dialog=remote.dialog;
+	const path = require('path');
+	const fs = require('fs');
+		const fsp = fs.promises;
 	const normalize = require('normalize-path');
-//	const dialog = remote.require('dialog');
+	const temp=require('temp').track();
 
-	const marked = require('marked');
+	//	Others
+		const {jx,DOM}=require('../scripts/utilities.js');
+		const marked = require('marked');
+
+/**	Environment
+	================================================ */
+
+	var platform=process.platform;
+	var os=require('os');
+
+/**	Extensions
+	================================================ */
+
+	var renderer = new marked.Renderer();
+	renderer.paragraph=function(text) {
+		var pattern=/^(#+)(.*?)(\.(.*?))?(\s+(.*?))?$/;
+		var parts=text.match(pattern);
+		if(parts) {
+			var id=parts[2]?` id="${parts[2]}"`:'';
+			var className=parts[4]?` class="${parts[4]}"`:'';
+			var level=parts[1].length;
+			var content=parts[6]||'';
+			return `<h${level}${id}${className}>${content}</h${level}>`;
+		}
+		else return marked(text);
+
+	};
 
 	const window=remote.getCurrentWindow();
 	window.webContents.on('new-window', function(event, url) {
 	  event.preventDefault();
 	  shell.openExternal(url);
 	});
-	const temp=require('temp').track();
 
-	const {jx,DOM}=require('../scripts/utilities.js');
-
-//	Support Functions
+/**	Support Functions
+	================================================
+	================================================ */
 
 	function load(theDocument) {
 		return new Promise((resolve,reject)=>{
@@ -74,48 +104,62 @@ console.log('dragover | drop');
 		});
 	}
 
-//	Environment
-
-	var platform=process.platform;
-	var os=require('os');
-
-/*	Pager
+/**	Pager
 	================================================
 	================================================ */
 
 //	Globals
-	var settings;
+	var settings,languages,extensions;
 	var documentTitle;
 
 	var home=`${app.getPath('home')}/.document-pager`;
-	var breaksJSON=`${home}/breaks.json`;
+	var languagesJSON=`${home}/languages.json`;
 	var filesJSON=`${home}/files.json`, files={};
 
 //	Main
 	main();
 
 	function main() {
-//		elements.codeElement=elements.codeElement.contentWindow.document.querySelector('pre>code')
-
 		var breaks;
 
 		var promise=
 			//	Default Settings
 				load(path.join(cwd, '/settings.json'))
-				.then(data=>settings=JSON.parse(data))
+				.then(data=>{
+					settings=JSON.parse(data);
+				})
 
 			//	Home Directory
-				.then(()=>fs.promises.stat(home))
-				.then(()=>console.log(`${home} exists`))
-				.catch(()=>{fs.promises.mkdir(home);})
+				.then(()=>fsp.stat(home))
+				.catch(()=>{fsp.mkdir(home);})
 
-			//	Breaks
-				.then(()=>fs.promises.stat(breaksJSON))
-				.catch(()=>fs.promises.writeFile(breaksJSON,'{}'))
-				.then(()=>fs.promises.readFile(breaksJSON))
+			//	Languages
+				.then(()=>fsp.stat(languagesJSON))
+				.catch(()=>fsp.writeFile(languagesJSON,'{}'))
+				.then(()=>fsp.readFile(languagesJSON))
 				.then(data=>{
-					breaks=JSON.parse(data);
-					for(let v in breaks) settings.breaks[v]=breaks[v];
+					languages=JSON.parse(data);
+					Object.keys(languages).forEach(l=> {
+						if(!settings.languages[l]) settings.languages[l]=languages[l];
+						else {
+							if(languages[l].extensions) languages[l].extensions.forEach(ext=>settings.languages[l].extensions.push(ext));
+							if(languages[l].breaks) {
+								if(languages[l].breaks.major) {
+									if(!settings.languages[l].breaks.major) settings.languages[l].breaks.major=[];
+									languages[l].breaks.major.forEach(br=>settings.languages[l].breaks.major.push(br));
+								}
+								if(languages[l].breaks.minor) {
+									if(!settings.languages[l].breaks.minor) settings.languages[l].breaks.minor=[];
+									languages[l].breaks.minor.forEach(br=>settings.languages[l].breaks.minor.push(br));
+								}
+							}
+						}
+					});
+
+					extensions={};
+					Object.keys(settings.languages).forEach(l=>{
+						settings.languages[l].extensions.forEach(e=>extensions[e]=l);
+					});
 				})
 
 			//	Details
@@ -123,7 +167,7 @@ console.log('dragover | drop');
 
 			//	About
 				.then(()=>load(path.join(cwd, '/README.md')))
-				.then(data=>addDocument(data,'md','about.md',path.join(cwd, '/data/about.md')))
+				.then(data=>addDocument(data,'markdown','README.md',path.join(cwd, '')))
 
 			//	Files
 				.then(()=>fs.promises.stat(filesJSON))
@@ -131,26 +175,30 @@ console.log('dragover | drop');
 				.then(()=>fs.promises.readFile(filesJSON))
 				.then(data=>{
 					files=JSON.parse(data);
-//					files.forEach(v=>load(v.path).then((data)=>addDocument(data,v.language,v.title,v.path)));
 					files.forEach(v=>openFile(v));
 				})
-			;
+		;
 
 		if(DEVELOPMENT)
 			promise
 			.then(()=>load(path.join(cwd,'data/exercises.sql')))
-			.then((data)=>addDocument(data,'sql','exercises.sql',path.join(cwd,'data/exercises.sql')))
-			;//.then(()=>console.log(JSON.stringify(settings)))
+			.then((data)=>addDocument(data,'sql','exercises.sql',path.join(cwd,'data')))
+			.then(()=>tabs[0].click())
+			;
 	}
 
+/**	Pager
+	================================================
+	================================================ */
 
-
-//	Constants
-//	var documentTitle=settings.headings.title+' '+settings.version;
 	//	Document Tabs
 		var currentTab;
 		var currentItem;
 		var tabs=[];
+
+	//	Other Variables
+		var lineNumbers;
+		var codeFontSize;
 
 	//	Elements
 		var elements={
@@ -169,7 +217,7 @@ console.log('dragover | drop');
 				contentDiv: document.querySelector('div#content'),
 				contentHeading: document.querySelector('div#content>h2'),
 				divContentPre: document.querySelector('div#content>pre'),
-//				codeElement: document.querySelector('div#content>pre>code'),
+				iframeCSS: document.querySelector('div#content>iframe').contentWindow.document.querySelector('link#additional-css'),
 				codeElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('pre>code'),
 				highlightButton: document.querySelector('button#highlight'),
 				smallerButton: document.querySelector('button#smaller'),
@@ -183,37 +231,39 @@ console.log('dragover | drop');
 				footerHeading: document.querySelector('span#footer-heading'),
 		};
 
-//jx.draggable(document.querySelector('footer'))
-	jx.stretch(elements.indexDiv,elements.resizeIndex);
+		var codeFontSize=getComputedStyle(document.querySelector('div#content>iframe').contentWindow.document.querySelector('pre')).getPropertyValue('--font-size');
+		codeFontSize=codeFontSize.match(/((\d*)(\.\d+)?)([a-z]+)/);
+		codeFontSize={size: codeFontSize[1], units: codeFontSize[4]};
+		var originalCodeFontSize=codeFontSize.size;
 
-	var lineNumbers=addLineNumbers(elements.codeElement);
-	elements.codeElement.setLineNumbers();
+	//	Adjust Elements
+		jx.stretch(elements.indexDiv,elements.resizeIndex);
 
-	elements.formControl.elements['show-highlight'].onclick=function(event) {
-		currentItem.click();
-	};
+		lineNumbers=jx.addLineNumbers(elements.codeElement);
+		elements.codeElement.setLineNumbers();
 
-	function addLineNumbers(element) {
-		var lineNumbers=document.createElement('div');
-//		var styles=BrowserWindow.webContents.getComputedStyle(element);
-		lineNumbers.classList.add('line-numbers');
-		element.insertAdjacentElement('beforebegin',lineNumbers);
-		element.setLineNumbers=function() {
-			var lines=element.textContent.split(/\r?\n/).length;
-			lineNumbers.textContent=Array.from({length: lines},(v,i)=>i+1).join('\n');
+		elements.formControl.elements['show-highlight'].onclick=function(event) {
+			currentItem.click();
 		};
-		return lineNumbers;
-	}
+		elements.formControl.elements['zoom-larger'].onclick=zoom.bind(null,1);
+		elements.formControl.elements['zoom-smaller'].onclick=zoom.bind(null,-1);
+		elements.formControl.elements['zoom-default'].onclick=zoom.bind(null,0);
 
-//	Add Document
+
+/**	Add Document
+	================================================
+	================================================ */
+
 	function addDocument(text,language,fileName,path) {
 		var tab=document.createElement('li');
+			var css='';
 			tab.textContent=fileName;
-			tab.data={text: text, language: language, fileName: fileName, path: path, item: 0, highlighted: 1 };
+			if(language=='markdown') var css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
+
+			tab.data={text, language, fileName, path, item: 0, highlighted: 1 , css};
 			tab.onclick=doTab;
+
 		var close=document.createElement('button');
-			// var img=document.createElement('img');
-			// img.src=
 			close.innerHTML=`<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="8" height="8" viewBox="0, 0, 24, 24"><path d="M3.141,24 L-0,24 L10.332,11.935 L-0,0 L3.401,0 L12,9.06 L20.924,0 L24,0 L13.581,11.935 L24,24 L20.664,24 L12,14.33 z" fill="#000000"/></svg>`;	//	'⨉';	//	✖️
 			close.onclick=closeTab.bind(tab);
 			close.id='tab-close';
@@ -221,9 +271,9 @@ console.log('dragover | drop');
 			refresh.innerHTML='↻';
 			refresh.onclick=refreshTab.bind(tab);
 			refresh.id='tab-refresh';
+
 		//	Add to DOM
 			tab.appendChild(close);
-//			tab.insertAdjacentElement('afterbegin',refresh);
 			elements.tabPane.appendChild(tab);
 
 		//	Activate
@@ -261,11 +311,18 @@ console.log('dragover | drop');
 			event.stopPropagation();
 		}
 	}
+/**	refreshTab
+	================================================
+	================================================ */
+
 	function refreshTab(event) {
 		load(currentTab.data.path).then(text=>currentTab.data.text=text).then(()=>currentTab.click());
 	}
 
 
+/**	doPager
+	================================================
+	================================================ */
 	function doPager(data) {
 		var br, major, minor;
 	//	Adjust Environment
@@ -276,8 +333,8 @@ console.log('dragover | drop');
 		var headingsRE, headingMajor, headingMinor, RE;
 		var title;
 
-	//	Heading Regular Expressions(Hard Code for Now):
-		var breaks=settings.breaks[data.language]||settings.breaks['*'];
+	//	Heading Regular Expressions:
+		var breaks=settings.languages[data.language].breaks;
 		var literals=/[-\/\\^$*+.()|[\]{}]/g;
 
 		//	Major Breaks
@@ -298,13 +355,21 @@ console.log('dragover | drop');
 			}
 			else minor=null;
 
-		br=`${major}\\s+|${minor}\\s+`;
-		elements.footerHeading.innerHTML=`Breaks: ${br}`;
+			br=`${major}\\s+|${minor}\\s+`;
+			elements.footerHeading.innerHTML=`Breaks: ${br}`;
 
+		//	Break Regular Expressions
 
-		headingsRE=new RegExp(`(?:\\n\\s*)(?=${br})`);
-		headingMajor=new RegExp(`(?:^${major}\\s+)(.*?)\\r?\\n`);
-		headingMinor=new RegExp(`(?:^${minor}\\s+)(.*?)\\r?\\n`);
+			headingsRE=new RegExp(`(?:\\n\\s*)(?=${br})`);
+			headingMajor=new RegExp(`(?:^${major}\\s+)(.*?)\\r?\\n`);
+			headingMinor=new RegExp(`(?:^${minor}\\s+)(.*?)\\r?\\n`);
+
+		//	Special Case: Markdown
+
+			if(data.language=='markdown') {
+				headingsRE=/(?:\n)(?=##?[^#])/;
+				headingMajor=/^##?[^#]*?\s+(.*)/m;
+			}
 
 	//	Populate Index
 		var items=data.text.split(headingsRE);
@@ -314,7 +379,6 @@ console.log('dragover | drop');
 			var previous=undefined, selected=undefined;
 			items.forEach(function(value,i) {
 				var li=document.createElement('li');
-
 				RE=value.match(headingMajor);
 				if(RE && RE[1]) {
 					nested=false;
@@ -335,6 +399,7 @@ console.log('dragover | drop');
 					}
 					else title='';
 				}
+				if(!title.length) return;
 
 				li.innerHTML=`<span>${title}</span>`;
 				li.next=li.previous=undefined;
@@ -348,8 +413,13 @@ console.log('dragover | drop');
 				else elements.indexUL.appendChild(li);
 				if(i==data.item) selected=li;
 				previous=li;
+
+				if(!selected) selected=li;
 			});
-			selected.click();
+
+
+
+			if(selected) selected.click();
 		}
 		else showItem(data.text,data.fileName,true);
 
@@ -386,10 +456,13 @@ console.log('dragover | drop');
 			elements.codeElement.innerHTML=item;
 
 			lineNumbers.style.display='block';
+			elements.iframeCSS.href=`${data.css}`;
 
 			if(language && doHighlight) elements.codeElement.innerHTML=Prism.highlight(item, Prism.languages[data.language], data.language);
-			else if(data.language=='md' && doHighlight) {
-				elements.codeElement.innerHTML=marked(item,{baseUrl: `${data.path}/${data.fileName}`});
+			else if(data.language=='markdown' && doHighlight) {
+				var innerHTML=marked(item,{baseUrl: `${data.path}/${data.fileName}`, renderer});
+				innerHTML=innerHTML.replace(/(<h.*>.*<\/h.>)([\s\S]*)/g,'$1\n<div>$2</div>');
+				elements.codeElement.innerHTML=innerHTML;
 				elements.codeElement.classList.add('markdown');
 				lineNumbers.style.display='none';
 			}
@@ -405,14 +478,32 @@ console.log('dragover | drop');
 		}
 	}
 
+	function zoom(direction) {
+		switch(direction) {
+			case -1:
+				codeFontSize.size/=1.25;
+				break;
+			case 1:
+				codeFontSize.size*=1.25;
+				break;
+			default:
+				codeFontSize.size=originalCodeFontSize;
+				break;
+		}
+		document.querySelector('div#content>iframe').contentWindow.document.querySelector('pre').style.setProperty('--font-size',`${codeFontSize.size}${codeFontSize.units}`);
+		jx.setLineNumbers(elements.codeElement,lineNumbers);
+	}
+
+
+
 	function openFile(pathName) {
 		var path=normalize(pathName).split('/');
 		var fileName=path.pop();
 		path=path.join('/');
-		var language=fileName.split('.').pop();
+		var extension=fileName.split('.').pop();
 		load(`${path}/${fileName}`)
 		.then(data=> {
-			addDocument(data,language,fileName,path);
+			addDocument(data,extensions[extension],fileName,path);
 		})
 		;
 	}
@@ -471,7 +562,7 @@ console.log('dragover | drop');
 		}
 	});
 
-	ipcRenderer.on('MENU',(event,data)=>{
+	ipcRenderer.on('MENU',(event,data,more)=>{
 		switch(data) {
 			case 'NEW':
 
@@ -488,10 +579,10 @@ console.log('dragover | drop');
 						var fileName=path.pop();
 						var path=path.join('/');
 						localStorage.setItem('defaultPath',path);
-						var language=fileName.split('.').pop();
+						var extension=fileName.split('.').pop();
 						load(pathName)
 						.then(function(data) {
-							addDocument(data,language,fileName,pathName);
+							addDocument(data,extensions[extension].language,fileName,pathName);
 						})
 						.then(()=>{
 							if(!files.includes(pathName)) {
@@ -502,6 +593,9 @@ console.log('dragover | drop');
 						;
 					}
 				);	//	.then(data=>console.log(data))
+				break;
+			case 'ZOOM':
+				zoom(more);
 				break;
 			case 'LOAD':
 				refreshTab();

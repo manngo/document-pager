@@ -8,8 +8,7 @@
 		tab-size: 4 !important;
 	}
 </style>
-
-#	Document Pager 0.2.0
+#	Document Pager 0.2.1
 
 Document Pager © Mark Simon
 See also https://pager.internotes.net/
@@ -24,10 +23,10 @@ Your document should include headings which are generally comments which follow 
 
 Currently, the default pattern is:
 
-| Document | Main Heading     | Sub Heading     |
-|----------|------------------|-----------------|
-| Text     | ## Main Heading  | ### Sub Heading |
-| Coding   | /** Main Heading | /* Sub Heading  |
+| Document | Main Heading       | Sub Heading       |
+|----------|--------------------|-------------------|
+| Text     | `## Main Heading`  | `### Sub Heading` |
+| Coding   | `/** Main Heading` | `/* Sub Heading`  |
 
 Note that the `/*` style comment is a block comment. The heading will only extend to the end of the line.
 
@@ -47,32 +46,56 @@ To view the unhighlighted version, you can either:
 
 Document Pager will create a folder in the user’s home directory called `.document-pager`. It includes:
 
-| File        | Usage                                                                 |
-|-------------|-----------------------------------------------------------------------|
-| breaks.json | Additional Heading Patterns<br>They can override the default patterns |
-| files.json  | A list of last open files                                             |
+| File--           | Usage                        |
+|------------------|------------------------------|
+| `languages.json` | Additional Language Settings |
+| `files.json`     | A list of last open files    |
 
 ###	Additional Headings
 
-If you want to add your own heading markers, you should add them to the `breaks.json` file using the following pattern:
+If you want to add your own heading markers, you should add them to the `languages.json` file using the following pattern:
 
 ```js
 {
-	"language": { "major": "…", "minor": "…" }
+	"language": {
+		"extensions": ["…"],
+		"breaks" { "major": ["…"], "minor": ["…"] }
+	}
 }
 ```
 
-Here are the default breaks:
+You can omit any of the sub sections, and you can have multiple values inside the square brackets.
+
+
+Here are the default language settings:
 
 ```js
 {
-	"php": { "major": ["/**","/*:"], "minor": "/*" },
-	"javascript": { "major": "/**", "minor": "/*" },
-	"sql": { "major": "/**", "minor": "/*" },
-	"css": { "major": "/**", "minor": "/*" },
-	"md": { "major": "##", "minor": "###" },
-	"markdown": { "major": "##", "minor": "###" },
-	"*": { "major": "##", "minor": "###" }
+	"javascript": {
+		"extensions": ["js","javascript"],
+		"breaks": { "major": ["/**"], "minor": ["/*"]}
+	},
+	"php": {
+		"extensions": ["php"],
+		"breaks": { "major": ["/**","/*:"], "minor": ["/*"] }
+	},
+	"sql": {
+		"extensions": ["sql"],
+		"breaks": { "major": ["/**"], "minor": ["/*"] }
+	},
+	"css": {
+		"extensions": ["sql"],
+		"breaks": { "major": ["/**"], "minor": ["/*"] }
+	},
+	"markdown": {
+		"extensions": ["md","markdown","mds"],
+		"breaks": { "major": ["##"]}
+	},
+	"text": {
+		"extensions": ["txt","text","*"],
+		"breaks": { "major": ["#"], "minor": ["##"] }
+	}
+
 }
 ```
 
@@ -80,7 +103,46 @@ Here are the default breaks:
 
 You can also page through MarkDown documents. Here the `##` heading is used for paging.
 
+Markdown files are recognised by the following extensions: `.md`, `.markdown` and `.mds`, or others if you’re prepared to add your own language preferences.
+
+The `.mds` extension is for a future enhancement.
+
 If you include images, you can either use absolute references to them or you can include images relative to the document itself.
+
+###	Special Headings
+
+Markdown headings can take the following non-standard format:
+
+```md
+##id.class
+```
+
+This generates HTML in the following format:
+
+```html
+<h2 id="…" class="…"> … </h2>
+```
+
+The `id` and `class` are both optional
+
+___Other markdown editors will not recognise this, and so it will appear as a paragraph.___
+
+###	Custom Styles
+
+You can add your own custom MarkDown styles in the following location:
+
+```
+filename/styles.css
+```
+
+The `filename` folder appears _without_ the markdown extension.
+
+For example:
+
+```
+test.md
+test/styles.css
+```
 
 ##	Credits
 

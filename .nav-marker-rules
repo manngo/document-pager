@@ -1,2 +1,3 @@
 #marker-rule: /\/\*\*\s*(.*)/||%1||Heading||ext=.sql
 #marker-rule: /\/\*:\s*(.*)/||%1||Heading||ext=.php
+#marker-rule: /\/\*\*\s*(.*)/||%1||Heading||ext=.js

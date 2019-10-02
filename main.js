@@ -56,9 +56,13 @@
 				{	role: 'copy', accelerator: 'CmdOrCtrl+C' },
 //				{	role: 'paste', accelerator: 'CmdOrCtrl+V' },
 				{	role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
+				// {	type:'separator' },
+				// {	label: 'Find …', accelerator: 'CmdOrCtrl+F', id: 'FIND', click: send },
+				// {	label: 'Find Again', accelerator: 'CmdOrCtrl+G', id:'FINDAGAIN', click: send },
 				{	type:'separator' },
-				{	label: 'Find …', accelerator: 'CmdOrCtrl+F', id: 'FIND', click: send },
-				{	label: 'Find Again', accelerator: 'CmdOrCtrl+G', id:'FINDAGAIN', click: send },
+				{	label: 'Zoom In', accelerator: 'CmdOrCtrl+plus', id: 'ZOOM', click: ()=>{window.webContents.send('MENU','ZOOM',1);} },
+				{	label: 'Zoom Out', accelerator: 'CmdOrCtrl+-', id: 'ZOOM', click: ()=>{window.webContents.send('MENU','ZOOM',-1);} },
+				{	label: 'Reset Zoom', accelerator: 'CmdOrCtrl+0', id:'ZOOM', click: ()=>{window.webContents.send('MENU','ZOOM',0);} },
 			]
 		},
 		{
