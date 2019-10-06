@@ -12,7 +12,6 @@
 		-webkit-app-region: drag;
 	}
 
-
 /*	Nativefier Application
 	================================================ */
 
@@ -37,9 +36,13 @@
 			ul#tabs
 			div#pager
 				div#index
+					h2
+					ul
+					p#raw-message	span#resize-index
 				div#content
+					h2
 					iframe
-					form#search
+					p#content-footer
 		footer
 	================================================ */
 
@@ -74,31 +77,100 @@
 				display: flex;
 				flex-direction: row;
 				flex: 1;
+				margin: 0;
 			}
+
 				div#index,
 				div#content {
 					background-color: white;
 				}
-
 				div#index,
 				div#content {
 					box-sizing: border-box;
 					max-height: calc(100vh - 6.5em);
 				}
+
+					div#index>h2,
+					div#content>h2 {
+						box-sizing: border-box;
+						margin: 0;
+						width: 100%;
+						height: 2.75rem;
+						padding: .25em .25em .25em .75em;
+					}
+
 				div#index {
 					overflow: auto;
 					width: 18em;
 				}
 
+				/*	Index Grid
+					============================================ */
+
+					div#index {
+						display: grid;
+						grid-template-areas:
+							"h2 h2"
+							"ul ul"
+							"p resize"
+						;
+						grid-template-rows: 2.75rem 1fr 2rem;
+						grid-template-columns: 1fr 8px;
+					}
+					div#index>h2	{ grid-area: h2; }
+					div#index>ul	{ grid-area: ul; }
+					div#index>p		{ grid-area: p; }
+					div#index>span	{ grid-area: resize; }
+
+					p#raw-message {
+						box-sizing: border-box;
+						margin-left: 1em;
+						padding: .25em .5em .25em 1em;
+						margin: 0 0 0 0;
+					}
+
+					div#index>span#resize-index {
+						box-sizing: border-box;
+						display: block;
+						margin: 0;
+					}
+
 				div#content {
 					overflow: hidden;
 					flex: 1;
 				}
+
+				/*	Content Grid
+					============================================ */
+
+					div#content {
+						border: thin #ccc;
+						border-style: none none none none;
+						padding: 1em;
+						padding: 0;
+						display: grid;
+						grid-template-areas: "content-h2" "content-iframe" "content-footer";
+						grid-template-rows: 2.75rem 1fr 2rem;
+					}
+
+					div#content h2					{grid-area: content-h2;}
+					div#content>iframe				{grid-area: content-iframe;}
+					div#content>p#content-footer	{grid-area: content-footer;}
+
+				div#content>iframe {
+					box-sizing: border-box;
+					width: 100%;
+					height: calc(100% - 2.75rem - 2rem);
+				}
+
 				div#content>p#content-footer {
-					background-color: #ddd;
+					box-sizing: border-box;
+					height: 2rem;
+					background-color: #eee;
 					padding: .25em .5em;
 					margin: 0;
-					border-bottom: thin solid #999;
+					border: thin solid #aaa;
+					border-style: solid none;
 					display: flex;
 					justify-content: flex-end;
 				}
@@ -107,8 +179,6 @@
 		background-color: #ddd;
 		margin: 0;
 	}
-
-
 
 /*	Pager
 	================================================ */
@@ -123,36 +193,29 @@
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
-		padding: .25em .5em .25em;
-		background: linear-gradient(to bottom, #666, #555);
+		padding: .125em .5em .125em;
+		background: linear-gradient(to bottom, #eee, #ddd);
 	}
-	header>h1 {
-		flex: 1;
-		padding-left: 4em;
-		text-align: left;
-	}
-	header>form {
-		margin-right: 2em;
-	}
+		header>h1 {
+			flex: 1;
+			padding-left: 4em;
+			text-align: left;
+		}
+		header>form {
+			margin-right: 2em;
+		}
+
 	div#index>h2,
 	div#content>h2 {
-		box-sizing: border-box;
 		color: #333;
 		font-weight: normal;
-		margin: 0;
 		border-bottom: thin solid #666;
-		padding: .25em .25em .25em .75em;
-		width: 100%;
 	}
 
 	main {
-		qmargin: auto;
-		qbackground-color: white;
+
 	}
 
-	div#pager {
-		margin: 0;
-	}
 
 
 footer>p {
@@ -204,17 +267,13 @@ footer>p {
 	form#control button,
 	form#control input[name="show-highlight"]+label {
 		background-color: #f8f8f8;
-		border-radius: 4px;
+		border-radius: 2px;
 
 		border: thin solid #ccc;
 		padding: .25em .75em;
 		font-size: .85em;
 		color: #333;
 		margin: 0;
-
-		box-shadow:
-			inset 2px 2px 2px white,
-			inset -2px -2px 2px #ddd
 	}
 
 	/*	About
@@ -223,7 +282,6 @@ footer>p {
 
 	/*	Highlighted
 		============================================
-		👍👎👓🕶
 		============================================ */
 
 		form#control input[name="show-highlight"] {
@@ -234,27 +292,26 @@ footer>p {
 		}
 
 		form#control input[name="show-highlight"]:hover+label {
-			background-color: #ddd;
+			background-color: #c8c8c8;
 			animation: none;
+
 		}
 		/*	Highlighted Icon
 			============================================
 			form#control input[name="show-highlight"]+label:before {
-				content: "🕶";
+				content: "ðŸ•¶";
 				position: relative;
 				top: .125em;
 				margin-right: .5em;
 			}
 			form#control input[name="show-highlight"]:checked+label:before {
-				content: "👓";
+				content: "ðŸ‘“";
 			}
 			============================================ */
 		form#control input[name="show-highlight"]:checked+label {
 			color: #333;
-			background-color: #ddd;
-			box-shadow:
-				inset 1px 1px 1px #ccc,
-				inset -1px -1px 1px white
+			background-color: #999;
+			color: white;
 		}
 
 /*	Tabs
@@ -266,18 +323,21 @@ footer>p {
 		margin: 0;
 		display: flex;
 		flex-direction: row;
-		background: linear-gradient(to bottom, rgb(238, 238, 238),rgb(221, 221, 221));
+		background-color: #ccc;
+		font-size: .8em;
 		height: 2em;
 	}
 
 	ul#tabs>li {
-		padding: .25em .5em;
+		padding: .25em .75em;
 		min-width: 8em;
 		text-align: center;
 		display: flex;
 		justify-content: space-between;
 		border-right: thin solid #ccc;
 		text-shadow: 0 1px 0 white;
+		background: linear-gradient(to bottom, rgb(238,238,238),rgb(221,221,221));
+
 	}
 
 	ul#tabs>li:nth-child(n+2) {
@@ -300,45 +360,16 @@ footer>p {
 		border: thin solid #ddd;
 	}
 
-/*	Index
+/*	Index Properties
 	============================================ */
 
 	div#index {
-		display: grid;
-		grid-template-areas:
-			"h2 h2"
-			"ul ul"
-			"p resize"
-		;
-		grid-template-rows: 3em auto 3em;
-		grid-template-columns: 1fr 14px;
-	}
-	div#index>h2	{ grid-area: h2; }
-	div#index>ul	{ grid-area: ul; }
-	div#index>p		{ grid-area: p; }
-	div#index>span	{ grid-area: resize; }
-
-	div#index>span#resize-index {
-		display: block;
-		cursor: col-resize;
-		margin: 0;
-		background-color: #eee;
-		background: repeating-linear-gradient(
-			to right,
-			#ddd 0, #ddd 1px,
-			white 1px, white 3px)
-	}
-
-	div#index {
 		box-sizing: border-box;
-		padding: .25em 1em;
+		qpadding: .25em 1em;
 		padding: 0 0 0 0;
 		overflow: hidden;
-		qdisplay: flex;
-		qflex-direction: column;
 		border: thin #ccc;
 		border-style: none solid none none;
-height: 100% !important;
 	}
 	div#index>h2 {
 
@@ -350,6 +381,7 @@ height: 100% !important;
 		padding: 0;
 		border: thin #666;
 		border-style: none none solid none;
+		border: none;
 	}
 	div#index>ul>li {
 		cursor: default;
@@ -399,38 +431,41 @@ height: 100% !important;
 		margin: 0;
 	}
 
-p#raw-message {
-	margin-left: 1em;
-}
+/*	resize-index
+	============================================ */
+
+	div#index>span#resize-index {
+		border: thin #aaa;
+		border-style: solid none;
+		cursor: col-resize;
+		background-color: #eee;
+		background: repeating-linear-gradient(
+			to right,
+			#ddd 0, #ccc 1px,
+			white 1px, white 2px)
+	}
+
+/*	Raw Message
+	============================================ */
+
+	p#raw-message {
+		border: thin #aaa;
+		border-style: solid none;
+		background-color: #eee;
+		font-size: .8rem;
+	}
 
 /*	Content
 	============================================
 	See also: content.css
 	============================================ */
 
-	div#content h2 {
-
-	}
-
 	div#content h2:hover {
 		background-color: #eee;
 		text-shadow: 0 1px white;
 	}
 
-	div#content {
-		border: thin #ccc;
-		border-style: none none none none;
-		padding: 1em;
-		position: relative;
-		qborder-radius: .25em;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-	}
 	div#content>iframe {
-		box-sizing: border-box;
-		width: 100%;
-		height: 100%;
 		border: none;
 	}
 	div#content>form#search {

@@ -1,11 +1,18 @@
 /*	Content Text Properties
 	============================================ */
+
+	html, body {
+		margin: 0;
+		padding: 0;
+	}
+
+
 	pre {
 		--font-size:   1em;
 		font-size: var(--font-size);
 	}
 
-	pre>code {
+	body>pre>code {
 		font-family: "Source Code Pro", monospace;
 		font-size: .8em;
 		padding: .5em 0;
@@ -15,22 +22,31 @@
 /*	Content
 	============================================ */
 
+	body {
+		background-color: #f8f8f8;
+	}
+
 	body>pre {
 		margin: 0;
 		box-sizing: border-box;
 		overflow: auto;
 		height: 100%;
-		padding: 0 1em 3em 1em;
+		padding: 0 0 0 0;
 		border: thin solid #ccc;
-		border-style:  none;
+		margin: 1em;
+		background-color: white;
+	}
+	body.markdown>pre {
+		border: none;
 	}
 	body>pre>code {
 		white-space: pre;
 		tab-size: 4;
 	}
 
-	body>pre>code.markdown {
+	body.markdown>pre>code {
 		white-space: normal;
+		padding: 1rem;
 	}
 
 /*	Prism
@@ -72,7 +88,10 @@
 		overflow: auto;
 		border-right: thin solid #ccc;
 		background-color: #2A5F5B;
+		background-color: #eee;
+		border: none;
 		color: white;
+		color: #666;
 		flex: 0 0 4em;
 	}
 	div.line-numbers::-webkit-scrollbar {

@@ -8,9 +8,9 @@
 		tab-size: 4 !important;
 	}
 </style>
-#	Document Pager 0.2.1
+#	Document Pager 0.2.2
 
-Document Pager © Mark Simon
+Document Pager © Mark Simon  
 See also https://pager.internotes.net/
 
 ##	What does it do?
@@ -84,7 +84,7 @@ Here are the default language settings:
 		"breaks": { "major": ["/**"], "minor": ["/*"] }
 	},
 	"css": {
-		"extensions": ["sql"],
+		"extensions": ["css"],
 		"breaks": { "major": ["/**"], "minor": ["/*"] }
 	},
 	"markdown": {
@@ -114,13 +114,13 @@ If you include images, you can either use absolute references to them or you can
 Markdown headings can take the following non-standard format:
 
 ```md
-##id.class
+	##id.class
 ```
 
 This generates HTML in the following format:
 
 ```html
-<h2 id="…" class="…"> … </h2>
+	<h2 id="…" class="…"> … </h2>
 ```
 
 The `id` and `class` are both optional

@@ -183,7 +183,7 @@
 			promise
 			.then(()=>load(path.join(cwd,'data/exercises.sql')))
 			.then((data)=>addDocument(data,'sql','exercises.sql',path.join(cwd,'data')))
-			.then(()=>tabs[0].click())
+			.then(()=>tabs[1].click())
 			;
 	}
 
@@ -218,6 +218,7 @@
 				contentHeading: document.querySelector('div#content>h2'),
 				divContentPre: document.querySelector('div#content>pre'),
 				iframeCSS: document.querySelector('div#content>iframe').contentWindow.document.querySelector('link#additional-css'),
+				iframeBody: document.querySelector('div#content>iframe').contentWindow.document.querySelector('body'),
 				codeElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('pre>code'),
 				highlightButton: document.querySelector('button#highlight'),
 				smallerButton: document.querySelector('button#smaller'),
@@ -361,14 +362,15 @@
 		//	Break Regular Expressions
 
 			headingsRE=new RegExp(`(?:\\n\\s*)(?=${br})`);
-			headingMajor=new RegExp(`(?:^${major}\\s+)(.*?)\\r?\\n`);
-			headingMinor=new RegExp(`(?:^${minor}\\s+)(.*?)\\r?\\n`);
+			headingsRE=new RegExp(`(?:\\n)(?=\\s*(${br}))`);
 
+			headingMajor=new RegExp(`^(\\s*)(${major})\\s+(.*?)\\r?\\n`);
+			headingMinor=new RegExp(`^(\\s*)(${minor})\\s+(.*?)\\r?\\n`);
 		//	Special Case: Markdown
 
 			if(data.language=='markdown') {
 				headingsRE=/(?:\n)(?=##?[^#])/;
-				headingMajor=/^##?[^#]*?\s+(.*)/m;
+				headingMajor=/^(\s*)(##?[^#]*?)\s+(.*)/m;
 			}
 
 	//	Populate Index
@@ -378,15 +380,17 @@
 		if(items.length>1) {
 			var previous=undefined, selected=undefined;
 			items.forEach(function(value,i) {
+
 				var li=document.createElement('li');
 				RE=value.match(headingMajor);
-				if(RE && RE[1]) {
+
+				if(RE && RE[3]) {
 					nested=false;
-					title=RE[1];
+					title=RE[3];
 				}
 				else {
 					RE=value.match(headingMinor);
-					if(RE && RE[1]) {
+					if(RE && RE[3]) {
 						//	Nesting
 							if(!nested) {
 								nested=true;
@@ -395,7 +399,7 @@
 								previous.appendChild(ul);
 							}
 
-						title=RE[1];
+						title=RE[3];
 					}
 					else title='';
 				}
@@ -408,6 +412,15 @@
 					li.previous=previous;
 				}
 				previous=li;
+
+//				var thing=value.split(/\r?\n/).forEach((v,i,a)=>a[i]=v.replace(new RegExp(`^${RE[1]}`),''));
+				if(RE[1]) {
+					var lines=value.split(/\r?\n/);
+					var indent=new RegExp(`^${RE[1]}`);
+					lines.forEach((v,i,a)=>a[i]=v.replace(indent,''));
+					value=lines.join('\n');
+				}
+
 				li.onclick=loadItem.bind(li,data,value,title,i);
 				if(nested) ul.appendChild(li);
 				else elements.indexUL.appendChild(li);
@@ -440,7 +453,7 @@
 
 			var doHighlight=elements.formControl.elements['show-highlight'].checked?!event.altKey:event.altKey;
 			currentItem=data.li=this;
-			elements.highlightButton.doHighlight=doHighlight;
+//			elements.highlightButton.doHighlight=doHighlight;
 			setHighlightButton();
 			if(selected) selected.classList.remove('selected');
 			selected=this;
@@ -451,21 +464,23 @@
 		}
 		function showItem(item,title,doHighlight) {
 			elements.footerLanguage.innerHTML=`Language: ${data.language}`;
-			elements.codeElement.classList.remove('markdown');
+			elements.iframeBody.classList.remove('markdown');
 			var language=['js','javascript','sql','php'].indexOf(data.language)>-1;
 			elements.codeElement.innerHTML=item;
 
 			lineNumbers.style.display='block';
-			elements.iframeCSS.href=`${data.css}`;
+			elements.iframeCSS.href='';
 
 			if(language && doHighlight) elements.codeElement.innerHTML=Prism.highlight(item, Prism.languages[data.language], data.language);
 			else if(data.language=='markdown' && doHighlight) {
 				var innerHTML=marked(item,{baseUrl: `${data.path}/${data.fileName}`, renderer});
 				innerHTML=innerHTML.replace(/(<h.*>.*<\/h.>)([\s\S]*)/g,'$1\n<div>$2</div>');
 				elements.codeElement.innerHTML=innerHTML;
-				elements.codeElement.classList.add('markdown');
+				elements.iframeBody.classList.add('markdown');
 				lineNumbers.style.display='none';
+				elements.iframeCSS.href=`${data.css}`;
 			}
+
 			document.title=documentTitle+': '+data.fileName+' — '+title;
 //			elements.h1.innerHTML=documentTitle+': '+data.fileName+' — '+title;
 			elements.contentHeading.innerHTML=title;
@@ -473,8 +488,8 @@
 
 		}
 		function setHighlightButton() {
-			elements.highlightButton.classList.toggle('highlight',!elements.highlightButton.doHighlight);
-			elements.highlightButton.innerHTML=!elements.highlightButton.doHighlight?'Highlight':'Raw';
+			// elements.highlightButton.classList.toggle('highlight',!elements.highlightButton.doHighlight);
+			// elements.highlightButton.innerHTML=!elements.highlightButton.doHighlight?'Highlight':'Raw';
 		}
 	}
 

@@ -20,7 +20,7 @@
 			"breaks": { "major": ["/**"], "minor": ["/*"] }
 		},
 		"css": {
-			"extensions": ["sql"],
+			"extensions": ["css"],
 			"breaks": { "major": ["/**"], "minor": ["/*"] }
 		},
 		"markdown": {
