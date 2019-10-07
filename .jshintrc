@@ -25,7 +25,7 @@
 		"console": true,
 		"Prism": true,
 		"marked": true,
-		"getComputedStyle": true
-
+		"getComputedStyle": true,
+		"localStorage": true
 	}
 }

@@ -166,8 +166,7 @@
 				.then(()=>documentTitle=settings.headings.title+' '+settings.version)
 
 			//	About
-				.then(()=>load(path.join(cwd, '/README.md')))
-				.then(data=>addDocument(data,'markdown','README.md',path.join(cwd, '')))
+				.then(()=>openFile(path.join(cwd, '/README.md')))
 
 			//	Files
 				.then(()=>fs.promises.stat(filesJSON))
@@ -181,8 +180,7 @@
 
 		if(DEVELOPMENT)
 			promise
-			.then(()=>load(path.join(cwd,'data/exercises.sql')))
-			.then((data)=>addDocument(data,'sql','exercises.sql',path.join(cwd,'data')))
+			.then(()=>openFile(path.join(cwd, 'data/exercises.sql')))
 			.then(()=>tabs[1].click())
 			;
 	}
@@ -253,13 +251,15 @@
 
 /**	Add Document
 	================================================
+	elements.iframeCSS.href=`${data.css}`;
+	fs.stat
 	================================================ */
 
-	function addDocument(text,language,fileName,path) {
+	function addDocument(text,language,fileName,path,css) {
 		var tab=document.createElement('li');
-			var css='';
+			// var css='';
 			tab.textContent=fileName;
-			if(language=='markdown') var css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
+			// if(language=='markdown') var css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
 
 			tab.data={text, language, fileName, path, item: 0, highlighted: 1 , css};
 			tab.onclick=doTab;
@@ -317,7 +317,8 @@
 	================================================ */
 
 	function refreshTab(event) {
-		load(currentTab.data.path).then(text=>currentTab.data.text=text).then(()=>currentTab.click());
+		var file=`${currentTab.data.path}/${currentTab.data.fileName}`;
+		load(file).then(text=>currentTab.data.text=text).then(()=>currentTab.click());
 	}
 
 
@@ -478,8 +479,10 @@
 				elements.codeElement.innerHTML=innerHTML;
 				elements.iframeBody.classList.add('markdown');
 				lineNumbers.style.display='none';
-				elements.iframeCSS.href=`${data.css}`;
+
+//				elements.iframeCSS.href=`${data.css}`;
 			}
+				elements.iframeCSS.href=`${data.css}`;
 
 			document.title=documentTitle+': '+data.fileName+' — '+title;
 //			elements.h1.innerHTML=documentTitle+': '+data.fileName+' — '+title;
@@ -511,18 +514,6 @@
 
 
 
-	function openFile(pathName) {
-		var path=normalize(pathName).split('/');
-		var fileName=path.pop();
-		path=path.join('/');
-		var extension=fileName.split('.').pop();
-		load(`${path}/${fileName}`)
-		.then(data=> {
-			addDocument(data,extensions[extension],fileName,path);
-		})
-		;
-	}
-
 	function footerMessage(message) {
 		elements.footerMessage.textContent=message;
 	}
@@ -538,44 +529,38 @@
 				footerMessage(data);
 				break;
 			case 'find':
-				// searchData={
-				// 	string: data,
-				// 	fromIndex: 1,
-				// 	caseSensitive: false
-				// };
-				// doFind();
 				break;
 			case 'locate':
-				// dialog.showOpenDialog({
-				// 	title: data,
-				// 	defaultPath: tabs[tab].path
-				// },function(filePaths){
-				// 	if(!filePaths) return;
-				// 	var location=filePaths.toString();
-				// 	location=location.replace(' ','\\ ');
-				// 	if(more=='replace') tabs[tab].content.setRangeText(location);
-				// });
 				break;
 			case 'special':
-				// switch(data) {
-				// 	case 'sendmail':
-				// 		dialog.showOpenDialog({
-				// 			title: data,
-				// 			defaultPath: tabs[tab].path
-				// 		},function(filePaths){
-				// 			var location=filePaths.toString();
-				// 			searchData={
-				// 				string: 'sendmail_path',
-				// 				fromIndex: 1,
-				// 				caseSensitive: false
-				// 			};
-				// 			doFind();
-				// 		});
-				// 		break;
-				// }
-				// break;
 		}
 	});
+
+	function openFile(pathName,remember=false) {
+		var path=normalize(pathName).split('/');
+		var fileName=path.pop();
+		path=path.join('/');
+		if(remember) localStorage.setItem('defaultPath',path);
+		var extension=fileName.split('.').pop();
+		var css='';
+		if(extensions[extension]=='markdown') var css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
+
+		return fsp.stat(css).catch(()=>css='')
+		.then(()=>load(`${path}/${fileName}`))
+
+
+		.then(data=> {
+			addDocument(data,extensions[extension],fileName,path,css);
+		})
+		.then(()=>{
+			if(!remember) return;
+			if(!files.includes(pathName)) {
+				files.push(pathName);
+				fs.promises.writeFile(filesJSON,JSON.stringify(files));
+			}
+		})
+		;
+	}
 
 	ipcRenderer.on('MENU',(event,data,more)=>{
 		switch(data) {
@@ -589,23 +574,7 @@
 						defaultPath: localStorage.getItem('defaultPath')||'/nfs/html/internotes.net/pager/content'
 					},
 					function(path) {
-						var pathName=normalize(path[0]);
-						path=pathName.split('/');
-						var fileName=path.pop();
-						var path=path.join('/');
-						localStorage.setItem('defaultPath',path);
-						var extension=fileName.split('.').pop();
-						load(pathName)
-						.then(function(data) {
-							addDocument(data,extensions[extension].language,fileName,pathName);
-						})
-						.then(()=>{
-							if(!files.includes(pathName)) {
-								files.push(pathName);
-								fs.promises.writeFile(filesJSON,JSON.stringify(files));
-							}
-						})
-						;
+						openFile(path[0],true);
 					}
 				);	//	.then(data=>console.log(data))
 				break;
