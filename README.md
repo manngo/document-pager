@@ -8,7 +8,7 @@
 		tab-size: 4 !important;
 	}
 </style>
-#	Document Pager 0.2.2
+#	Document Pager 0.2.3
 
 Document Pager © Mark Simon  
 See also https://pager.internotes.net/
@@ -31,6 +31,18 @@ Currently, the default pattern is:
 Note that the `/*` style comment is a block comment. The heading will only extend to the end of the line.
 
 ##	Viewing the Document
+
+###	Opening the Document
+
+Naturally, you will first need to open the document. You can open a document from the local file system or from the Internet.
+
+| Operation         | Menu       | Keyboard Shortcut |
+|-------------------|------------|-------------------|
+| Open a Local File | Open …     | ⌘O \| ⌃O          |
+| Open a URL        | Open URL … | ⌘⇧O \| ⌃⇧O        |
+
+
+###	Navigating the Document
 
 The headings will appear on the left.
 

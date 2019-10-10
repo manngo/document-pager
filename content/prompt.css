@@ -1,0 +1,67 @@
+body {
+	font-family: "Source Sans Pro";
+	--background-color: #899BA9;
+	--color: white;
+	margin: 0;
+	padding: 0;
+}
+body * {
+	box-sizing: border-box;
+	padding: 0;
+	margin: 0;
+}
+form#prompt {
+	display: grid;
+	grid-template-areas: "label label" "input input" "cancel ok";
+}
+
+form#prompt>label[for="data"] {
+	grid-area: label;
+	box-sizing: border-box;
+}
+form#prompt>input[name="data"] {
+	grid-area: input;
+	box-sizing: border-box;
+}
+form#prompt>button[name="ok"] {
+	grid-area: ok;
+	box-sizing: border-box;
+}
+form#prompt>button[name="cancel"] {
+	grid-area: cancel;
+	box-sizing: border-box;
+}
+
+form#prompt {
+	background-color: white;
+	padding: 1em;
+}
+form#prompt>label {
+	background-color: var(--background-color);
+	color: var(--color);
+	padding: .25em .5em;
+	border-radius: 4px 4px 0 0;
+}
+form#prompt>input {
+	font-family: "Source Code Pro";
+	padding: .25em .5em;
+	font-size: .9em;
+	margin-bottom: 1em;
+	outline: none;
+}
+
+
+form#prompt>button {
+	border: thin solid #999;
+	background-color: var(--background-color);
+	color: var(--color);
+	font-size: 1.2em;
+	padding: .5em;
+	outline: none;
+}
+form#prompt>button[name="ok"] {
+	border-radius: 0 4px 4px 0;
+}
+form#prompt>button[name="cancel"] {
+	border-radius: 4px 0 0 4px;
+}

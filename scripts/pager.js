@@ -174,14 +174,18 @@
 				.then(()=>fs.promises.readFile(filesJSON))
 				.then(data=>{
 					files=JSON.parse(data);
-					files.forEach(v=>openFile(v));
+					files.forEach(v=>{
+						if(v.match(/^https?:\/\//)) openURL(v);
+						else openFile(v);
+					});
 				})
 		;
 
 		if(DEVELOPMENT)
 			promise
+//			.then(()=>openURL('https://pager.internotes.net/content/mssql-techniques.sql',true))
 			.then(()=>openFile(path.join(cwd, 'data/exercises.sql')))
-			.then(()=>tabs[1].click())
+			.then(()=>tabs[0].click())
 			;
 	}
 
@@ -290,27 +294,6 @@
 			doPager(this.data);
 			currentTab.classList.add('selected');
 		}
-		function closeTab(event) {
-			var path=`${this.data.path}/${this.data.fileName}`;
-			files=files.filter(value=>value!=path);
-			fs.promises.writeFile(filesJSON,JSON.stringify(files));
-
-			var sibling=this.previousElementSibling||this.nextElementSibling||undefined;
-			elements.tabPane.removeChild(this);
-			currentTab=undefined;
-			if(sibling) sibling.click();
-			else {
-				elements.indexUL.innerHTML='';
-				elements.codeElement.innerHTML='';
-				document.title=documentTitle;
-				elements.h1.innerHTML=settings.headings.h1+' '+settings.version;
-				elements.contentHeading.innerHTML=settings.headings.content;
-				elements.indexHeading.innerHTML=settings.headings.index;
-
-				elements.contentDiv.classList.add('empty');
-			}
-			event.stopPropagation();
-		}
 	}
 /**	refreshTab
 	================================================
@@ -321,6 +304,37 @@
 		load(file).then(text=>currentTab.data.text=text).then(()=>currentTab.click());
 	}
 
+/**	closeTab
+	================================================
+	================================================ */
+
+	function closeTab(event) {
+		var path=`${this.data.path}/${this.data.fileName}`;
+
+console.log(path);
+
+console.log(files);
+		files=files.filter(value=>value!=path);
+
+console.log(files);
+		fs.promises.writeFile(filesJSON,JSON.stringify(files));
+
+		var sibling=this.previousElementSibling||this.nextElementSibling||undefined;
+		elements.tabPane.removeChild(this);
+		currentTab=undefined;
+		if(sibling) sibling.click();
+		else {
+			elements.indexUL.innerHTML='';
+			elements.codeElement.innerHTML='';
+			document.title=documentTitle;
+			elements.h1.innerHTML=settings.headings.h1+' '+settings.version;
+			elements.contentHeading.innerHTML=settings.headings.content;
+			elements.indexHeading.innerHTML=settings.headings.index;
+
+			elements.contentDiv.classList.add('empty');
+		}
+		if(event) event.stopPropagation();
+	}
 
 /**	doPager
 	================================================
@@ -480,9 +494,9 @@
 				elements.iframeBody.classList.add('markdown');
 				lineNumbers.style.display='none';
 
-//				elements.iframeCSS.href=`${data.css}`;
-			}
 				elements.iframeCSS.href=`${data.css}`;
+			}
+//				elements.iframeCSS.href=`${data.css}`;
 
 			document.title=documentTitle+': '+data.fileName+' — '+title;
 //			elements.h1.innerHTML=documentTitle+': '+data.fileName+' — '+title;
@@ -543,7 +557,7 @@
 		if(remember) localStorage.setItem('defaultPath',path);
 		var extension=fileName.split('.').pop();
 		var css='';
-		if(extensions[extension]=='markdown') var css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
+		if(extensions[extension]=='markdown') css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
 
 		return fsp.stat(css).catch(()=>css='')
 		.then(()=>load(`${path}/${fileName}`))
@@ -562,6 +576,35 @@
 		;
 	}
 
+	function openURL(url,remember=false) {
+		var path=url.split('/');
+		var fileName=path.pop();
+		path=path.join('/');
+		if(remember) localStorage.setItem('defaultPath',path);
+		var extension=fileName.split('.').pop();
+		var css='';
+		if(extensions[extension]=='markdown') css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
+
+		var data;
+
+		return fetch(url)
+		.then(response=>response.text())
+		.then(text=>data=text)
+		.then(()=>fetch(css).catch(()=>css=''))
+//		.then(()=>load(`${path}/${fileName}`))
+
+		.then(()=> {
+			addDocument(data,extensions[extension],fileName,path,css);
+		})
+		.then(()=>{
+			if(!remember) return;
+			if(!files.includes(url)) {
+				files.push(url);
+				fs.promises.writeFile(filesJSON,JSON.stringify(files));
+			}
+		})
+		;
+	}
 	ipcRenderer.on('MENU',(event,data,more)=>{
 		switch(data) {
 			case 'NEW':
@@ -578,11 +621,22 @@
 					}
 				);	//	.then(data=>console.log(data))
 				break;
+			case 'URL':
+				var url=ipcRenderer.sendSync('prompt',{title: 'Prompt'});
+				if(url) openURL(url);
+				break;
 			case 'ZOOM':
 				zoom(more);
 				break;
 			case 'LOAD':
 				refreshTab();
+				break;
+			case 'CLOSE':
+				closeTab.call(currentTab);
+				break;
+			case 'HIGHLIGHT':
+				elements.formControl.elements['show-highlight'].checked=more;
+				currentItem.click();
 				break;
 			case 'SAVE':
 //				save();

@@ -1,4 +1,4 @@
- 'use strict';
+'use strict';
 
 //	Settings
 
@@ -7,7 +7,7 @@
 	if(DEVELOPMENT) require('electron-reload')(__dirname);
 
 //	Required Modules
-	const {app, BrowserWindow, Menu, MenuItem, shell, ipcRenderer, protocol} = require('electron');
+	const {app, BrowserWindow, Menu, MenuItem, shell, ipcRenderer, protocol, ipcMain} = require('electron');
 	//	console.log(require.resolve('electron'))
 	const path = require('path');
 
@@ -40,6 +40,8 @@
 //                {	label: `New Document`, accelerator: 'CmdOrCtrl+N', id:'NEW', click: send },
                 {	label: `Open …`, accelerator: 'CmdOrCtrl+O', id:'OPEN', click: send },
                 {	label: `Reload`, accelerator: 'CmdOrCtrl+R', id:'LOAD', click: send },
+                {	label: `Open URL …`, accelerator: 'CmdOrCtrl+Shift+O', id:'URL', click: send },
+                {	label: `Close`, accelerator: 'CmdOrCtrl+W', id:'CLOSE', click: send },
 //                {	label: `Save`, accelerator: 'CmdOrCtrl+S', id:'SAVE', click: send },
 //                {	label: `Save As …`, accelerator: 'CmdOrCtrl+Shift+S', id:'SAVEAS', click: send },
 				{	type:'separator' },
@@ -49,16 +51,22 @@
 		{
 			label: 'Edit',
 			submenu: [
-//				{	role: 'undo', accelerator: 'CmdOrCtrl+Z' },
-//				{	role: 'redo', accelerator: 'CmdOrCtrl+Shift+Z' },
-//				{	type:'separator'},
-//				{	role: 'cut', accelerator: 'CmdOrCtrl+X' },
+                {	role: `undo`, accelerator: 'CmdOrCtrl+Z' },
+				{	type:'separator' },
 				{	role: 'copy', accelerator: 'CmdOrCtrl+C' },
-//				{	role: 'paste', accelerator: 'CmdOrCtrl+V' },
+				{	role: 'paste', accelerator: 'CmdOrCtrl+V' },
 				{	role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
+
+				{	type:'separator' },
+				{	label: 'Highlight', type: 'checkbox', checked: true, accelerator: 'CmdOrCtrl+T', id: 'HIGHLIGHT', click: (item)=>{
+                        window.webContents.send('MENU','HIGHLIGHT',item.checked);
+                    }
+                },
+
 				// {	type:'separator' },
 				// {	label: 'Find …', accelerator: 'CmdOrCtrl+F', id: 'FIND', click: send },
 				// {	label: 'Find Again', accelerator: 'CmdOrCtrl+G', id:'FINDAGAIN', click: send },
+
 				{	type:'separator' },
 				{	label: 'Zoom In', accelerator: 'CmdOrCtrl+plus', id: 'ZOOM', click: ()=>{window.webContents.send('MENU','ZOOM',1);} },
 				{	label: 'Zoom Out', accelerator: 'CmdOrCtrl+-', id: 'ZOOM', click: ()=>{window.webContents.send('MENU','ZOOM',-1);} },
@@ -148,3 +156,46 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
         console.log(JSON.stringify(arguments));
 		window.webContents.send('DOIT','open',path);
     }
+
+//  Prompt
+    var prompt, promptResponse;
+
+    function doPrompt(parent,options,callback) {
+        prompt=new BrowserWindow({
+//            width: 1400, height: 200,
+            width: 400,
+            parent,
+            show: true,
+            modal: true,
+            alwaysOnTop: true,
+//            title: options.title,
+            title: 'This space for rent …',
+            webPreferences : {
+                nodeIntegration: true,
+                sandbox : false
+            }
+        });
+        prompt.on('closed',()=>{
+            prompt=null;
+            callback(promptResponse);
+        });
+        prompt.loadURL(`file://${path.join(__dirname,'content/prompt.html')}`);
+        prompt.once('read-to-show',()=>prompt.show());
+    }
+
+    ipcMain.on('prompt-ok',(event,data)=>{promptResponse=data;});
+    ipcMain.on('prompt-cancel',(event,data)=>{promptResponse=undefined;});
+    ipcMain.on('prompt-size',(event,data)=>{
+        data=JSON.parse(data);
+
+console.log(data.height);
+        prompt.setBounds({
+//            width: data.width, height: data.height
+            height: parseInt(data.height+1)
+        });
+    });
+    ipcMain.on('prompt',(event)=>{
+        doPrompt(window,{
+            title: 'Test'
+        },data=>event.returnValue=data);
+    });

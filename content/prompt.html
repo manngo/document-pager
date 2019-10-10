@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- https://www.scriptol.com/javascript/electron-prompt.php -->
+	<head>
+		<title>Title</title>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="prompt.css" media="all">
+		<script type="text/javascript">
+			const { ipcRenderer } = require('electron');
+			//document.addEventListener('DOMContentLoaded',init);
+			window.onload=init;
+			function init() {
+				var form=document.querySelector('form#prompt');
+//				ipcRenderer.send('prompt-size',form.getBoundingClientRect());
+
+				var promptSize=form.getBoundingClientRect();
+
+				promptSize=JSON.stringify(promptSize);
+				ipcRenderer.send('prompt-size',promptSize);
+				form.elements['ok'].onclick=ok;
+				form.elements['cancel'].onclick=cancel;
+				function ok(event) {
+					ipcRenderer.send('prompt-ok',form.elements['data'].value);
+					window.close();
+					event.preventDefault();
+				};
+				function cancel(event) {
+					ipcRenderer.send('prompt-cancel');
+					window.close();
+					event.preventDefault();
+				};
+			}
+		</script>
+	</head>
+	<body>
+
+		<form id="prompt">
+			<label for="data">Enter the following:</label>
+			<input name="data" placeholder="URL" id="data">
+			<button name="ok">OK</button>
+			<button name="cancel">Cancel</button>
+		</form>
+	</body>
+</html>
