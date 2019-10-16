@@ -317,7 +317,6 @@
 				element.style.width=width+event.clientX-x+'px';
 			}
 			function stop(event) {
-console.log('bye')
 				document.removeEventListener('mousemove',goHorizontal);
 				document.removeEventListener('mouseup',stop);
 			}
@@ -703,7 +702,7 @@ console.log('bye')
 		styles.forEach(style=>lineNumbers.style[style]=computedStyles[style]);
 		lineNumbers.classList.add('line-numbers');
 		element.insertAdjacentElement('beforebegin',lineNumbers);
-		element.setLineNumbers=function() {
+		element.resetLineNumbers=function() {
 			var lines=element.textContent.split(/\r?\n/).length;
 			lineNumbers.textContent=Array.from({length: lines},(v,i)=>i+1).join('\n');
 		};

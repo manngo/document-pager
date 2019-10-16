@@ -158,21 +158,27 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
     }
 
 //  Prompt
-    var prompt, promptResponse;
+    var prompt, promptResponse
+	var promptOptions={
+		message: 'Enter a URL:',
+		match: /https?:\/\//,
+		error: 'URL must begin with http:// or https://'
+	};
 
-    function doPrompt(parent,options,callback) {
+    function doPrompt(parent,callback) {
         prompt=new BrowserWindow({
 //            width: 1400, height: 200,
             width: 400,
+			frame: false,
             parent,
             show: true,
             modal: true,
             alwaysOnTop: true,
 //            title: options.title,
             title: 'This space for rent …',
-            webPreferences : {
+			webPreferences : {
                 nodeIntegration: true,
-                sandbox : false
+                sandbox : false,
             }
         });
         prompt.on('closed',()=>{
@@ -188,14 +194,17 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
     ipcMain.on('prompt-size',(event,data)=>{
         data=JSON.parse(data);
 
-console.log(data.height);
         prompt.setBounds({
 //            width: data.width, height: data.height
             height: parseInt(data.height+1)
         });
     });
-    ipcMain.on('prompt',(event)=>{
-        doPrompt(window,{
-            title: 'Test'
-        },data=>event.returnValue=data);
+    ipcMain.on('prompt-init',(event,data)=>{
+		event.returnValue=JSON.stringify(promptOptions);
+	});
+
+
+    ipcMain.on('prompt',(event,options)=>{
+		promptOptions=options;
+        doPrompt(window,data=>event.returnValue=data);
     });

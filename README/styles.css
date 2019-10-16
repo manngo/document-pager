@@ -2,6 +2,9 @@
 		font-family: "Source Sans Pro";
 		font-size: 1em;
 	}
+	div {
+
+	}
 
 	div code {
 		font-family: "Source Code Pro";
@@ -36,4 +39,23 @@
 	}
 	p {
 		margin: .5em 0;
+	}
+
+	div.h1 {
+		background-color: #2A5F5B;
+		text-align: center;
+		color: white;
+		text-shadow: none;
+		padding: 1em;
+	}
+	div.h1 h1 {
+		font-size: 3em;
+	}
+	div.h1 p {
+		font-size: 1.5em;
+	}
+	div.h1 a {
+		color: white;
+		font-weight: bold;
+		text-decoration: none;
 	}

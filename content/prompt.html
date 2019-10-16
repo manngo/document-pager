@@ -7,11 +7,17 @@
 		<link rel="stylesheet" type="text/css" href="prompt.css" media="all">
 		<script type="text/javascript">
 			const { ipcRenderer } = require('electron');
-			//document.addEventListener('DOMContentLoaded',init);
 			window.onload=init;
 			function init() {
+				document.onkeydown=event=>{
+					if(event.key=='Escape') form.elements['cancel'].click();
+				};
 				var form=document.querySelector('form#prompt');
-//				ipcRenderer.send('prompt-size',form.getBoundingClientRect());
+				var label=document.querySelector('label[for="data"]');
+				var options=JSON.parse(ipcRenderer.sendSync('prompt-init',''));
+				options.pattern=new RegExp(options.pattern);
+				label.innerHTML=options.message;
+				form.elements['data'].value=options.value||'';
 
 				var promptSize=form.getBoundingClientRect();
 
@@ -19,10 +25,18 @@
 				ipcRenderer.send('prompt-size',promptSize);
 				form.elements['ok'].onclick=ok;
 				form.elements['cancel'].onclick=cancel;
+				form.elements['data'].focus();
+				form.elements['data'].setSelectionRange(form.elements['data'].value.length,form.elements['data'].value.length);
+
+
 				function ok(event) {
+					event.preventDefault();
+					if(!options.pattern.test(form.elements['data'].value)) {
+						label.innerHTML=options.error;
+						return;
+					}
 					ipcRenderer.send('prompt-ok',form.elements['data'].value);
 					window.close();
-					event.preventDefault();
 				};
 				function cancel(event) {
 					ipcRenderer.send('prompt-cancel');
@@ -36,7 +50,7 @@
 
 		<form id="prompt">
 			<label for="data">Enter the following:</label>
-			<input name="data" placeholder="URL" id="data">
+			<input name="data" placeholder="http" id="data" qautofocus value="https://">
 			<button name="ok">OK</button>
 			<button name="cancel">Cancel</button>
 		</form>

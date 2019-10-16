@@ -98,9 +98,10 @@
 
 				resolve(data);
 			})
-			.catch(error=>{
-				console.log(error);
-			});
+			// .catch(error=>{
+			// 	console.log(error);
+			// })
+			;
 		});
 	}
 
@@ -175,8 +176,22 @@
 				.then(data=>{
 					files=JSON.parse(data);
 					files.forEach(v=>{
-						if(v.match(/^https?:\/\//)) openURL(v);
-						else openFile(v);
+						if(v.match(/^https?:\/\//)) openURL(v,true);
+						else {
+							fsp.stat(v)
+							.then(()=>openFile(v))
+							.catch(error=>{
+								dialog.showMessageBox({
+									buttons: ['OK'],
+									message: `Oh Dear. The File ${v} appears to have disappeared.`
+								});
+
+								files=files.filter(value=>value!=v);
+								fsp.writeFile(filesJSON,JSON.stringify(files));
+
+								console.log(`oops: error`);
+							});
+						}
 					});
 				})
 		;
@@ -185,7 +200,7 @@
 			promise
 //			.then(()=>openURL('https://pager.internotes.net/content/mssql-techniques.sql',true))
 			.then(()=>openFile(path.join(cwd, 'data/exercises.sql')))
-			.then(()=>tabs[0].click())
+			.then(()=>tabs[1].click())
 			;
 	}
 
@@ -239,11 +254,12 @@
 		codeFontSize={size: codeFontSize[1], units: codeFontSize[4]};
 		var originalCodeFontSize=codeFontSize.size;
 
+
 	//	Adjust Elements
 		jx.stretch(elements.indexDiv,elements.resizeIndex);
 
 		lineNumbers=jx.addLineNumbers(elements.codeElement);
-		elements.codeElement.setLineNumbers();
+		elements.codeElement.resetLineNumbers();
 
 		elements.formControl.elements['show-highlight'].onclick=function(event) {
 			currentItem.click();
@@ -310,13 +326,7 @@
 
 	function closeTab(event) {
 		var path=`${this.data.path}/${this.data.fileName}`;
-
-console.log(path);
-
-console.log(files);
 		files=files.filter(value=>value!=path);
-
-console.log(files);
 		fs.promises.writeFile(filesJSON,JSON.stringify(files));
 
 		var sibling=this.previousElementSibling||this.nextElementSibling||undefined;
@@ -483,14 +493,25 @@ console.log(files);
 			var language=['js','javascript','sql','php'].indexOf(data.language)>-1;
 			elements.codeElement.innerHTML=item;
 
+			elements.codeElement.classList.forEach(className=>{if(className.startsWith('language-')) elements.codeElement.classList.remove(className);});
+			elements.codeElement.classList.add(`language-${data.language}`);
 			lineNumbers.style.display='block';
 			elements.iframeCSS.href='';
 
 			if(language && doHighlight) elements.codeElement.innerHTML=Prism.highlight(item, Prism.languages[data.language], data.language);
 			else if(data.language=='markdown' && doHighlight) {
+				var div=document.createElement('div');
 				var innerHTML=marked(item,{baseUrl: `${data.path}/${data.fileName}`, renderer});
-				innerHTML=innerHTML.replace(/(<h.*>.*<\/h.>)([\s\S]*)/g,'$1\n<div>$2</div>');
-				elements.codeElement.innerHTML=innerHTML;
+				div.innerHTML=innerHTML;
+				var h2=div.querySelector('h1,h2');
+				div.id=h2.id;
+				h2.id='';
+				div.className=h2.className;
+				div.classList.add(h2.tagName.toLowerCase());
+				h2.removeAttribute('id');
+				h2.removeAttribute('class');
+//				innerHTML=innerHTML.replace(/(<h.*>.*<\/h.>)([\s\S]*)/g,'$1\n<div>$2</div>');
+				elements.codeElement.innerHTML=div.outerHTML;
 				elements.iframeBody.classList.add('markdown');
 				lineNumbers.style.display='none';
 
@@ -501,7 +522,7 @@ console.log(files);
 			document.title=documentTitle+': '+data.fileName+' — '+title;
 //			elements.h1.innerHTML=documentTitle+': '+data.fileName+' — '+title;
 			elements.contentHeading.innerHTML=title;
-			elements.codeElement.setLineNumbers();
+			elements.codeElement.resetLineNumbers();
 
 		}
 		function setHighlightButton() {
@@ -509,7 +530,7 @@ console.log(files);
 			// elements.highlightButton.innerHTML=!elements.highlightButton.doHighlight?'Highlight':'Raw';
 		}
 	}
-
+zoom(0);
 	function zoom(direction) {
 		switch(direction) {
 			case -1:
@@ -523,7 +544,9 @@ console.log(files);
 				break;
 		}
 		document.querySelector('div#content>iframe').contentWindow.document.querySelector('pre').style.setProperty('--font-size',`${codeFontSize.size}${codeFontSize.units}`);
+
 		jx.setLineNumbers(elements.codeElement,lineNumbers);
+//		elements.codeElement.resetLineNumbers();
 	}
 
 
@@ -550,19 +573,24 @@ console.log(files);
 		}
 	});
 
-	function openFile(pathName,remember=false) {
-		var path=normalize(pathName).split('/');
-		var fileName=path.pop();
+	function pathDetails(uri) {
+		var path, fileName, extension, css;
+
+		path=uri.split('/');
+		fileName=path.pop();
 		path=path.join('/');
-		if(remember) localStorage.setItem('defaultPath',path);
-		var extension=fileName.split('.').pop();
-		var css='';
+		extension=fileName.split('.').pop();
+		css='';
 		if(extensions[extension]=='markdown') css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
+
+		return {path,fileName,extension,css};
+	}
+
+	function openFile(pathName,remember=false) {
+		var {path,fileName,extension,css}=pathDetails(pathName);
 
 		return fsp.stat(css).catch(()=>css='')
 		.then(()=>load(`${path}/${fileName}`))
-
-
 		.then(data=> {
 			addDocument(data,extensions[extension],fileName,path,css);
 		})
@@ -572,38 +600,52 @@ console.log(files);
 				files.push(pathName);
 				fs.promises.writeFile(filesJSON,JSON.stringify(files));
 			}
-		})
-		;
+		});
 	}
 
 	function openURL(url,remember=false) {
-		var path=url.split('/');
-		var fileName=path.pop();
-		path=path.join('/');
-		if(remember) localStorage.setItem('defaultPath',path);
-		var extension=fileName.split('.').pop();
-		var css='';
-		if(extensions[extension]=='markdown') css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
-
 		var data;
+		var promise, cancelled=false;
 
-		return fetch(url)
-		.then(response=>response.text())
-		.then(text=>data=text)
-		.then(()=>fetch(css).catch(()=>css=''))
-//		.then(()=>load(`${path}/${fileName}`))
+		var {path,fileName,extension,css}=pathDetails(url);
 
-		.then(()=> {
+//		fetch('https://pager.internotes.net/content/mssql-techniques.sql')
+		promise=fetch(url)
+		.then(response=>{
+			if(!response.ok) throw new Error(`Oh Dear. The file ${url} is not available.`);
+			else return response.text();
+		})
+		.catch((error)=>{
+			dialog.showMessageBox({
+				buttons: ['OK'],
+				message: `Oh Dear. The URL ${url} appears to be unavailable.`
+			});
+			console.log(error);
+			cancelled=true;
+			files=files.filter(value=>value!=url);
+			fsp.writeFile(filesJSON,JSON.stringify(files));
+
+		})
+		.then((text)=>{
+			if(cancelled) return;
+			data=text;
+		})
+		.then(()=>{
+			if(cancelled) return;
+			fetch(css).catch(()=>css='');
+		})
+		.then((text)=>{
+			if(cancelled) return;
 			addDocument(data,extensions[extension],fileName,path,css);
 		})
 		.then(()=>{
-			if(!remember) return;
+			if(cancelled || !remember) return;
 			if(!files.includes(url)) {
 				files.push(url);
 				fs.promises.writeFile(filesJSON,JSON.stringify(files));
 			}
-		})
-		;
+		});
+		return promise;
 	}
 	ipcRenderer.on('MENU',(event,data,more)=>{
 		switch(data) {
@@ -622,8 +664,14 @@ console.log(files);
 				);	//	.then(data=>console.log(data))
 				break;
 			case 'URL':
-				var url=ipcRenderer.sendSync('prompt',{title: 'Prompt'});
-				if(url) openURL(url);
+				var url=ipcRenderer.sendSync('prompt',{
+						message: 'Enter a URL:',
+						pattern: 'https?://.+',
+						value: 'https://',
+//						value: 'https://pager.internotes.net/content/mssql-techniques.sql',
+						error: 'URL must begin with http:// or https://'
+					});
+				if(url) openURL(url,true);
 				break;
 			case 'ZOOM':
 				zoom(more);

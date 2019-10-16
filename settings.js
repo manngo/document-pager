@@ -1,5 +1,5 @@
 //	Development
-	const DEVELOPMENT=false;
+	const DEVELOPMENT=true;
 
 //	Environment
 

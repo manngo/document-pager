@@ -26,6 +26,7 @@
 		"Prism": true,
 		"marked": true,
 		"getComputedStyle": true,
-		"localStorage": true
+		"localStorage": true,
+		"fetch": true
 	}
 }

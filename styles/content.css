@@ -12,13 +12,6 @@
 		font-size: var(--font-size);
 	}
 
-	body>pre>code {
-		font-family: "Source Code Pro", monospace;
-		font-size: .8em;
-		padding: .5em 0;
-		line-height: 1.5;
-	}
-
 /*	Content
 	============================================ */
 
@@ -52,7 +45,7 @@
 /*	Prism
 	================================================ */
 
-	pre[class*="language-"] {
+	pre>code[class*="language-"] {
 		background-color: white;
 	}
 
@@ -66,6 +59,19 @@
 	pre .token.cr {
 		visibility: hidden;
     }
+
+	pre>code[class*="language-"] {
+		font-family: "Source Code Pro", monospace;
+		font-size: .8em;
+		padding: .5em 0;
+		line-height: 1.5;
+	}
+
+
+
+
+
+
 
 /*	Line Numbers
 	================================================

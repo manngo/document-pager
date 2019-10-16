@@ -13,11 +13,11 @@
 Document Pager © Mark Simon  
 See also https://pager.internotes.net/
 
-##	What does it do?
+##what	What does it do?
 
 Displays and Pages a document which is sectioned using a special heading pattern.
 
-##	Preparing the Document
+##preparing.normal	Preparing the Document
 
 Your document should include headings which are generally comments which follow a pattern.
 
