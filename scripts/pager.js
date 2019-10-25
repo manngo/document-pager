@@ -3,9 +3,6 @@
 	================================================ */
 
 	'use strict';
-	//	window.onerror=function(message,url,line) {
-	//		alert('Error: '+message+'\n'+url+': '+line);
-	//	};
 
 /**	Drag & Drop … ?
 	================================================ */
@@ -57,8 +54,8 @@
 /**	Environment
 	================================================ */
 
-	var platform=process.platform;
-	var os=require('os');
+	const platform=process.platform;
+	const os=require('os');
 
 /**	Extensions
 	================================================ */
@@ -95,13 +92,8 @@
 			.readFile(theDocument)
 			.then(data => {
 				data=data.toString();
-
 				resolve(data);
-			})
-			// .catch(error=>{
-			// 	console.log(error);
-			// })
-			;
+			});
 		});
 	}
 
@@ -118,9 +110,9 @@
 	var filesJSON=`${home}/files.json`, files={};
 
 //	Main
-	main();
+	init();
 
-	function main() {
+	function init() {
 		var breaks;
 
 		var promise=
@@ -189,7 +181,7 @@
 								files=files.filter(value=>value!=v);
 								fsp.writeFile(filesJSON,JSON.stringify(files));
 
-								console.log(`oops: error`);
+								console.log(`Error: The File ${v} appears to have disappeared.`);
 							});
 						}
 					});
@@ -200,7 +192,7 @@
 			promise
 //			.then(()=>openURL('https://pager.internotes.net/content/mssql-techniques.sql',true))
 			.then(()=>openFile(path.join(cwd, 'data/exercises.sql')))
-			.then(()=>tabs[1].click())
+			.then(()=>tabs[0].click())
 			;
 	}
 
@@ -215,7 +207,7 @@
 
 	//	Other Variables
 		var lineNumbers;
-		var codeFontSize;
+		var codeFontSize,originalCodeFontSize;
 
 	//	Elements
 		var elements={
@@ -234,9 +226,12 @@
 				contentDiv: document.querySelector('div#content'),
 				contentHeading: document.querySelector('div#content>h2'),
 				divContentPre: document.querySelector('div#content>pre'),
+				iframe: document.querySelector('div#content>iframe').contentWindow,
 				iframeCSS: document.querySelector('div#content>iframe').contentWindow.document.querySelector('link#additional-css'),
 				iframeBody: document.querySelector('div#content>iframe').contentWindow.document.querySelector('body'),
-				codeElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('pre>code'),
+				mainContent: document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content'),
+				codeElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content>code'),
+				mdElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content>div#md'),
 				highlightButton: document.querySelector('button#highlight'),
 				smallerButton: document.querySelector('button#smaller'),
 				defaultButton: document.querySelector('button#default'),
@@ -244,16 +239,16 @@
 				previousButton: document.querySelector('button#previous'),
 				nextButton: document.querySelector('button#next'),
 			//	Footer
+				footerFile: document.querySelector('span#footer-file'),
 				footerMessage: document.querySelector('span#footer-message'),
 				footerLanguage: document.querySelector('span#footer-language'),
 				footerHeading: document.querySelector('span#footer-heading'),
 		};
 
-		var codeFontSize=getComputedStyle(document.querySelector('div#content>iframe').contentWindow.document.querySelector('pre')).getPropertyValue('--font-size');
+		codeFontSize=getComputedStyle(document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content')).getPropertyValue('--font-size');
 		codeFontSize=codeFontSize.match(/((\d*)(\.\d+)?)([a-z]+)/);
 		codeFontSize={size: codeFontSize[1], units: codeFontSize[4]};
-		var originalCodeFontSize=codeFontSize.size;
-
+		originalCodeFontSize=codeFontSize.size;
 
 	//	Adjust Elements
 		jx.stretch(elements.indexDiv,elements.resizeIndex);
@@ -268,6 +263,10 @@
 		elements.formControl.elements['zoom-smaller'].onclick=zoom.bind(null,-1);
 		elements.formControl.elements['zoom-default'].onclick=zoom.bind(null,0);
 
+		jx.contentEditable(elements.codeElement,true);
+		elements.codeElement.onblur=event=>{
+			console.log('blur');
+		};
 
 /**	Add Document
 	================================================
@@ -298,6 +297,7 @@
 			elements.tabPane.appendChild(tab);
 
 		//	Activate
+			// doPager(tab.data);
 			tab.click();
 
 		//	Track
@@ -307,8 +307,8 @@
 		function doTab(event) {
 			if(currentTab!==undefined) currentTab.classList.remove('selected');
 			currentTab=this;
-			doPager(this.data);
 			currentTab.classList.add('selected');
+			doPager(this.data);
 		}
 	}
 /**	refreshTab
@@ -348,55 +348,55 @@
 
 /**	doPager
 	================================================
+
 	================================================ */
 	function doPager(data) {
-		var br, major, minor;
-	//	Adjust Environment
-		elements.indexHeading.innerHTML=data.fileName;
+console.log('doPager');
+		//	Prepare Document
+			var br, major, minor;
+			var headingsRE, headingMajor, headingMinor, RE;
+			//	Heading Regular Expressions:
+				var breaks=settings.languages[data.language].breaks;
+				var literals=/[-\/\\^$*+.()|[\]{}]/g;
+			//	Breaks
+				if(Array.isArray(breaks.major)) {
+					major=[];
+					breaks.major.forEach((value,i)=>major[i]=value.replace(literals,'\\$&'));
+					major=major.join('|');
+				}
+				else major=breaks.major.replace(literals,'\\$&');
+				if(breaks.minor) {
+					if(Array.isArray(breaks.minor)) {
+						minor=[];
+						breaks.minor.forEach((value,i)=>minor[i]=value.replace(literals,'\\$&'));
+						minor=minor.join('|');
+					}
+					else minor=breaks.minor.replace(literals,'\\$&');
+				}
+				else minor=null;
+				data.br=`${major}\\s+|${minor}\\s+`;
+				//	Break Regular Expressions
+
+					headingsRE=new RegExp(`(?:\\n\\s*)(?=${data.br})`);
+					headingsRE=new RegExp(`(?:\\n)(?=\\s*(${data.br}))`);
+
+					headingMajor=new RegExp(`^(\\s*)(${major})\\s+(.*?)\\r?\\n`);
+					headingMinor=new RegExp(`^(\\s*)(${minor})\\s+(.*?)\\r?\\n`);
+
+					//	Special Case: Markdown
+
+						if(data.language=='markdown') {
+							headingsRE=/(?:\n)(?=##?[^#])/;
+							headingMajor=/^(\s*)(##?[^#]*?)\s+(.*)/m;
+						}
+
+		//	(Re) Select Document
+			elements.indexHeading.innerHTML=data.fileName;
+			elements.footerHeading.innerHTML=`Breaks: ${data.br}`;
 
 	//	Variables
 		var selected=null;
-		var headingsRE, headingMajor, headingMinor, RE;
 		var title;
-
-	//	Heading Regular Expressions:
-		var breaks=settings.languages[data.language].breaks;
-		var literals=/[-\/\\^$*+.()|[\]{}]/g;
-
-		//	Major Breaks
-			if(Array.isArray(breaks.major)) {
-				major=[];
-				breaks.major.forEach((value,i)=>major[i]=value.replace(literals,'\\$&'));
-				major=major.join('|');
-			}
-			else major=breaks.major.replace(literals,'\\$&');
-		//	Minor Breaks
-			if(breaks.minor) {
-				if(Array.isArray(breaks.minor)) {
-					minor=[];
-					breaks.minor.forEach((value,i)=>minor[i]=value.replace(literals,'\\$&'));
-					minor=minor.join('|');
-				}
-				else minor=breaks.minor.replace(literals,'\\$&');
-			}
-			else minor=null;
-
-			br=`${major}\\s+|${minor}\\s+`;
-			elements.footerHeading.innerHTML=`Breaks: ${br}`;
-
-		//	Break Regular Expressions
-
-			headingsRE=new RegExp(`(?:\\n\\s*)(?=${br})`);
-			headingsRE=new RegExp(`(?:\\n)(?=\\s*(${br}))`);
-
-			headingMajor=new RegExp(`^(\\s*)(${major})\\s+(.*?)\\r?\\n`);
-			headingMinor=new RegExp(`^(\\s*)(${minor})\\s+(.*?)\\r?\\n`);
-		//	Special Case: Markdown
-
-			if(data.language=='markdown') {
-				headingsRE=/(?:\n)(?=##?[^#])/;
-				headingMajor=/^(\s*)(##?[^#]*?)\s+(.*)/m;
-			}
 
 	//	Populate Index
 		var items=data.text.split(headingsRE);
@@ -478,8 +478,7 @@
 
 			var doHighlight=elements.formControl.elements['show-highlight'].checked?!event.altKey:event.altKey;
 			currentItem=data.li=this;
-//			elements.highlightButton.doHighlight=doHighlight;
-			setHighlightButton();
+
 			if(selected) selected.classList.remove('selected');
 			selected=this;
 			selected.classList.add('selected');
@@ -488,14 +487,17 @@
 			event.stopPropagation();
 		}
 		function showItem(item,title,doHighlight) {
+			elements.footerFile.innerHTML=`${data.path}/${data.fileName}`;
 			elements.footerLanguage.innerHTML=`Language: ${data.language}`;
 			elements.iframeBody.classList.remove('markdown');
 			var language=['js','javascript','sql','php'].indexOf(data.language)>-1;
-			elements.codeElement.innerHTML=item;
+			elements.codeElement.textContent=item;
 
 			elements.codeElement.classList.forEach(className=>{if(className.startsWith('language-')) elements.codeElement.classList.remove(className);});
 			elements.codeElement.classList.add(`language-${data.language}`);
 			lineNumbers.style.display='block';
+			elements.codeElement.style.display='block';
+			elements.mdElement.style.display='none';
 			elements.iframeCSS.href='';
 
 			if(language && doHighlight) elements.codeElement.innerHTML=Prism.highlight(item, Prism.languages[data.language], data.language);
@@ -511,9 +513,11 @@
 				h2.removeAttribute('id');
 				h2.removeAttribute('class');
 //				innerHTML=innerHTML.replace(/(<h.*>.*<\/h.>)([\s\S]*)/g,'$1\n<div>$2</div>');
-				elements.codeElement.innerHTML=div.outerHTML;
+				elements.mdElement.innerHTML=div.outerHTML;
 				elements.iframeBody.classList.add('markdown');
 				lineNumbers.style.display='none';
+				elements.codeElement.style.display='none';
+				elements.mdElement.style.display='block';
 
 				elements.iframeCSS.href=`${data.css}`;
 			}
@@ -525,12 +529,7 @@
 			elements.codeElement.resetLineNumbers();
 
 		}
-		function setHighlightButton() {
-			// elements.highlightButton.classList.toggle('highlight',!elements.highlightButton.doHighlight);
-			// elements.highlightButton.innerHTML=!elements.highlightButton.doHighlight?'Highlight':'Raw';
-		}
 	}
-zoom(0);
 	function zoom(direction) {
 		switch(direction) {
 			case -1:
@@ -543,11 +542,13 @@ zoom(0);
 				codeFontSize.size=originalCodeFontSize;
 				break;
 		}
-		document.querySelector('div#content>iframe').contentWindow.document.querySelector('pre').style.setProperty('--font-size',`${codeFontSize.size}${codeFontSize.units}`);
+		document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content').style.setProperty('--font-size',`${codeFontSize.size}${codeFontSize.units}`);
 
-		jx.setLineNumbers(elements.codeElement,lineNumbers);
+//		jx.setLineNumbers(elements.codeElement,lineNumbers);
 //		elements.codeElement.resetLineNumbers();
 	}
+
+	zoom(0);
 
 
 
@@ -647,21 +648,33 @@ zoom(0);
 		});
 		return promise;
 	}
+
+	function save() {
+		var file=`${currentTab.data.path}/${currentTab.data.fileName}`;
+		if(!file) return;
+		var text=currentTab.data.text.trim()+'\n';
+		if(platform=='win32') text=text.split(/\r?\n/).join('\r\n');
+		elements.mainContent.blur();
+		fsp.writeFile(file,text)
+		.then(()=>console.log('ok'))
+		.catch(error=>console.log(error));
+	}
+
 	ipcRenderer.on('MENU',(event,data,more)=>{
 		switch(data) {
 			case 'NEW':
 
 				break;
 			case 'OPEN':
-				dialog.showOpenDialog(
-					{
-						title: 'Title',
-						defaultPath: localStorage.getItem('defaultPath')||'/nfs/html/internotes.net/pager/content'
-					},
-					function(path) {
-						openFile(path[0],true);
-					}
-				);	//	.then(data=>console.log(data))
+				dialog.showOpenDialog({
+					title: 'Title',
+					defaultPath: localStorage.getItem('defaultPath')||'/nfs/html/internotes.net/pager/content'
+				})
+				.then(result=> {
+					if(result.canceled) return;
+					localStorage.setItem('defaultPath',path);
+					openFile(result.filePaths[0],true);
+				});
 				break;
 			case 'URL':
 				var url=ipcRenderer.sendSync('prompt',{
@@ -687,7 +700,7 @@ zoom(0);
 				currentItem.click();
 				break;
 			case 'SAVE':
-//				save();
+				save();
 				break;
 			case 'SAVEAS':
 //				saveAs();
@@ -709,5 +722,3 @@ zoom(0);
 				break;
 		}
 	});
-
-//	alert('end');

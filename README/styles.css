@@ -1,12 +1,24 @@
+/*	Layout
+	================================================ */
+	html {
+		box-sizing: border-box;
+	}
+	body {
+		box-sizing: border-box;
+		height: 100vh;
+	}
+	body>div#main-content {
+		margin: 0;
+	}
+
+/*	Basic
+	================================================ */
 	body {
 		font-family: "Source Sans Pro";
 		font-size: 1em;
+		--color: #2A5F5B;
 	}
-	div {
-
-	}
-
-	div code {
+	code {
 		font-family: "Source Code Pro";
 		font-size: .8em;
 	}
@@ -22,10 +34,6 @@
 		border: thin solid #eee;
 	}
 
-	body>pre>code {
-		font-family: "Source Sans Pro";
-		font-size: 1.2em;
-	}
 	h1 {
 		margin: 0 0 .25em 0;
 		font-size: 2em;
@@ -39,23 +47,63 @@
 	}
 	p {
 		margin: .5em 0;
+		line-height: 1.5;
 	}
 
+	a {
+		color: var(--color);
+		text-decoration: none;
+		border-bottom: thin solid;
+	}
+
+/*	h1
+	================================================ */
+
 	div.h1 {
-		background-color: #2A5F5B;
+		background-color: var(--color);
 		text-align: center;
 		color: white;
 		text-shadow: none;
-		padding: 1em;
+		/* padding: 1em; */
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+
+	div.h1 {
+		height: 100%;
 	}
 	div.h1 h1 {
 		font-size: 3em;
 	}
 	div.h1 p {
-		font-size: 1.5em;
+		font-size: 1.75em;
 	}
 	div.h1 a {
 		color: white;
 		font-weight: bold;
 		text-decoration: none;
+		padding-bottom: .125em;
+	}
+
+/*	h2
+	================================================ */
+	div.h2 {
+		color: #333;
+		font-size: 3vw;
+	}
+
+
+	div.h2>h2 {
+		font-size: 2em;
+		background-color: var(--color);
+		color: white;
+		padding: .25em .5em;
+	}
+
+	div.h2>h3 {
+		color: var(--color);
+	}
+	div.h2 code {
+		font-size: .8em;
 	}

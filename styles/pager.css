@@ -229,6 +229,7 @@ footer>p {
 	}
 	span#footer-message,
 	span#footer-language,
+	span#footer-file,
 	span#footer-heading {
 		border: thin solid #ccc;
 		qborder: none;
@@ -240,6 +241,11 @@ footer>p {
 		background-color: transparent;
 		font-family: var(--monospace);
 		text-shadow: 0 1px 0 white;
+		text-align: left;
+	}
+	span#footer-file {
+		flex: 1;
+		border: none;
 	}
 	footer span:empty {
 		display: none;

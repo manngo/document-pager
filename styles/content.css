@@ -7,7 +7,7 @@
 	}
 
 
-	pre {
+	body>div#main-content {
 		--font-size:   1em;
 		font-size: var(--font-size);
 	}
@@ -19,7 +19,7 @@
 		background-color: #f8f8f8;
 	}
 
-	body>pre {
+	body>div#main-content {
 		margin: 0;
 		box-sizing: border-box;
 		overflow: auto;
@@ -29,49 +29,52 @@
 		margin: 1em;
 		background-color: white;
 	}
-	body.markdown>pre {
-		border: none;
-	}
-	body>pre>code {
+
+/*	Content Code
+	============================================ */
+
+	body>div#main-content>code {
 		white-space: pre;
 		tab-size: 4;
 	}
 
-	body.markdown>pre>code {
+
+/*	Content Markdown
+	============================================ */
+
+	body.markdown>div#main-content {
+		border: none;
+	}
+	body.markdown>div#main-content>div#md {
 		white-space: normal;
 		padding: 1rem;
+		width: 100%;
 	}
 
 /*	Prism
 	================================================ */
 
-	pre>code[class*="language-"] {
+	div#main-content>code[class*="language-"] {
 		background-color: white;
 	}
 
-	pre code {
+	div#main-content code {
 
 	}
 
-	pre .token.tab,
-	pre .token.crlf,
-	pre .token.lf,
-	pre .token.cr {
+	div#main-content .token.tab,
+	div#main-content .token.crlf,
+	div#main-content .token.lf,
+	div#main-content .token.cr {
 		visibility: hidden;
     }
 
-	pre>code[class*="language-"] {
+	div#main-content>code[class*="language-"] {
 		font-family: "Source Code Pro", monospace;
 		font-size: .8em;
 		padding: .5em 0;
 		line-height: 1.5;
 	}
-
-
-
-
-
-
 
 /*	Line Numbers
 	================================================
@@ -80,7 +83,7 @@
 		code
 	================================================ */
 
-	pre {
+	div#main-content {
 		display: flex;
 	}
 

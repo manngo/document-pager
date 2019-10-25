@@ -1,6 +1,6 @@
 {
 	"name": "document-pager",
-	"version": "0.2.2",
+	"version": "0.2.4",
 	"description": "Document Pager: Displays a text document in tabbed pages.",
 	"main": "main.js",
 	"repository": "https://github.com/manngo/document-pager",
@@ -8,11 +8,12 @@
 	"author": "Mark Simon",
 	"license": "CC0-1.0",
 	"devDependencies": {
-		"electron": "^5.0.3",
-		"electron-packager": "^13.1.1"
+		"electron": "^6.0.12",
+		"electron-packager": "^14.0.6"
 	},
 	"dependencies": {
-		"electron-reload": "^1.4.0",
+		"clipboard": "^2.0.4",
+		"electron-reload": "^1.5.0",
 		"marked": "^0.7.0",
 		"set-value": ">=2.0.1",
 		"sudo-prompt": "^9.0.0",

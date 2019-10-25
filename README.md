@@ -8,7 +8,7 @@
 		tab-size: 4 !important;
 	}
 </style>
-#	Document Pager 0.2.3
+#	Document Pager 0.2.4
 
 Document Pager © Mark Simon  
 See also https://pager.internotes.net/
@@ -58,7 +58,7 @@ To view the unhighlighted version, you can either:
 
 Document Pager will create a folder in the user’s home directory called `.document-pager`. It includes:
 
-| File--           | Usage                        |
+| File             | Usage                        |
 |------------------|------------------------------|
 | `languages.json` | Additional Language Settings |
 | `files.json`     | A list of last open files    |
@@ -77,6 +77,8 @@ If you want to add your own heading markers, you should add them to the `languag
 ```
 
 You can omit any of the sub sections, and you can have multiple values inside the square brackets.
+
+As you might have guessed from the name, the file is in JSON format. JSON is very fussy, so it’s easy to make a mistake.
 
 
 Here are the default language settings:

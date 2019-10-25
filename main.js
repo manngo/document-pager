@@ -8,6 +8,8 @@
 
 //	Required Modules
 	const {app, BrowserWindow, Menu, MenuItem, shell, ipcRenderer, protocol, ipcMain} = require('electron');
+	//	https://github.com/electron/electron/issues/18214#issuecomment-495043193
+		app.commandLine.appendSwitch('disable-site-isolation-trials');
 	//	console.log(require.resolve('electron'))
 	const path = require('path');
 
@@ -42,7 +44,7 @@
                 {	label: `Reload`, accelerator: 'CmdOrCtrl+R', id:'LOAD', click: send },
                 {	label: `Open URL …`, accelerator: 'CmdOrCtrl+Shift+O', id:'URL', click: send },
                 {	label: `Close`, accelerator: 'CmdOrCtrl+W', id:'CLOSE', click: send },
-//                {	label: `Save`, accelerator: 'CmdOrCtrl+S', id:'SAVE', click: send },
+                {	label: `Save`, accelerator: 'CmdOrCtrl+S', id:'SAVE', click: send },
 //                {	label: `Save As …`, accelerator: 'CmdOrCtrl+Shift+S', id:'SAVEAS', click: send },
 				{	type:'separator' },
                 {	role: `quit`, accelerator: 'CmdOrCtrl+Q' }

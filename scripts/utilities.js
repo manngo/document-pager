@@ -708,6 +708,23 @@
 		};
 		return lineNumbers;
 	};
+	jx.contentEditable=(element,intercept)=>{
+		element.contentEditable=true;
+		if(!intercept) return;
+		function handleKeys(event) {
+			var keys=['Tab','Enter'];
+			if(!keys.includes(event.key)) return true;
+			switch(event.key) {
+		        case 'Tab':
+					element.ownerDocument.execCommand('insertText',false,'\t');
+					return false;
+		        case 'Enter':
+					element.ownerDocument.execCommand('insertLineBreak',false,'\n');
+					return false;
+			}
+		}
+		element.onkeydown=handleKeys;
+	};
 
 
 
