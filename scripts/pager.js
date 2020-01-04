@@ -96,7 +96,7 @@
 			});
 		});
 	}
-
+open
 /**	Pager
 	================================================
 	================================================ */
@@ -159,7 +159,9 @@
 				.then(()=>documentTitle=settings.headings.title+' '+settings.version)
 
 			//	About
-				.then(()=>openFile(path.join(cwd, '/README.md')))
+				.then(()=>{
+					openFile(path.join(cwd, '/README.md'));
+				})
 
 			//	Files
 				.then(()=>fs.promises.stat(filesJSON))
@@ -351,7 +353,6 @@
 
 	================================================ */
 	function doPager(data) {
-console.log('doPager');
 		//	Prepare Document
 			var br, major, minor;
 			var headingsRE, headingMajor, headingMinor, RE;
@@ -575,6 +576,7 @@ console.log('doPager');
 	});
 
 	function pathDetails(uri) {
+		uri=normalize(uri);
 		var path, fileName, extension, css;
 
 		path=uri.split('/');
@@ -589,7 +591,6 @@ console.log('doPager');
 
 	function openFile(pathName,remember=false) {
 		var {path,fileName,extension,css}=pathDetails(pathName);
-
 		return fsp.stat(css).catch(()=>css='')
 		.then(()=>load(`${path}/${fileName}`))
 		.then(data=> {
@@ -601,7 +602,8 @@ console.log('doPager');
 				files.push(pathName);
 				fs.promises.writeFile(filesJSON,JSON.stringify(files));
 			}
-		});
+		})
+		.catch(error=>{console.log(error);});
 	}
 
 	function openURL(url,remember=false) {

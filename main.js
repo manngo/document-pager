@@ -1,10 +1,11 @@
 'use strict';
 
-//	Settings
+const log = require('electron-log');
 
+//	Settings
 	const {DEVELOPMENT}=require('./settings.js');
-	if(DEVELOPMENT && process.platform == 'darwin')
-	if(DEVELOPMENT) require('electron-reload')(__dirname);
+
+	if(DEVELOPMENT && process.platform == 'darwin') require('electron-reload')(__dirname);
 
 //	Required Modules
 	const {app, BrowserWindow, Menu, MenuItem, shell, ipcRenderer, protocol, ipcMain} = require('electron');
@@ -15,15 +16,15 @@
 
 //	Startup
 
-    if(app.requestSingleInstanceLock()) {
-        app.on('second-instance', (event, argv, cwd) => {
-            console.log(JSON.stringify(argv));
-            window.webContents.send('DOIT','message',JSON.stringify(argv));
-        });
-    }
-    else {
-        app.quit();
-    }
+    // if(app.requestSingleInstanceLock()) {
+    //     app.on('second-instance', (event, argv, cwd) => {
+    //         console.log(JSON.stringify(argv));
+    //         window.webContents.send('DOIT','message',JSON.stringify(argv));
+    //     });
+    // }
+    // else {
+    //     app.quit();
+    // }
 
 //	Global Variables
 	var window, menu;
@@ -99,8 +100,11 @@
 if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
 
 //	Init
-
+log.info(`before init`);
 	function init() {
+
+log.info(`start of init`);
+
 		window = new BrowserWindow({
 			width: 1200,
 			height: 800,
@@ -116,10 +120,12 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
 		var [dummy,action,data,more]=request.url.split(/:/);
 		window.webContents.send('DOIT',action,data,more);
 	},(error)=> {});
+log.info(`after protocol`);
 
 		window.once('ready-to-show', () => {
 			window.show();
 		});
+log.info(`after window.once`);
 
 		window.setTitle('Document Pager');
 		menu=Menu.buildFromTemplate(menu);
@@ -136,38 +142,52 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
 			window = null;
 	  	});
 	}
+log.info(`after init function`);
 
 //	Events
 
 	app.on('ready', init);
+
+log.info(`after app.on ready`);
+
 	app.on('window-all-closed', function () {
+log.info(`154`);
 		//	if (process.platform !== 'darwin')
 		app.quit();
 	});
 	app.on('activate', function () {
+log.info(`159`);
 	  	if (window === null) init();
 	});
+log.info(`after app.on window-all-closed, activate`);
 
 //    process.argv.forEach(onOpen);
 
     app.on('open-file', onOpen);
     app.on('open-url', onOpen);
 
+log.info(`after app.on open-file, open-url`);
+
     function onOpen(path) {
+log.info(`172`);
         if(!path) return;
         console.log(JSON.stringify(arguments));
 		window.webContents.send('DOIT','open',path);
     }
 
+log.info(`after function onOpen`);
+
 //  Prompt
-    var prompt, promptResponse
+    var prompt, promptResponse;
 	var promptOptions={
 		message: 'Enter a URL:',
 		match: /https?:\/\//,
 		error: 'URL must begin with http:// or https://'
 	};
+log.info(`after promptOptions`);
 
     function doPrompt(parent,callback) {
+log.info(`190`);
         prompt=new BrowserWindow({
 //            width: 1400, height: 200,
             width: 400,
@@ -191,9 +211,12 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
         prompt.once('read-to-show',()=>prompt.show());
     }
 
+log.info(`after function doPrompt`);
+    ipcMain.on('prompt-ok',(event,data)=>{log.info(data);});
     ipcMain.on('prompt-ok',(event,data)=>{promptResponse=data;});
     ipcMain.on('prompt-cancel',(event,data)=>{promptResponse=undefined;});
     ipcMain.on('prompt-size',(event,data)=>{
+log.info(`219`);
         data=JSON.parse(data);
 
         prompt.setBounds({
@@ -201,12 +224,18 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
             height: parseInt(data.height+1)
         });
     });
+
+log.info(`228`);
+
     ipcMain.on('prompt-init',(event,data)=>{
 		event.returnValue=JSON.stringify(promptOptions);
 	});
 
+log.info(`234`);
 
     ipcMain.on('prompt',(event,options)=>{
 		promptOptions=options;
         doPrompt(window,data=>event.returnValue=data);
     });
+
+log.info(`241`);
