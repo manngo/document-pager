@@ -668,15 +668,25 @@ open
 
 				break;
 			case 'OPEN':
-				dialog.showOpenDialog({
-					title: 'Title',
-					defaultPath: localStorage.getItem('defaultPath')||'/nfs/html/internotes.net/pager/content'
-				})
-				.then(result=> {
-					if(result.canceled) return;
-					localStorage.setItem('defaultPath',path);
-					openFile(result.filePaths[0],true);
-				});
+				if(dialog.showOpenDialog.then)
+					dialog.showOpenDialog({
+						title: 'Title',
+						defaultPath: localStorage.getItem('defaultPath')||'/nfs/html/internotes.net/pager/content'
+					})
+					.then(result=> {
+						if(result.canceled) return;
+						localStorage.setItem('defaultPath',path);
+						openFile(result.filePaths[0],true);
+					});
+				else
+					dialog.showOpenDialog({
+						title: 'Title',
+						defaultPath: localStorage.getItem('defaultPath')||'/nfs/html/internotes.net/pager/content'
+					},result=> {
+						if(result===undefined) return;
+						localStorage.setItem('defaultPath',path);
+						openFile(result[0],true);
+					});
 				break;
 			case 'URL':
 				var url=ipcRenderer.sendSync('prompt',{
