@@ -12,22 +12,6 @@
 		-webkit-app-region: drag;
 	}
 
-/*	Nativefier Application
-	================================================ */
-
-	header,footer {
-	  -webkit-app-region: drag;
-	}
-
-	/* but any buttons inside the header shouldn't be draggable */
-	header form {
-	  -webkit-app-region: no-drag;
-	}
-
-	button {
-		outline: none;
-	}
-
 /*	Layout
 	================================================
 	body
@@ -35,6 +19,7 @@
 		main
 			ul#tabs
 			div#pager
+				nav#documents
 				div#index
 					h2
 					ul
@@ -42,13 +27,12 @@
 				div#content
 					h2
 					iframe
-					p#content-footer
+			p#content-footer
 		footer
 	================================================ */
 
 	body {
 		display: flex;
-
 		height: 100vh;
 		flex-direction: column;
 	}
@@ -57,127 +41,178 @@
 		box-sizing: border-box;
 		margin: 0em;
 	}
-		header {
-			height: 2.25em;
+	header {
+		height: 2.25em;
+	}
+
+	main {
+		flex: 1;
+		width: 100vw;
+	}
+
+/*	Main
+	================================================
+	main
+		ul#tabs
+		div#pager
+		p#content-footer
+	================================================ */
+
+	main, ul#tabs, div#pager, p#content-footer {
+		box-sizing: border-box;
+	}
+
+	main {
+		display: grid;
+		grid-template-rows: 1.875rem 1fr 2rem;
+		grid-template-columns: 1fr;
+	}
+	ul#tabs {
+		grid-row: 1/2;
+	}
+	div#pager {
+		grid-row: 2/3;
+	}
+	p#content-footer {
+		grid-row: 3/4;
+	}
+
+
+
+/*	Pager
+	================================================
+	div#pager
+		nav#documents
+		div#index
+		div#content
+	================================================ */
+
+	div#pager {
+		display: grid;
+		grid-template-columns: 18rem 1fr;
+		margin: 0;
+	}
+
+	nav#documents { display: none; }
+	div#index { grid-column: 1/2; }
+	div#content { grid-column: 2/3; }
+
+	main.show div#pager { grid-template-columns: 18rem 18rem 1fr; }
+	main.show nav#documents { display: block; grid-column: 1/2; }
+	main.show div#index { grid-column: 2/3; }
+	main.show div#content { grid-column: 3/4; }
+
+
+
+	div#index,
+	div#content {
+		background-color: white;
+	}
+	nav#documents,
+	div#index,
+	div#content {
+		box-sizing: border-box;
+		max-height: calc(100vh - 6.5em);
+	}
+
+	div#index>h2,
+	div#content>h2 {
+		box-sizing: border-box;
+		margin: 0;
+		width: 100%;
+		height: 2.75rem;
+		padding: .25em .25em .25em .75em;
+	}
+
+	div#index {
+		overflow: auto;
+	}
+
+/*	Index Grid
+	================================================
+	div#index
+		h2
+		ul
+		p#raw-message	span#resize-index
+	================================================ */
+
+		div#index {
+			display: grid;
+			grid-template-areas:
+				"h2 h2"
+				"ul ul"
+				"p resize";
+			grid-template-rows: 2.75rem 1fr 2rem;
+			grid-template-columns: 1fr 8px;
+		}
+		div#index>h2	{ grid-area: h2; }
+		div#index>ul	{ grid-area: ul; }
+		div#index>p		{ grid-area: p; }
+		div#index>span	{ grid-area: resize; }
+
+		p#raw-message {
+			box-sizing: border-box;
+			margin-left: 1em;
+			padding: .25em .5em .25em 1em;
+			margin: 0 0 0 0;
 		}
 
-		main {
-			flex: auto;
-			flex: 1;
-			width: 100vw;
-			display: flex;
-			flex-direction: column;
+		div#index>span#resize-index {
+			box-sizing: border-box;
+			display: block;
+			margin: 0;
 		}
-			ul#tabs {
-				box-sizing: border-box;
-			}
 
-			div#pager {
-				box-sizing: border-box;
-				display: flex;
-				flex-direction: row;
-				flex: 1;
-				margin: 0;
-			}
+	div#content {
+		overflow: hidden;
+		flex: 1;
+	}
 
-				div#index,
-				div#content {
-					background-color: white;
-				}
-				div#index,
-				div#content {
-					box-sizing: border-box;
-					max-height: calc(100vh - 6.5em);
-				}
+/*	Content Grid
+	============================================ */
 
-					div#index>h2,
-					div#content>h2 {
-						box-sizing: border-box;
-						margin: 0;
-						width: 100%;
-						height: 2.75rem;
-						padding: .25em .25em .25em .75em;
-					}
+	div#content {
+		border: thin #ccc;
+		border-style: none none none none;
+		padding: 1em;
+		padding: 0;
+		display: grid;
+		grid-template-areas: "content-h2" "content-iframe" "content-footer";
+		grid-template-rows: 2.75rem 1fr 2rem;
+	}
 
-				div#index {
-					overflow: auto;
-					width: 18em;
-				}
+	div#content h2					{grid-area: content-h2;}
+	div#content>iframe				{grid-area: content-iframe;}
+	div#content>p#content-footer	{grid-area: content-footer;}
 
-				/*	Index Grid
-					============================================ */
+	div#content>iframe {
+		box-sizing: border-box;
+		width: 100%;
+		height: calc(100% - 2.75rem - 2rem);
+	}
 
-					div#index {
-						display: grid;
-						grid-template-areas:
-							"h2 h2"
-							"ul ul"
-							"p resize"
-						;
-						grid-template-rows: 2.75rem 1fr 2rem;
-						grid-template-columns: 1fr 8px;
-					}
-					div#index>h2	{ grid-area: h2; }
-					div#index>ul	{ grid-area: ul; }
-					div#index>p		{ grid-area: p; }
-					div#index>span	{ grid-area: resize; }
-
-					p#raw-message {
-						box-sizing: border-box;
-						margin-left: 1em;
-						padding: .25em .5em .25em 1em;
-						margin: 0 0 0 0;
-					}
-
-					div#index>span#resize-index {
-						box-sizing: border-box;
-						display: block;
-						margin: 0;
-					}
-
-				div#content {
-					overflow: hidden;
-					flex: 1;
-				}
-
-				/*	Content Grid
-					============================================ */
-
-					div#content {
-						border: thin #ccc;
-						border-style: none none none none;
-						padding: 1em;
-						padding: 0;
-						display: grid;
-						grid-template-areas: "content-h2" "content-iframe" "content-footer";
-						grid-template-rows: 2.75rem 1fr 2rem;
-					}
-
-					div#content h2					{grid-area: content-h2;}
-					div#content>iframe				{grid-area: content-iframe;}
-					div#content>p#content-footer	{grid-area: content-footer;}
-
-				div#content>iframe {
-					box-sizing: border-box;
-					width: 100%;
-					height: calc(100% - 2.75rem - 2rem);
-				}
-
-				div#content>p#content-footer {
-					box-sizing: border-box;
-					height: 2rem;
-					background-color: #eee;
-					padding: .25em .5em;
-					margin: 0;
-					border: thin solid #aaa;
-					border-style: solid none;
-					display: flex;
-					justify-content: flex-end;
-				}
+	div#content>p#content-footer {
+		box-sizing: border-box;
+		height: 2rem;
+		background-color: #eee;
+		padding: .25em .5em;
+		margin: 0;
+		border: thin solid #aaa;
+		border-style: solid none;
+		display: flex;
+		justify-content: flex-end;
+	}
 
 	footer {
 		background-color: #ddd;
 		margin: 0;
+	}
+
+/*	Documents
+	================================================ */
+
+	nav#documents {
+		background-color: #f8f8f8;
 	}
 
 /*	Pager
@@ -271,7 +306,8 @@ footer>p {
 /*	Button Appearances
 	============================================ */
 	form#control button,
-	form#control input[name="show-highlight"]+label {
+	form#control input[name="show-highlight"]+label,
+		form#control input[name="show-documents"]+label {
 		background-color: #f8f8f8;
 		border-radius: 2px;
 
@@ -290,14 +326,17 @@ footer>p {
 		============================================
 		============================================ */
 
-		form#control input[name="show-highlight"] {
+		form#control input[name="show-highlight"],
+		form#control input[name="show-documents"] {
 			display: none;
 		}
-		form#control input[name="show-highlight"]+label {
+		form#control input[name="show-highlight"]+label,
+		form#control input[name="show-documents"]+label {
 
 		}
 
-		form#control input[name="show-highlight"]:hover+label {
+		form#control input[name="show-highlight"]:hover+label,
+		form#control input[name="show-documents"]:hover+label {
 			background-color: #c8c8c8;
 			animation: none;
 
@@ -305,19 +344,23 @@ footer>p {
 		/*	Highlighted Icon
 			============================================
 			form#control input[name="show-highlight"]+label:before {
-				content: "ðŸ•¶";
+				content: "ÃƒÂ°Ã…Â¸Ã¢â‚¬Â¢Ã‚Â¶";
 				position: relative;
 				top: .125em;
 				margin-right: .5em;
 			}
 			form#control input[name="show-highlight"]:checked+label:before {
-				content: "ðŸ‘“";
+				content: "ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Å“";
 			}
 			============================================ */
-		form#control input[name="show-highlight"]:checked+label {
+		form#control input[name="show-highlight"]:checked+label,
+		form#control input[name="show-documents"]:checked+label {
 			color: #333;
 			background-color: #999;
 			color: white;
+		}
+		form#control input[name="show-documents"]+label {
+			margin-left: .5em;
 		}
 
 /*	Tabs
@@ -330,8 +373,8 @@ footer>p {
 		display: flex;
 		flex-direction: row;
 		background-color: #ccc;
-		font-size: .8em;
-		height: 2em;
+		font-size: .8rem;
+		height: 2rem;
 	}
 
 	ul#tabs>li {
@@ -611,4 +654,43 @@ footer>p {
 		background: linear-gradient(to bottom, #777, #666);
 		box-shadow:
 			inset 1px 1px 1px #666;
+	}
+
+
+/*	Search
+	================================================ */
+
+	nav#documents ul {
+		list-style: none;
+		padding: 0;
+	}
+
+	nav#documents>ul {
+		font-weight: bold;
+		margin: .25em 1em;
+	}
+
+	nav#documents>ul>li {
+		padding: .5em 1em;
+	}
+	nav#documents>ul>li>ul {
+		margin: .5em 0 0 0;
+		font-weight: normal;
+	}
+	nav#documents>ul>li>ul>li {
+		border-top: thin solid #666;
+	}
+	nav#documents>ul>li>ul>li:last-of-type {
+		border-bottom: thin solid #666;
+	}
+	nav#documents li>a {
+		font-size: .9rem;
+		text-decoration: none;
+		display: block;
+		color: #333;
+		padding: .25em .75em .375em;
+		text-shadow: 0 1px 0 white;
+	}
+	nav#documents li>a:hover {
+		background-color: #ddd;
 	}

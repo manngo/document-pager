@@ -14,7 +14,7 @@
 
 	document.body.ondrop = (event) => {
 		//console.log(JSON.stringify(event.dataTransfer.files[0].path));
-		//		openFile(event.dataTransfer.files[0].path.toString());
+		//		openPath(event.dataTransfer.files[0].path.toString());
 		event.preventDefault();
 	};
 
@@ -37,10 +37,8 @@
 	================================================ */
 
 	const electron=require('electron');
-		const { ipcRenderer, shell, remote } = require('electron');
-			const app=remote.app;
-			const BrowserWindow = remote.BrowserWindow;
-			const dialog=remote.dialog;
+	const { ipcRenderer, shell, remote } = electron;
+	const {app,BrowserWindow,dialog,Menu,MenuItem}=remote;
 	const path = require('path');
 	const fs = require('fs');
 		const fsp = fs.promises;
@@ -96,7 +94,7 @@
 			});
 		});
 	}
-open
+
 /**	Pager
 	================================================
 	================================================ */
@@ -107,7 +105,7 @@ open
 
 	var home=`${app.getPath('home')}/.document-pager`;
 	var languagesJSON=`${home}/languages.json`;
-	var filesJSON=`${home}/files.json`, files={};
+	var filesJSON=`${home}/files.json`, files={}, pseudoFiles=[];
 
 //	Main
 	init();
@@ -160,43 +158,120 @@ open
 
 			//	About
 				.then(()=>{
-					openFile(path.join(cwd, '/README.md'));
+					pseudoFiles.push(path.join(cwd, '/README.md'));
+					return openFile(path.join(cwd, '/README.md'));
 				})
 
 			//	Files
 				.then(()=>fs.promises.stat(filesJSON))
-				.catch(()=>fs.promises.writeFile(filesJSON,'[]'))
+				.catch(()=>fs.promises.writeFile(filesJSON,'{"current":[],"recent":[],"favorites":[]'))
 				.then(()=>fs.promises.readFile(filesJSON))
 				.then(data=>{
 					files=JSON.parse(data);
-					files.forEach(v=>{
-						if(v.match(/^https?:\/\//)) openURL(v,true);
-						else {
-							fsp.stat(v)
-							.then(()=>openFile(v))
-							.catch(error=>{
-								dialog.showMessageBox({
-									buttons: ['OK'],
-									message: `Oh Dear. The File ${v} appears to have disappeared.`
-								});
-
-								files=files.filter(value=>value!=v);
-								fsp.writeFile(filesJSON,JSON.stringify(files));
-
-								console.log(`Error: The File ${v} appears to have disappeared.`);
-							});
-						}
-					});
+					//	Current Files
+						if(files.current) files.current.forEach(v=>{
+							openFile(v);
+						});
+					//	Recent Files List
+						updateDocuments();
 				})
 		;
+
 
 		if(DEVELOPMENT)
 			promise
 //			.then(()=>openURL('https://pager.internotes.net/content/mssql-techniques.sql',true))
-			.then(()=>openFile(path.join(cwd, 'data/exercises.sql')))
+			.then(()=>{
+				pseudoFiles.push(path.join(cwd, 'data/exercises.sql'));
+				return openFile(path.join(cwd, 'data/exercises.sql'));
+			})
 			.then(()=>tabs[0].click())
+			.then(()=>console.log('hello'))
 			;
 	}
+
+	//	get Tab Number
+		function getTab(fileName) {
+			var result= {
+				index: -1,
+				tab: null,
+				pathName: null
+			};
+			if (tabs.length) tabs.forEach((tab,index)=> {
+				var pathName;
+				if((pathName=`${tab.data.path}/${tab.data.fileName}`)==fileName) {
+					result={index,tab,pathName};
+				}
+			});
+			return result;
+		}
+
+	//	files.json
+		//	data={action, pathName}
+		function updateFiles(data) {
+			switch(data.action) {
+				case 'add':
+					if(!files.current.includes(data.pathName))  files.current.push(data.pathName);
+					if(!files.recent.includes(data.pathName))  files.recent.push(data.pathName);
+					if(files.recent.length>16) files.recent.shift();
+					break;
+				case 'remove':
+					files.current=files.current.filter(value=>value!=data.pathName);
+					break;
+				case 'favorite':
+					if(!files.favorites.includes(data.pathName))  files.favorites.push(data.pathName);
+					break;
+				case 'unfavorite':
+					files.favorites=files.favorites.filter(value=>value!=data.pathName);
+					break;
+			}
+			fs.promises.writeFile(filesJSON,JSON.stringify(files));
+			updateDocuments();
+		}
+
+
+	//	Documents Lists
+		function updateDocuments() {
+			let open=elements.documents.querySelector('li#documents-open>ul');
+			open.innerHTML='';
+			let recent=elements.documents.querySelector('li#documents-recent>ul');
+			recent.innerHTML='';
+			let favorites=elements.documents.querySelector('li#documents-favourite>ul');
+			favorites.innerHTML='';
+			//	Recent Files
+				if(files.recent) {
+					files.recent.forEach(v=>{
+						let li=document.createElement('li');
+						let name=path.basename(v);
+						li.innerHTML=`<a href="doit:open:${v}">${name}</a>`;
+						recent.appendChild(li);
+					});
+				}
+			//	Current Files
+				pseudoFiles.forEach(v=>{
+					let li=document.createElement('li');
+					let name=path.basename(v);
+					li.innerHTML=`<a href="doit:click:${v}">${name}</a>`;
+					open.appendChild(li);
+				});
+				if(files.current) {
+					files.current.forEach(v=>{
+						let li=document.createElement('li');
+						let name=path.basename(v);
+						li.innerHTML=`<a href="doit:click:${v}">${name}</a>`;
+						open.appendChild(li);
+					});
+				}
+			//	favorite Files
+				if(files.favorites) {
+					files.favorites.forEach(v=>{
+						let li=document.createElement('li');
+						let name=path.basename(v);
+						li.innerHTML=`<a href="doit:open:${v}">${name}</a>`;
+						favorites.appendChild(li);
+					});
+				}
+		}
 
 /**	Pager
 	================================================
@@ -219,6 +294,8 @@ open
 			//	Main
 				tabPane: document.querySelector('ul#tabs'),
 				pager: document.querySelector('div#pager'),
+				main: document.querySelector('main'),
+				documents: document.querySelector('nav#documents'),
 			//	Index
 				indexDiv: document.querySelector('div#index'),
 				indexHeading: document.querySelector('div#index>h2'),
@@ -265,6 +342,11 @@ open
 		elements.formControl.elements['zoom-smaller'].onclick=zoom.bind(null,-1);
 		elements.formControl.elements['zoom-default'].onclick=zoom.bind(null,0);
 
+		elements.formControl.elements['show-documents'].onclick=function(event){
+			elements.main.classList.toggle('show',this.checked);
+		};
+		elements.main.classList.toggle('show',elements.formControl.elements['show-documents'].checked);
+
 		jx.contentEditable(elements.codeElement,true);
 		elements.codeElement.onblur=event=>{
 			console.log('blur');
@@ -287,7 +369,7 @@ open
 
 		var close=document.createElement('button');
 			close.innerHTML=`<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="8" height="8" viewBox="0, 0, 24, 24"><path d="M3.141,24 L-0,24 L10.332,11.935 L-0,0 L3.401,0 L12,9.06 L20.924,0 L24,0 L13.581,11.935 L24,24 L20.664,24 L12,14.33 z" fill="#000000"/></svg>`;	//	'⨉';	//	✖️
-			close.onclick=closeTab.bind(tab);
+			close.onclick=closeTab.bind(tab,tab);
 			close.id='tab-close';
 		var refresh=document.createElement('button');
 			refresh.innerHTML='↻';
@@ -305,7 +387,6 @@ open
 		//	Track
 			tabs.push(tab);
 			currentTab=tab;
-
 		function doTab(event) {
 			if(currentTab!==undefined) currentTab.classList.remove('selected');
 			currentTab=this;
@@ -313,6 +394,7 @@ open
 			doPager(this.data);
 		}
 	}
+
 /**	refreshTab
 	================================================
 	================================================ */
@@ -326,24 +408,28 @@ open
 	================================================
 	================================================ */
 
-	function closeTab(event) {
+	function closeTab(tab,event) {
+
+		tabs=tabs.filter(value=>value!=tab);
 		var path=`${this.data.path}/${this.data.fileName}`;
-		files=files.filter(value=>value!=path);
-		fs.promises.writeFile(filesJSON,JSON.stringify(files));
+		updateFiles({'action': 'remove', 'pathName': `${this.data.path}/${this.data.fileName}`});
 
 		var sibling=this.previousElementSibling||this.nextElementSibling||undefined;
 		elements.tabPane.removeChild(this);
-		currentTab=undefined;
-		if(sibling) sibling.click();
-		else {
-			elements.indexUL.innerHTML='';
-			elements.codeElement.innerHTML='';
-			document.title=documentTitle;
-			elements.h1.innerHTML=settings.headings.h1+' '+settings.version;
-			elements.contentHeading.innerHTML=settings.headings.content;
-			elements.indexHeading.innerHTML=settings.headings.index;
+		if(tab==currentTab) {
+			currentTab=undefined;
+			if(sibling) sibling.click();
+			else {
+				elements.indexUL.innerHTML='';
+				elements.codeElement.innerHTML='';
+				document.title=documentTitle;
+				elements.h1.innerHTML=settings.headings.h1+' '+settings.version;
+				elements.contentHeading.innerHTML=settings.headings.content;
+				elements.indexHeading.innerHTML=settings.headings.index;
 
-			elements.contentDiv.classList.add('empty');
+				elements.contentDiv.classList.add('empty');
+			}
+
 		}
 		if(event) event.stopPropagation();
 	}
@@ -557,24 +643,6 @@ open
 		elements.footerMessage.textContent=message;
 	}
 
-//	IPC
-
-	ipcRenderer.on('DOIT',(event,action,data,more)=>{
-		switch(action) {
-			case 'open':
-				openFile(data);
-				break;
-			case 'message':
-				footerMessage(data);
-				break;
-			case 'find':
-				break;
-			case 'locate':
-				break;
-			case 'special':
-		}
-	});
-
 	function pathDetails(uri) {
 		uri=normalize(uri);
 		var path, fileName, extension, css;
@@ -589,66 +657,97 @@ open
 		return {path,fileName,extension,css};
 	}
 
-	function openFile(pathName,remember=false) {
-		var {path,fileName,extension,css}=pathDetails(pathName);
-		return fsp.stat(css).catch(()=>css='')
-		.then(()=>load(`${path}/${fileName}`))
-		.then(data=> {
-			addDocument(data,extensions[extension],fileName,path,css);
-		})
-		.then(()=>{
-			if(!remember) return;
-			if(!files.includes(pathName)) {
-				files.push(pathName);
-				fs.promises.writeFile(filesJSON,JSON.stringify(files));
-			}
-		})
-		.catch(error=>{console.log(error);});
-	}
+	function openFile(fileName,remember=false) {
+		var {index,tab}=getTab(fileName);
+		if(index>-1) {
+			tab.click();
+			return;
+		}
+console.log(fileName);
+		var result=null;
+		if(fileName.match(/^https?:\/\//)) result=openURL(fileName,remember);
+		else result=openPath(fileName,remember);
+		return result;
 
-	function openURL(url,remember=false) {
-		var data;
-		var promise, cancelled=false;
+		function openPath(pathName,remember=false) {
+			return fsp.stat(pathName)
+			.then(()=>{
+				var {path,fileName,extension,css}=pathDetails(pathName);
+				return fsp.stat(css).catch(()=>css='')
+				.then(()=>load(`${path}/${fileName}`))
+				.then(data=> {
+					addDocument(data,extensions[extension],fileName,path,css);
+				})
+				.then(()=>{
+					updateDocuments();
+					if(!remember) return;
+					updateFiles({'action':'add',pathName});
+					// if(!files.current.includes(pathName))  files.current.push(pathName);
+					// if(!files.recent.includes(pathName))  files.recent.push(pathName);
+					// if(files.recent.length>16) files.recent.shift();
+					// fs.promises.writeFile(filesJSON,JSON.stringify(files));
+				})
+				.catch(error=>{console.log(error);});
+			})
+			.catch(error=>{
+				//	Error
+					dialog.showMessageBox({
+						buttons: ['OK'],
+						message: `Oh Dear. The File ${pathName} appears to have disappeared.`
+					});
+					console.log(`Error: The File ${pathName} appears to have disappeared.`);
 
-		var {path,fileName,extension,css}=pathDetails(url);
-
-//		fetch('https://pager.internotes.net/content/mssql-techniques.sql')
-		promise=fetch(url)
-		.then(response=>{
-			if(!response.ok) throw new Error(`Oh Dear. The file ${url} is not available.`);
-			else return response.text();
-		})
-		.catch((error)=>{
-			dialog.showMessageBox({
-				buttons: ['OK'],
-				message: `Oh Dear. The URL ${url} appears to be unavailable.`
+				//	Remove from Current & Recent
+					files.current=files.current.filter(value=>value!=pathName);
+					files.recent=files.recent.filter(value=>value!=pathName);
+					fsp.writeFile(filesJSON,JSON.stringify(files));
 			});
-			console.log(error);
-			cancelled=true;
-			files=files.filter(value=>value!=url);
-			fsp.writeFile(filesJSON,JSON.stringify(files));
+		}
 
-		})
-		.then((text)=>{
-			if(cancelled) return;
-			data=text;
-		})
-		.then(()=>{
-			if(cancelled) return;
-			fetch(css).catch(()=>css='');
-		})
-		.then((text)=>{
-			if(cancelled) return;
-			addDocument(data,extensions[extension],fileName,path,css);
-		})
-		.then(()=>{
-			if(cancelled || !remember) return;
-			if(!files.includes(url)) {
-				files.push(url);
-				fs.promises.writeFile(filesJSON,JSON.stringify(files));
-			}
-		});
-		return promise;
+		function openURL(url,remember=false) {
+			var data;
+			var promise, cancelled=false;
+
+			var {path,fileName,extension,css}=pathDetails(url);
+
+	//		fetch('https://pager.internotes.net/content/mssql-techniques.sql')
+			promise=fetch(url)
+			.then(response=>{
+				if(!response.ok) throw new Error(`Oh Dear. The file ${url} is not available.`);
+				else return response.text();
+			})
+			.catch((error)=>{
+				dialog.showMessageBox({
+					buttons: ['OK'],
+					message: `Oh Dear. The URL ${url} appears to be unavailable.`
+				});
+				console.log(error);
+				cancelled=true;
+				files.current=files.current.filter(value=>value!=url);
+				fsp.writeFile(filesJSON,JSON.stringify(files));
+
+			})
+			.then((text)=>{
+				if(cancelled) return;
+				data=text;
+			})
+			.then(()=>{
+				if(cancelled) return;
+				fetch(css).catch(()=>css='');
+			})
+			.then((text)=>{
+				if(cancelled) return;
+				addDocument(data,extensions[extension],fileName,path,css);
+			})
+			.then(()=>{
+				if(cancelled || !remember) return;
+				if(!files.current.includes(url)) {
+					files.current.push(url);
+					fs.promises.writeFile(filesJSON,JSON.stringify(files));
+				}
+			});
+			return promise;
+		}
 	}
 
 	function save() {
@@ -662,7 +761,28 @@ open
 		.catch(error=>console.log(error));
 	}
 
+//	IPC
+
+	ipcRenderer.on('DOIT',(event,action,data,more)=>{
+		switch(action) {
+			case 'open':
+				openFile(data,true);
+				break;
+			case 'message':
+				footerMessage(data);
+				break;
+			case 'click':
+				var {index,tab}=getTab(data);
+				tabs[index].click();
+				break;
+			case 'locate':
+				break;
+			case 'special':
+		}
+	});
+
 	ipcRenderer.on('MENU',(event,data,more)=>{
+console.log(data);
 		switch(data) {
 			case 'NEW':
 
@@ -696,7 +816,7 @@ open
 //						value: 'https://pager.internotes.net/content/mssql-techniques.sql',
 						error: 'URL must begin with http:// or https://'
 					});
-				if(url) openURL(url,true);
+				if(url) openFile(url,true);
 				break;
 			case 'ZOOM':
 				zoom(more);
@@ -716,6 +836,15 @@ open
 				break;
 			case 'SAVEAS':
 //				saveAs();
+				break;
+			case 'DOCUMENTS':
+				elements.formControl.elements['show-documents'].click();
+				break;
+			case 'FAVOURITE':
+				updateFiles({'action':'favorite','pathName':`${currentTab.data.path}/${currentTab.data.fileName}`});
+				break;
+			case 'UNFAVOURITE':
+				updateFiles({'action':'unfavorite','pathName':`${currentTab.data.path}/${currentTab.data.fileName}`});
 				break;
 
 			case 'FIND':

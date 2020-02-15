@@ -16,15 +16,15 @@ const log = require('electron-log');
 
 //	Startup
 
-    // if(app.requestSingleInstanceLock()) {
-    //     app.on('second-instance', (event, argv, cwd) => {
-    //         console.log(JSON.stringify(argv));
-    //         window.webContents.send('DOIT','message',JSON.stringify(argv));
-    //     });
-    // }
-    // else {
-    //     app.quit();
-    // }
+	// if(app.requestSingleInstanceLock()) {
+	//     app.on('second-instance', (event, argv, cwd) => {
+	//         console.log(JSON.stringify(argv));
+	//         window.webContents.send('DOIT','message',JSON.stringify(argv));
+	//     });
+	// }
+	// else {
+	//     app.quit();
+	// }
 
 //	Global Variables
 	var window, menu;
@@ -37,24 +37,30 @@ const log = require('electron-log');
 	}
 
 	menu=[
-        {
-            label: 'Document Pager',
-            submenu: [
+		{
+			label: 'Document Pager',
+			submenu: [
 //                {	label: `New Document`, accelerator: 'CmdOrCtrl+N', id:'NEW', click: send },
-                {	label: `Open …`, accelerator: 'CmdOrCtrl+O', id:'OPEN', click: send },
-                {	label: `Reload`, accelerator: 'CmdOrCtrl+R', id:'LOAD', click: send },
-                {	label: `Open URL …`, accelerator: 'CmdOrCtrl+Shift+O', id:'URL', click: send },
-                {	label: `Close`, accelerator: 'CmdOrCtrl+W', id:'CLOSE', click: send },
-                {	label: `Save`, accelerator: 'CmdOrCtrl+S', id:'SAVE', click: send },
-//                {	label: `Save As …`, accelerator: 'CmdOrCtrl+Shift+S', id:'SAVEAS', click: send },
+				{	label: `Open …`, accelerator: 'CmdOrCtrl+O', id:'OPEN', click: send },
+				{	label: `Reload`, accelerator: 'CmdOrCtrl+R', id:'LOAD', click: send },
+				{	label: `Open URL …`, accelerator: 'CmdOrCtrl+Shift+O', id:'URL', click: send },
+				{	label: `Close`, accelerator: 'CmdOrCtrl+W', id:'CLOSE', click: send },
+				{	label: `Save`, accelerator: 'CmdOrCtrl+S', id:'SAVE', click: send },
+//				{	label: `Save As …`, accelerator: 'CmdOrCtrl+Shift+S', id:'SAVEAS', click: send },
+
 				{	type:'separator' },
-                {	role: `quit`, accelerator: 'CmdOrCtrl+Q' }
-            ]
-        },
+				{	label: `Show Documents`,  accelerator: 'CmdOrCtrl+D', id:'DOCUMENTS', click: send},
+				{	label: `Set as Favourite`, accelerator: 'CmdOrCtrl+Y', id:'FAVOURITE', click: send},
+				{	label: `Unset as Favourite`, accelerator: 'CmdOrCtrl+Shift+Y', id:'UNFAVOURITE', click: send},
+
+				{	type:'separator' },
+				{	role: `quit`, accelerator: 'CmdOrCtrl+Q' }
+			]
+		},
 		{
 			label: 'Edit',
 			submenu: [
-                {	role: `undo`, accelerator: 'CmdOrCtrl+Z' },
+				{	role: `undo`, accelerator: 'CmdOrCtrl+Z' },
 				{	type:'separator' },
 				{	role: 'copy', accelerator: 'CmdOrCtrl+C' },
 				{	role: 'paste', accelerator: 'CmdOrCtrl+V' },
@@ -62,9 +68,9 @@ const log = require('electron-log');
 
 				{	type:'separator' },
 				{	label: 'Highlight', type: 'checkbox', checked: true, accelerator: 'CmdOrCtrl+T', id: 'HIGHLIGHT', click: (item)=>{
-                        window.webContents.send('MENU','HIGHLIGHT',item.checked);
-                    }
-                },
+						window.webContents.send('MENU','HIGHLIGHT',item.checked);
+					}
+				},
 
 				// {	type:'separator' },
 				// {	label: 'Find …', accelerator: 'CmdOrCtrl+F', id: 'FIND', click: send },
@@ -77,8 +83,8 @@ const log = require('electron-log');
 			]
 		},
 		{
-		    role: 'help',
-		    submenu: [
+			role: 'help',
+			submenu: [
 				{	label: 'About …', id: 'ABOUT', click: send },
 				{	label: 'Instructions …', id: 'INSTRUCTIONS', click: send },
 				{	type:'separator' },
@@ -87,7 +93,7 @@ const log = require('electron-log');
 				},
 			]
 		}
-    ];
+	];
 
 	var developmentMenu=[{
 		label: 'Development',
@@ -100,10 +106,7 @@ const log = require('electron-log');
 if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
 
 //	Init
-log.info(`before init`);
 	function init() {
-
-log.info(`start of init`);
 
 		window = new BrowserWindow({
 			width: 1200,
@@ -120,12 +123,10 @@ log.info(`start of init`);
 		var [dummy,action,data,more]=request.url.split(/:/);
 		window.webContents.send('DOIT',action,data,more);
 	},(error)=> {});
-log.info(`after protocol`);
 
 		window.once('ready-to-show', () => {
 			window.show();
 		});
-log.info(`after window.once`);
 
 		window.setTitle('Document Pager');
 		menu=Menu.buildFromTemplate(menu);
@@ -140,102 +141,80 @@ log.info(`after window.once`);
 
 		window.on('closed', function () {
 			window = null;
-	  	});
+		});
 	}
-log.info(`after init function`);
 
 //	Events
 
 	app.on('ready', init);
-
-log.info(`after app.on ready`);
-
 	app.on('window-all-closed', function () {
-log.info(`154`);
 		//	if (process.platform !== 'darwin')
 		app.quit();
 	});
 	app.on('activate', function () {
-log.info(`159`);
-	  	if (window === null) init();
+		if (window === null) init();
 	});
-log.info(`after app.on window-all-closed, activate`);
 
 //    process.argv.forEach(onOpen);
 
-    app.on('open-file', onOpen);
-    app.on('open-url', onOpen);
+	app.on('open-file', onOpen);
+	app.on('open-url', onOpen);
 
-log.info(`after app.on open-file, open-url`);
-
-    function onOpen(path) {
-log.info(`172`);
-        if(!path) return;
-        console.log(JSON.stringify(arguments));
+	function onOpen(path) {
+		if(!path) return;
+		console.log(JSON.stringify(arguments));
 		window.webContents.send('DOIT','open',path);
-    }
-
-log.info(`after function onOpen`);
+	}
 
 //  Prompt
-    var prompt, promptResponse;
+	var prompt, promptResponse;
 	var promptOptions={
 		message: 'Enter a URL:',
 		match: /https?:\/\//,
 		error: 'URL must begin with http:// or https://'
 	};
-log.info(`after promptOptions`);
 
-    function doPrompt(parent,callback) {
-log.info(`190`);
-        prompt=new BrowserWindow({
+	function doPrompt(parent,callback) {
+		prompt=new BrowserWindow({
 //            width: 1400, height: 200,
-            width: 400,
+			width: 400,
 			frame: false,
-            parent,
-            show: true,
-            modal: true,
-            alwaysOnTop: true,
+			parent,
+			show: true,
+			modal: true,
+			alwaysOnTop: true,
 //            title: options.title,
-            title: 'This space for rent …',
+			title: 'This space for rent …',
 			webPreferences : {
-                nodeIntegration: true,
-                sandbox : false,
-            }
-        });
-        prompt.on('closed',()=>{
-            prompt=null;
-            callback(promptResponse);
-        });
-        prompt.loadURL(`file://${path.join(__dirname,'content/prompt.html')}`);
-        prompt.once('read-to-show',()=>prompt.show());
-    }
+				nodeIntegration: true,
+				sandbox : false,
+			}
+		});
+		prompt.on('closed',()=>{
+			prompt=null;
+			callback(promptResponse);
+		});
+		prompt.loadURL(`file://${path.join(__dirname,'content/prompt.html')}`);
+		prompt.once('read-to-show',()=>prompt.show());
+	}
 
-log.info(`after function doPrompt`);
-    ipcMain.on('prompt-ok',(event,data)=>{log.info(data);});
-    ipcMain.on('prompt-ok',(event,data)=>{promptResponse=data;});
-    ipcMain.on('prompt-cancel',(event,data)=>{promptResponse=undefined;});
-    ipcMain.on('prompt-size',(event,data)=>{
-log.info(`219`);
-        data=JSON.parse(data);
+	ipcMain.on('prompt-ok',(event,data)=>{log.info(data);});
+	ipcMain.on('prompt-ok',(event,data)=>{promptResponse=data;});
+	ipcMain.on('prompt-cancel',(event,data)=>{promptResponse=undefined;});
+	ipcMain.on('prompt-size',(event,data)=>{
+		data=JSON.parse(data);
 
-        prompt.setBounds({
+		prompt.setBounds({
 //            width: data.width, height: data.height
-            height: parseInt(data.height+1)
-        });
-    });
+			height: parseInt(data.height+1)
+		});
+	});
 
-log.info(`228`);
-
-    ipcMain.on('prompt-init',(event,data)=>{
+	ipcMain.on('prompt-init',(event,data)=>{
 		event.returnValue=JSON.stringify(promptOptions);
 	});
 
-log.info(`234`);
-
-    ipcMain.on('prompt',(event,options)=>{
+	ipcMain.on('prompt',(event,options)=>{
 		promptOptions=options;
-        doPrompt(window,data=>event.returnValue=data);
-    });
-
-log.info(`241`);
+		doPrompt(window,data=>event.returnValue=data);
+	});

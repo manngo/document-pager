@@ -32,6 +32,7 @@
 			<p><input type="checkbox" name="show-highlight" id="control-show-highlight" checked><label for="control-show-highlight">Show Highlighted</label></p>
 			<hr>
 			<p id="font-size"><button type="button" name="zoom-smaller">-</button><button type="button" name="zoom-default">•</button><button type="button" name="zoom-larger">+</button></p>
+			<p><input type="checkbox" name="show-documents" id="control-show-documents" checked><label for="control-show-documents">Documents</label></p>
 <!--
 			<label for="upload-file">Open or Drop File …</label><input type="file" name="upload" id="upload-file">
 -->
@@ -41,6 +42,19 @@
 	<main>
 		<ul id="tabs"></ul>
 		<div id="pager">
+			<nav id="documents">
+				<ul>
+					<li id="documents-open">Open
+						<ul></ul>
+					</li>
+					<li id="documents-recent">Recent
+						<ul></ul>
+					</li>
+					<li id="documents-favourite">Favourite
+						<ul></ul>
+					</li>
+				</ul>
+			</nav>
 			<div id="index">
 				<h2>Content</h2>
 				<ul></ul>
@@ -60,9 +74,9 @@
 					<input type="checkbox" name="case-sensitive" id="search-case-sensitive"><label for="search-case-sensitive">Match Case</label>
 				</form>
 -->
-				<p id="content-footer"><span id="footer-file">File</span><span id="footer-language">Text</span><span id="footer-heading">##</span></p>
 			</div>
 		</div>
+		<p id="content-footer"><span id="footer-file">File</span><span id="footer-language">Text</span><span id="footer-heading">##</span></p>
 	</main>
 	<footer data-load="/content/footer.html"><p><span id="footer-message"></span></p></footer>
 </body>
