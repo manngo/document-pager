@@ -8,7 +8,7 @@
 		tab-size: 4 !important;
 	}
 </style>
-#	Document Pager 0.2.6
+#	Document Pager 0.2.7
 
 Document Pager © Mark Simon  
 See also https://pager.internotes.net/

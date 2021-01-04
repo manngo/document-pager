@@ -134,8 +134,8 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
 		Menu.setApplicationMenu(menu);
 
 		window.loadURL(path.join('file://', __dirname, '/index.html'));
-	//	if(DEVELOPMENT) window.webContents.openDevTools({mode: 'detach'});
-		if(DEVELOPMENT) window.webContents.openDevTools();
+		if(DEVELOPMENT) window.webContents.openDevTools({mode: 'detach'});
+		// if(DEVELOPMENT) window.webContents.openDevTools();
 
 	//	window.webContents.setDevToolsWebContents(devtools.webContents);
 

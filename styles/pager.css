@@ -20,10 +20,12 @@
 			ul#tabs
 			div#pager
 				nav#documents
+				span.resize
 				div#index
 					h2
 					ul
-					p#raw-message	span#resize-index
+					p#raw-message
+				span.resize
 				div#content
 					h2
 					iframe
@@ -83,26 +85,25 @@
 	================================================
 	div#pager
 		nav#documents
+		span.resize
 		div#index
+		span.resize
 		div#content
 	================================================ */
 
 	div#pager {
 		display: grid;
-		grid-template-columns: 18rem 1fr;
+		grid-template-columns: auto 1px 1fr;
 		margin: 0;
 	}
 
-	nav#documents { display: none; }
-	div#index { grid-column: 1/2; }
-	div#content { grid-column: 2/3; }
+	nav#documents, nav#documents+span.resize { display: none; }
 
-	main.show div#pager { grid-template-columns: 18rem 18rem 1fr; }
-	main.show nav#documents { display: block; grid-column: 1/2; }
-	main.show div#index { grid-column: 2/3; }
-	main.show div#content { grid-column: 3/4; }
+	div#documents { width: 18em; }
+	div#index { width: 18em; }
 
-
+	main.show-documents div#pager { grid-template-columns: auto 1px auto 1px 1fr; }
+	main.show-documents nav#documents, main.show-documents nav#documents+span.resize { display: block; }
 
 	div#index,
 	div#content {
@@ -133,7 +134,7 @@
 	div#index
 		h2
 		ul
-		p#raw-message	span#resize-index
+		p#raw-message
 	================================================ */
 
 		div#index {
@@ -141,26 +142,19 @@
 			grid-template-areas:
 				"h2 h2"
 				"ul ul"
-				"p resize";
-			grid-template-rows: 2.75rem 1fr 2rem;
+				"p p";
+			grid-template-rows: 2.75rem 1fr 1.75rem;
 			grid-template-columns: 1fr 8px;
 		}
 		div#index>h2	{ grid-area: h2; }
 		div#index>ul	{ grid-area: ul; }
 		div#index>p		{ grid-area: p; }
-		div#index>span	{ grid-area: resize; }
 
 		p#raw-message {
 			box-sizing: border-box;
 			margin-left: 1em;
 			padding: .25em .5em .25em 1em;
 			margin: 0 0 0 0;
-		}
-
-		div#index>span#resize-index {
-			box-sizing: border-box;
-			display: block;
-			margin: 0;
 		}
 
 	div#content {
@@ -188,23 +182,28 @@
 	div#content>iframe {
 		box-sizing: border-box;
 		width: 100%;
-		height: calc(100% - 2.75rem - 2rem);
+		height: calc(100% - 2.75rem - 0px);
 	}
 
-	div#content>p#content-footer {
+
+	div#content>iframe {
+		border: none;
+	}
+
+	p#content-footer {
 		box-sizing: border-box;
-		height: 2rem;
+		height: 2.5rem;
 		background-color: #eee;
 		padding: .25em .5em;
 		margin: 0;
 		border: thin solid #aaa;
 		border-style: solid none;
-		display: flex;
-		justify-content: flex-end;
+		display: grid;
+		grid-template-columns: 1fr auto auto;
 	}
 
 	footer {
-		background-color: #ddd;
+		background-color: #eee;
 		margin: 0;
 	}
 
@@ -253,12 +252,12 @@
 
 
 
-footer>p {
-	margin: 0;
-	display: flex;
-	justify-content: flex-end;
-	padding: .25rem;
-}
+	footer>p {
+		margin: 0;
+		display: flex;
+		justify-content: flex-end;
+		padding: .25rem;
+	}
 	footer span {
 		box-sizing: border-box;
 	}
@@ -268,6 +267,7 @@ footer>p {
 	span#footer-heading {
 		border: thin solid #ccc;
 		qborder: none;
+		border-style: none none none solid;
 		font-size: .8rem;
 		color: #666;
 		min-width: 8em;
@@ -279,8 +279,13 @@ footer>p {
 		text-align: left;
 	}
 	span#footer-file {
-		flex: 1;
 		border: none;
+	}
+	span#footer-language {
+
+	}
+	span#footer-heading {
+
 	}
 	footer span:empty {
 		display: none;
@@ -344,13 +349,13 @@ footer>p {
 		/*	Highlighted Icon
 			============================================
 			form#control input[name="show-highlight"]+label:before {
-				content: "ÃƒÂ°Ã…Â¸Ã¢â‚¬Â¢Ã‚Â¶";
+				content: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¶";
 				position: relative;
 				top: .125em;
 				margin-right: .5em;
 			}
 			form#control input[name="show-highlight"]:checked+label:before {
-				content: "ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Å“";
+				content: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¹ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ";
 			}
 			============================================ */
 		form#control input[name="show-highlight"]:checked+label,
@@ -378,15 +383,18 @@ footer>p {
 	}
 
 	ul#tabs>li {
-		padding: .25em .75em;
-		min-width: 8em;
+		padding: .5em .25em .25em .75em;
+		qmin-width: 8em;
 		text-align: center;
 		display: flex;
 		justify-content: space-between;
-		border-right: thin solid #ccc;
+		qborder-right: thin solid #ccc;
+		border: thin solid;
+		border-style: none solid none solid;
+		border-color: transparent #ccc transparent transparent;
 		text-shadow: 0 1px 0 white;
 		background: linear-gradient(to bottom, rgb(238,238,238),rgb(221,221,221));
-
+		qposition: relative;
 	}
 
 	ul#tabs>li:nth-child(n+2) {
@@ -399,10 +407,12 @@ footer>p {
 	ul#tabs>li>button {
 		box-sizing: border-box;
 		border: thin solid transparent;
-		margin-left: 1em;
+		margin-left: .25em;
 		display: inline-block;
 		background-color: transparent;
 		border-radius: .25em;
+		position: relative;
+		top: -.25em;
 	}
 	ul#tabs>li>button:hover {
 		background-color: #ccc;
@@ -418,7 +428,7 @@ footer>p {
 		padding: 0 0 0 0;
 		overflow: hidden;
 		border: thin #ccc;
-		border-style: none solid none none;
+		border-style: none none none none;
 	}
 	div#index>h2 {
 
@@ -480,26 +490,43 @@ footer>p {
 		margin: 0;
 	}
 
-/*	resize-index
+/*	resize
 	============================================ */
 
-	div#index>span#resize-index {
-		border: thin #aaa;
-		border-style: solid none;
+	div#pager>span.resize {
+		qbox-sizing: border-box;
 		cursor: col-resize;
-		background-color: #eee;
-		background: repeating-linear-gradient(
-			to right,
-			#ddd 0, #ccc 1px,
-			white 1px, white 2px)
+		background: none;
+		border: none;
+		background-color: white;
+		border-left: thin solid #999;
+		position: relative;
 	}
+	div#pager>span.resize:after {
+		content: "a";
+		left: 0;
+	}
+	div#pager>span.resize:before {
+		content: "b";
+		right: 0;
+	}
+	div#pager>span.resize:after, div#pager>span.resize:before {
+		opacity: 0;
+		width: 4px;
+		display: block;
+		height: 100%;
+		position: absolute;
+		background-color: red;
+	}
+
+
 
 /*	Raw Message
 	============================================ */
 
 	p#raw-message {
 		border: thin #aaa;
-		border-style: solid none;
+		border-style: solid none none none;
 		background-color: #eee;
 		font-size: .8rem;
 	}
@@ -515,7 +542,7 @@ footer>p {
 	}
 
 	div#content>iframe {
-		border: none;
+		qborder: none;
 	}
 	div#content>form#search {
 		display: flex;
@@ -547,6 +574,8 @@ footer>p {
 		line-height: .5em;
 		opacity: .25;
 		transition: opacity .25s;
+		outline: none;
+		margin-top: .25em;
 	}
 	p#navigation:hover>button#previous,
 	p#navigation:hover>button#next {
@@ -667,30 +696,49 @@ footer>p {
 
 	nav#documents>ul {
 		font-weight: bold;
-		margin: .25em 1em;
+		margin: .25em .5em;
 	}
 
 	nav#documents>ul>li {
-		padding: .5em 1em;
+		padding: .5em .5em;
 	}
 	nav#documents>ul>li>ul {
 		margin: .5em 0 0 0;
 		font-weight: normal;
 	}
 	nav#documents>ul>li>ul>li {
-		border-top: thin solid #666;
+		border-top: thin solid #ccc;
 	}
 	nav#documents>ul>li>ul>li:last-of-type {
-		border-bottom: thin solid #666;
+		border-bottom: thin solid #ccc;
 	}
 	nav#documents li>a {
 		font-size: .9rem;
 		text-decoration: none;
 		display: block;
 		color: #333;
-		padding: .25em .75em .375em;
+		padding: .25em 0 .375em;
 		text-shadow: 0 1px 0 white;
 	}
 	nav#documents li>a:hover {
 		background-color: #ddd;
+	}
+
+/*	Tabs
+	================================================ */
+
+	ul#tabs>li[draggable] {
+		qbackground-color: #f8f8f8;
+		user-select: none;
+		box-sizing: border-box;
+		qborder: thin solid transparent;
+	}
+	ul#tabs>li.tabgroup-start {
+		cursor: move;
+	}
+	ul#tabs>li.tabgroup-before {
+		border-left-color: #666;
+	}
+	ul#tabs>li.tabgroup-after {
+		border-right-color: #666;
 	}

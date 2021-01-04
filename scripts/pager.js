@@ -8,14 +8,14 @@
 	================================================ */
 
 	document.ondragover = document.ondrop = (event) => {
-		console.log('dragover | drop');
-		event.preventDefault();
+		// console.log('dragover | drop');
+		// event.preventDefault();
 	};
 
 	document.body.ondrop = (event) => {
-		//console.log(JSON.stringify(event.dataTransfer.files[0].path));
-		//		openPath(event.dataTransfer.files[0].path.toString());
-		event.preventDefault();
+		// console.log(JSON.stringify(event.dataTransfer.files[0].path));
+		// //		openPath(event.dataTransfer.files[0].path.toString());
+		// event.preventDefault();
 	};
 
 /**	settings.js
@@ -41,7 +41,7 @@
 	const {app,BrowserWindow,dialog,Menu,MenuItem}=remote;
 	const path = require('path');
 	const fs = require('fs');
-		const fsp = fs.promises;
+	const fsp = fs.promises;
 	const normalize = require('normalize-path');
 	const temp=require('temp').track();
 
@@ -106,6 +106,9 @@
 	var home=`${app.getPath('home')}/.document-pager`;
 	var languagesJSON=`${home}/languages.json`;
 	var filesJSON=`${home}/files.json`, files={}, pseudoFiles=[];
+	var stateJSON=`${home}/state.json`, state={};
+
+	var rearrangeableTabs=new jx.Rearrangeable('h','tabgroup');
 
 //	Main
 	init();
@@ -164,7 +167,7 @@
 
 			//	Files
 				.then(()=>fs.promises.stat(filesJSON))
-				.catch(()=>fs.promises.writeFile(filesJSON,'{"current":[],"recent":[],"favorites":[]'))
+				.catch(()=>fs.promises.writeFile(filesJSON,'{"current":[],"recent":[],"favorites":[]}'))
 				.then(()=>fs.promises.readFile(filesJSON))
 				.then(data=>{
 					files=JSON.parse(data);
@@ -174,6 +177,19 @@
 						});
 					//	Recent Files List
 						updateDocuments();
+				})
+
+			//	State
+				.then(()=>fs.promises.stat(stateJSON))
+				.catch(()=>fs.promises.writeFile(stateJSON,'{"show-documents":false,"documents-width":0,"index-width":0}'))
+				.then(()=>fs.promises.readFile(stateJSON))
+				.then(data=>{
+					state=JSON.parse(data);
+					//	Documents Pane
+						document.querySelector('main').classList.toggle('show-documents',state['documents-width']);
+						if(state['documents-width']) document.querySelector('nav#documents').style.width=`${state['documents-width']}px`;
+					//	Index
+						if(state['index-width']) document.querySelector('div#index').style.width=`${state['index-width']}px`;
 				})
 		;
 
@@ -186,7 +202,7 @@
 				return openFile(path.join(cwd, 'data/exercises.sql'));
 			})
 			.then(()=>tabs[0].click())
-			.then(()=>console.log('hello'))
+//			.then(()=>console.log('hello'))
 			;
 	}
 
@@ -205,6 +221,12 @@
 			});
 			return result;
 		}
+
+	//	State
+		function updateState() {
+			fs.promises.writeFile(stateJSON,JSON.stringify(state));
+		}
+
 
 	//	files.json
 		//	data={action, pathName}
@@ -300,7 +322,7 @@
 				indexDiv: document.querySelector('div#index'),
 				indexHeading: document.querySelector('div#index>h2'),
 				indexUL: document.querySelector('div#index>ul'),
-				resizeIndex: document.querySelector('div#index>span#resize-index'),
+				resizeIndex: document.querySelector('div#pager>span#resize-index'),
 			//	Content
 				contentDiv: document.querySelector('div#content'),
 				contentHeading: document.querySelector('div#content>h2'),
@@ -330,7 +352,15 @@
 		originalCodeFontSize=codeFontSize.size;
 
 	//	Adjust Elements
-		jx.stretch(elements.indexDiv,elements.resizeIndex);
+		//	jx.stretch(elements.indexDiv,elements.resizeIndex);
+		//	jx.resize(elements.pager,'--index-width',elements.resizeIndex);
+		document.querySelectorAll('span.resize').forEach(span=>{
+			jx.resize(span,width=>{
+				state['documents-width']=parseInt(getComputedStyle(elements.documents).width);
+				state['index-width']=parseInt(getComputedStyle(elements.indexDiv).width);
+				updateState();
+			});
+		});
 
 		lineNumbers=jx.addLineNumbers(elements.codeElement);
 		elements.codeElement.resetLineNumbers();
@@ -343,14 +373,23 @@
 		elements.formControl.elements['zoom-default'].onclick=zoom.bind(null,0);
 
 		elements.formControl.elements['show-documents'].onclick=function(event){
-			elements.main.classList.toggle('show',this.checked);
+			elements.main.classList.toggle('show-documents',this.checked);
+			state['show-documents']=this.checked;
+			updateState();
 		};
-		elements.main.classList.toggle('show',elements.formControl.elements['show-documents'].checked);
+		elements.main.classList.toggle('show-documents',elements.formControl.elements['show-documents'].checked);
 
 		jx.contentEditable(elements.codeElement,true);
 		elements.codeElement.onblur=event=>{
 			console.log('blur');
 		};
+
+		elements.mdElement.addEventListener('click',event=>{
+			if (event.target.href && event.target.href.match(/^https?:\/\//)) {
+				event.preventDefault();
+				require('electron').shell.openExternal(event.target.href);
+			}
+		});
 
 /**	Add Document
 	================================================
@@ -387,6 +426,9 @@
 		//	Track
 			tabs.push(tab);
 			currentTab=tab;
+//			jx.rearrangeable(document.querySelectorAll('ul#tabs>li'));
+			rearrangeableTabs.add(tab);
+
 		function doTab(event) {
 			if(currentTab!==undefined) currentTab.classList.remove('selected');
 			currentTab=this;

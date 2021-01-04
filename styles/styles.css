@@ -76,10 +76,12 @@
 	span.key {
 		border: thin solid #999;
 		font-size: .9em;
-		padding: .0625em .5em .25em;
+		padding: .0625em .5em .125em;
 		border-radius: .25em;
 		box-shadow: .125em .125em .125em #999;
 		background-color: #f8f8f8;
 		text-shadow: 0 1px 0 white;
 		margin: 0 .25em 0 .125em;
+		position: relative;
+		top: -1px;
 	}

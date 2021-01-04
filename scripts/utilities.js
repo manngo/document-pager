@@ -294,8 +294,34 @@
 
 /*	Allow Stretching
 	================================================
-	jx.allowTab(element[,spaces]);
+	see: https://jsfiddle.net/internotes/b2qfy3ec/88/
+	jx.resize(span[,property]);
 	================================================ */
+
+	jx.resize=function(span,onmouseup) {
+		var previous=span.previousElementSibling;
+		var next=span.nextElementSibling;
+		span.addEventListener('mousedown',stretch);
+		function stretch(event) {
+			//	var	width=parseInt(getComputedStyle(element).getPropertyValue(property));
+			var	width=parseInt(getComputedStyle(previous).width);
+			var x=event.clientX;
+			document.addEventListener('mousemove',goHorizontal);
+			document.addEventListener('mouseup',stop);
+			function goHorizontal(event) {
+				//	element.style.setProperty(property,width+event.clientX-x+'px');
+				previous.style.width=width+event.clientX-x+'px';
+				previous.style.pointerEvents=next.style.pointerEvents='none';
+			}
+			function stop(event) {
+				document.removeEventListener('mousemove',goHorizontal);
+				document.removeEventListener('mouseup',stop);
+				previous.style.pointerEvents=next.style.pointerEvents='auto';
+				if(onmouseup) onmouseup(parseInt(getComputedStyle(previous).width));
+			}
+		}
+	};
+
 
 	jx.stretch=function(element,edge) {
 		edge.addEventListener('mousedown',stretch);
@@ -322,9 +348,6 @@
 			}
 		}
 		return;
-
-
-
 
 		element.addEventListener('mousedown',start);
 
@@ -726,6 +749,146 @@
 		element.onkeydown=handleKeys;
 	};
 
+	jx.Rearrangeable=function(direction='h',className='dragover') {
+		var element;
+		this.add=function(e) {
+			e.draggable=true;
+
+			e.addEventListener('dragstart',this.dragstart.bind(this),false);
+			e.addEventListener('dragenter',this.dragenter.bind(this),false);
+			e.addEventListener('dragover',this.dragover.bind(this),false);
+			e.addEventListener('dragleave',this.dragleave.bind(this),false);
+			e.addEventListener('drop',this.drop.bind(this),false);
+			e.addEventListener('dragend',this.dragend.bind(this),false);
+		};
+		this.highlight=function(element,which) {
+			if(which=='before') element.classList.add(`${className}-before`);
+			else element.classList.remove(`${className}-before`);
+			if(which=='after') element.classList.add(`${className}-after`);
+			else element.classList.remove(`${className}-after`);
+		};
+
+		//	Element
+			this.dragstart=function(event) {
+				var target=event.currentTarget;
+				this.element=target;
+				event.dataTransfer.effectAllowed='move';
+				//	event.dataTransfer.setData('text/html',this.outerHTML);
+				target.classList.add(`${className}-start`);
+			};
+			this.drag=function(event) {
+				var target=event.currentTarget;
+			};
+			this.dragend=function(event) {
+				var target=event.currentTarget;
+				this.highlight(target);
+				target.classList.remove(`${className}-start`);
+			};
+
+		//	Target
+			this.dragenter=function(event) {
+				var target=event.currentTarget;
+			};
+			this.dragover=function(event) {
+				var target=event.currentTarget;
+				event.preventDefault();
+				event.dataTransfer.dropEffect='move';
+				if(direction=='v') {
+					if(event.clientY<(target.getBoundingClientRect().top+target.getBoundingClientRect().bottom)/2) this.highlight(turrentTarget,'before');
+					else this.highlight(target,'after');
+				}
+				else {
+					if(event.clientX<(target.getBoundingClientRect().left+target.getBoundingClientRect().right)/2) this.highlight(target,'before');
+					else this.highlight(target,'after');
+				}
+			};
+			this.dragleave=function(event) {
+				var target=event.currentTarget;
+				this.highlight(target);
+			};
+			this.drop=function(event) {
+				var target=event.currentTarget;
+				event.stopPropagation();
+				if(this.element!=target) {
+					if(target.classList.contains(`${className}-before`)) {
+						target.insertAdjacentElement('beforebegin',this.element);
+					}
+					else if(target.classList.contains(`${className}-after`)) {
+						target.insertAdjacentElement('afterend',this.element);
+					}
+				}
+				this.highlight(target);
+			};
+	};
+
+	jx.rearrangeable=(elements,direction='h',className='dragover')=>{
+		var element;
+		elements.forEach(e=>{draggable(e);});
+		function draggable(e) {
+			e.draggable=true;
+
+			e.addEventListener('dragstart',dragstart,false);
+			e.addEventListener('dragenter',dragenter,false);
+			e.addEventListener('dragover',dragover,false);
+			e.addEventListener('dragleave',dragleave,false);
+			e.addEventListener('drop',drop,false);
+			e.addEventListener('dragend',dragend,false);
+		}
+
+		function highlight(element,which) {
+			if(which=='before') element.classList.add(`${className}-before`);
+			else element.classList.remove(`${className}-before`);
+			if(which=='after') element.classList.add(`${className}-after`);
+			else element.classList.remove(`${className}-after`);
+		}
+
+		//	Element
+			function dragstart(event) {
+				element=this;
+				event.dataTransfer.effectAllowed='move';
+				//	event.dataTransfer.setData('text/html',this.outerHTML);
+				this.classList.add(`${className}-start`);
+			}
+			function drag(event) {
+
+			}
+			function dragend(event) {
+				highlight(this);
+				this.classList.remove(`${className}-start`);
+			}
+
+		//	Target
+			function dragenter(event) {
+
+			}
+			function dragover(event) {
+				event.preventDefault();
+				event.dataTransfer.dropEffect='move';
+				if(direction=='v') {
+					if(event.clientY<(this.getBoundingClientRect().top+this.getBoundingClientRect().bottom)/2) highlight(this,'before');
+					else highlight(this,'after');
+				}
+				else {
+					if(event.clientX<(this.getBoundingClientRect().left+this.getBoundingClientRect().right)/2) highlight(this,'before');
+					else highlight(this,'after');
+				}
+			}
+			function dragleave(event) {
+				highlight(this);
+			}
+			function drop(event) {
+				event.stopPropagation();
+				if(element!=this) {
+					if(this.classList.contains(`${className}-before`)) {
+						this.insertAdjacentElement('beforebegin',element);
+					}
+					else if(this.classList.contains(`${className}-after`)) {
+						this.insertAdjacentElement('afterend',element);
+					}
+				}
+				highlight(this);
+			}
+	};
 
 
 //	Export
