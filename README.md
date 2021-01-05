@@ -11,7 +11,7 @@
 #	Document Pager 0.2.7
 
 Document Pager © Mark Simon  
-See also https://pager.internotes.net/
+https://github.com/manngo/document-pager
 
 ##what	What does it do?
 
