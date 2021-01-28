@@ -53,6 +53,7 @@
 	================================================ */
 
 	const platform=process.platform;
+	const eol = process.platform === 'win32' ? '\r\n' : '\n'
 	const os=require('os');
 
 /**	Extensions
@@ -167,7 +168,7 @@
 
 			//	Files
 				.then(()=>fs.promises.stat(filesJSON))
-				.catch(()=>fs.promises.writeFile(filesJSON,'{"current":[],"recent":[],"favorites":[]}'))
+				.catch(()=>fs.promises.writeFile(filesJSON,`{"current":[],"recent":[],"favorites":[]}${eol}`))
 				.then(()=>fs.promises.readFile(filesJSON))
 				.then(data=>{
 					files=JSON.parse(data);
@@ -181,7 +182,7 @@
 
 			//	State
 				.then(()=>fs.promises.stat(stateJSON))
-				.catch(()=>fs.promises.writeFile(stateJSON,'{"show-documents":false,"documents-width":0,"index-width":0}'))
+				.catch(()=>fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120}${eol}`))
 				.then(()=>fs.promises.readFile(stateJSON))
 				.then(data=>{
 					state=JSON.parse(data);
