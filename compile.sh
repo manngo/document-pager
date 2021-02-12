@@ -9,7 +9,7 @@
 	rm -rf "Document Pager MacOS";
 
 	mv "Document Pager-darwin-x64" "Document Pager MacOS";
-	mv "Document Pager-win32-x64" "Document Pager Windows";
+#	mv "Document Pager-win32-x64" "Document Pager Windows";
 
 #	zip -r -X "Document Pager MacOS.zip" "Document Pager MacOS/";
 #	zip -r -X "Document Pager Windows.zip" "Document Pager Windows/";
