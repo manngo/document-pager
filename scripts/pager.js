@@ -57,6 +57,9 @@
 	const os=require('os');
 
 /**	Extensions
+	================================================
+	`${data.path}/${data.fileName}`
+	image(string href, string title, string text)
 	================================================ */
 
 	var renderer = new marked.Renderer();
@@ -71,7 +74,6 @@
 			return `<h${level}${id}${className}>${content}</h${level}>`;
 		}
 		else return marked(text);
-
 	};
 
 	const window=remote.getCurrentWindow();
@@ -633,7 +635,19 @@
 			if(language && doHighlight) elements.codeElement.innerHTML=Prism.highlight(item, Prism.languages[data.language], data.language);
 			else if(data.language=='markdown' && doHighlight) {
 				var div=document.createElement('div');
+
 				var innerHTML=marked(item,{baseUrl: `${data.path}/${data.fileName}`, renderer});
+
+				// innerHTML=innerHTML.replace(/<img(.*?)src="(.*)"(.*?)>/g,function(match,p1,p2,p3,offset,string) {
+				// 	if (p2.match(/^https?:\/\//)) return string;
+				// 	else return `<img${p1}src="${currentTab.data.path}/${currentTab.data.fileName.replace(/\.[^.]*$/,'')}/${p2.replace(/^\//,'')}"${p3}>`;
+				// });
+
+				innerHTML=innerHTML.replace(/<img(.*?)src="(.*)"(.*?)>/g,function(match,p1,p2,p3,offset,string) {
+					if (p2.match(/^https?:\/\//)) return string;
+					else return `<img${p1}src="${currentTab.data.path}/${p2.replace(/^\//,'')}"${p3}>`;
+				});
+
 				div.innerHTML=innerHTML;
 				var h2=div.querySelector('h1,h2');
 				div.id=h2.id;
@@ -695,7 +709,9 @@
 		path=path.join('/');
 		extension=fileName.split('.').pop();
 		css='';
-		if(extensions[extension]=='markdown') css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
+		// if(extensions[extension]=='markdown') css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
+		//	if(extensions[extension]=='markdown') css=`${path}/styles.css`;
+		if(extensions[extension]=='markdown') css=`${path}/${fileName.replace(/\..*$/,'')}.css`;
 
 		return {path,fileName,extension,css};
 	}

@@ -248,15 +248,15 @@
 			smallerButton.onclick=function(event) {
 				fontSize/=1.25;
 				divContentPre.style.setProperty('--font-size',fontSize+'em');
-			}
+			};
 			defaultButton.onclick=function(event) {
 				fontSize=codeFontSize;
 				divContentPre.style.setProperty('--font-size','');
-			}
+			};
 			largerButton.onclick=function(event) {
 				fontSize*=1.25;
 				divContentPre.style.setProperty('--font-size',fontSize+'em');
-			}
+			};
 
 		//	Additional Prism Langage Aliases
 
@@ -331,11 +331,11 @@
 						var p=this.previous;
 						if(p) {
 							previousButton.onclick=function(event) { p.click(); };
-						};
+						}
 						var n=this.next;
 						if(n) {
 							nextButton.onclick=function(event) { n.click(); };
-						};
+						}
 
 						var doHighlight=formControl.elements['show-highlight'].checked?!event.altKey:event.altKey;
 						currentItem=data.li=this;
@@ -355,7 +355,7 @@
 						if(language && doHighlight) codeElement.innerHTML=Prism.highlight(item, Prism.languages[data.language], data.language);
 						else if(data.language=='md' && doHighlight) {
 							codeElement.innerHTML=marked(item);
-							codeElement.classList.add('markdown')
+							codeElement.classList.add('markdown');
 						}
 						document.title=documentTitle+': '+data.fileName+' — '+title;
 						h1.innerHTML=documentTitle+': '+data.fileName+' — '+title;
