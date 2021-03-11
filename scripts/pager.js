@@ -39,6 +39,7 @@
 	const electron=require('electron');
 	const { ipcRenderer, shell, remote } = electron;
 	const {app,BrowserWindow,dialog,Menu,MenuItem}=remote;
+	const focusedWindow=BrowserWindow.getFocusedWindow();
 	const path = require('path');
 	const fs = require('fs');
 	const fsp = fs.promises;
@@ -53,7 +54,7 @@
 	================================================ */
 
 	const platform=process.platform;
-	const eol = process.platform === 'win32' ? '\r\n' : '\n'
+	const eol = process.platform === 'win32' ? '\r\n' : '\n';
 	const os=require('os');
 
 /**	Extensions
@@ -117,6 +118,28 @@
 	init();
 
 	function init() {
+
+		//	Toggle Documents Headings
+			var li=document.querySelectorAll('nav#documents>ul>li');
+			var documentsTab=undefined;
+			function doDocumentsTab(event) {
+				if(this!=event.target) return;
+
+				if(this==documentsTab) this.classList.toggle('open');
+				else {
+				    if(documentsTab) documentsTab.classList.remove('open');
+				    documentsTab=this;
+				    documentsTab.classList.add('open');
+				}
+
+				state['documents-toggle']=this.id;
+				updateState();
+			}
+			li.forEach(i=>{
+				i.onclick=doDocumentsTab;
+			});
+
+
 		var breaks;
 
 		var promise=
@@ -191,10 +214,12 @@
 					//	Documents Pane
 						document.querySelector('main').classList.toggle('show-documents',state['documents-width']);
 						if(state['documents-width']) document.querySelector('nav#documents').style.width=`${state['documents-width']}px`;
+						if(state['documents-toggle']) document.querySelector(`li#${state['documents-toggle']}`).classList.add('open');
 					//	Index
 						if(state['index-width']) document.querySelector('div#index').style.width=`${state['index-width']}px`;
 				})
 		;
+
 
 
 		if(DEVELOPMENT)
@@ -347,6 +372,8 @@
 				footerMessage: document.querySelector('span#footer-message'),
 				footerLanguage: document.querySelector('span#footer-language'),
 				footerHeading: document.querySelector('span#footer-heading'),
+			//	Full Screen
+				fullCSS: document.querySelector('link#full-css'),
 		};
 
 		codeFontSize=getComputedStyle(document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content')).getPropertyValue('--font-size');
@@ -381,6 +408,24 @@
 			updateState();
 		};
 		elements.main.classList.toggle('show-documents',elements.formControl.elements['show-documents'].checked);
+
+		function doFullScreenKeys(event,input) {
+			if(input.type!=='keyUp') return;
+			switch(input.key) {
+		        case 'Escape':
+		            elements.fullCSS.disabled=true;
+						focusedWindow.webContents.off('before-input-event',doFullScreenKeys);
+		            break;
+		        case 'ArrowRight':
+		            break;
+		        case 'ArrowLeft':
+		            break;
+		    }
+		}
+		elements.formControl.elements['full-screen'].onclick=function (event) {
+			elements.fullCSS.disabled=false;
+			focusedWindow.webContents.on('before-input-event',doFullScreenKeys);
+		};
 
 		jx.contentEditable(elements.codeElement,true);
 		elements.codeElement.onblur=event=>{
@@ -530,10 +575,23 @@
 		var selected=null;
 		var title;
 
+				function toggleHeading(event) {
+				    if(this!==event.target) return;
+					if(event.shiftKey) {
+						var open=this.parentElement.classList.contains('open');
+						headingItems.forEach(i=>{
+							i.classList.toggle('open',!open);
+						});
+				    }
+				    else this.parentElement.classList.toggle('open');
+				}
+
+
 	//	Populate Index
 		var items=data.text.split(headingsRE);
 		elements.indexUL.innerHTML='';
 		var nested=false, ul, previous=null;
+		var headingItems=[];
 		if(items.length>1) {
 			var previous=undefined, selected=undefined;
 			items.forEach(function(value,i) {
@@ -541,7 +599,7 @@
 				var li=document.createElement('li');
 				RE=value.match(headingMajor);
 
-				if(RE && RE[3]) {
+				if(RE && RE[3]) {	//	Major Heading
 					nested=false;
 					title=RE[3];
 				}
@@ -552,6 +610,13 @@
 							if(!nested) {
 								nested=true;
 								elements.indexUL.appendChild(li);
+
+								previous.classList.add('open');
+								var button=document.createElement('button');
+									button.innerHTML='›';
+									button.onclick=toggleHeading;
+								previous.insertAdjacentElement('afterbegin',button);
+
 								ul=document.createElement('ul');
 								previous.appendChild(ul);
 							}
@@ -562,13 +627,16 @@
 				}
 				if(!title.length) return;
 
-				li.innerHTML=`<span>${title}</span>`;
+				li.insertAdjacentHTML('beforeend',`<span>${title}</span>`);
 				li.next=li.previous=undefined;
 				if(previous) {
 					previous.next=li;
 					li.previous=previous;
 				}
 				previous=li;
+
+				headingItems.push(li);
+
 
 //				var thing=value.split(/\r?\n/).forEach((v,i,a)=>a[i]=v.replace(new RegExp(`^${RE[1]}`),''));
 				if(RE[1]) {

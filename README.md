@@ -8,7 +8,7 @@
 		tab-size: 4 !important;
 	}
 </style>
-#	Document Pager 0.3
+#	Document Pager 0.3.1
 
 Document Pager © Mark Simon  
 https://github.com/manngo/document-pager
@@ -54,6 +54,16 @@ To view the unhighlighted version, you can either:
 - Turn off the Highlight Syntax button
 - Click on the Raw button near the content.
 
+###	Full(ish) Screen
+
+On the control bar, there is a button `Full Screen`. This will remove all the bits around the main content.
+
+If you want true full screen, you will need to use the operating system’s full screen feature as well.
+
+You can navigate through the pages using the `previous` and `next` buttons.
+
+You can get back to normal by pressing `escape`.
+
 ##	Preferences
 
 Document Pager will create a folder in the user’s home directory called `.document-pager`. It includes:
@@ -62,6 +72,9 @@ Document Pager will create a folder in the user’s home directory called `.docu
 |------------------|------------------------------|
 | `languages.json` | Additional Language Settings |
 | `files.json`     | A list of last open files    |
+| `state.json`     | Other state values           |
+
+as well as some others to remember what you’ve done.
 
 ###	Additional Headings
 
@@ -79,7 +92,6 @@ If you want to add your own heading markers, you should add them to the `languag
 You can omit any of the sub sections, and you can have multiple values inside the square brackets.
 
 As you might have guessed from the name, the file is in JSON format. JSON is very fussy, so it’s easy to make a mistake.
-
 
 Here are the default language settings:
 
@@ -113,15 +125,15 @@ Here are the default language settings:
 }
 ```
 
+These default settings are not in the `languages.json` file, but are built-in.
+
 ##	MarkDown Documents
 
 You can also page through MarkDown documents. Here the `##` heading is used for paging.
 
-Markdown files are recognised by the following extensions: `.md`, `.markdown` and `.mds`, or others if you’re prepared to add your own language preferences.
+Markdown files are recognised by the following extensions: `.md`, `.markdown` and `.mds`, or others if you’re prepared to add your own to the `languages.json` file.
 
 The `.mds` extension is for a future enhancement.
-
-If you include images, you can either use absolute references to them or you can include images relative to the document itself.
 
 ###	Special Headings
 
@@ -141,21 +153,31 @@ The `id` and `class` are both optional
 
 ___Other markdown editors will not recognise this, and so it will appear as a paragraph.___
 
+### Images
+
+If you include images, you can either use absolute references to them or you can include images relative to the document itself.
+
+It would make sense to make a special folder for this, but it’s not required.
+
 ###	Custom Styles
 
-You can add your own custom MarkDown styles in the following location:
-
-```
-filename/styles.css
-```
-
-The `filename` folder appears _without_ the markdown extension.
+You can add your own custom MarkDown styles using a CSS file in the same location with the same name:
 
 For example:
 
 ```
 test.md
-test/styles.css
+test.css
+```
+
+###	Sample Folder Structure
+
+For practical purposes, you might have a folder structure which includes a style sheet and a folder for images:
+
+```
+sample.md
+sample.css
+images/
 ```
 
 ##	Credits
