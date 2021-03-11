@@ -417,8 +417,16 @@
 						focusedWindow.webContents.off('before-input-event',doFullScreenKeys);
 		            break;
 		        case 'ArrowRight':
+					elements.nextButton.click();
 		            break;
 		        case 'ArrowLeft':
+					elements.previousButton.click();
+		            break;
+		        case 'ArrowUp':
+					elements.indexUL.firstElementChild.click();
+		            break;
+		        case 'ArrowDown':
+					elements.indexUL.lastElementChild.click();
 		            break;
 		    }
 		}
