@@ -38,8 +38,8 @@ Naturally, you will first need to open the document. You can open a document fro
 
 | Operation         | Menu       | Keyboard Shortcut |
 |-------------------|------------|-------------------|
-| Open a Local File | Open …     | ⌘O \| ⌃O          |
-| Open a URL        | Open URL … | ⌘⇧O \| ⌃⇧O        |
+| Open a Local File | Open …     | <span><kbd>⌘</kbd><kbd>O</kbd></span> or <span><kbd>⌃</kbd><kbd>O</kbd></span>          |
+| Open a URL        | Open URL … | <span><kbd>⌘</kbd><kbd>⇧</kbd><kbd>O</kbd></span>or <span><kbd>⌃</kbd><kbd>⇧</kbd><kbd>O</kbd></span>        |
 
 
 ###	Navigating the Document
@@ -60,9 +60,9 @@ On the control bar, there is a button `Full Screen`. This will remove all the bi
 
 If you want true full screen, you will need to use the operating system’s full screen feature as well.
 
-You can navigate through the pages using the `previous` and `next` buttons.
-
-You can get back to normal by pressing `escape`.
+- You can navigate through the pages using the <span><kbd>←</kbd></span> or <span><kbd>→</kbd></span> keys.
+- You can go to the first or last page using the <span><kbd>↑</kbd></span> or <span><kbd>↓</kbd></span> keus.
+- You can get back to normal by pressing the <span><kbd>Esc</kbd></span> key.
 
 ##	Preferences
 

@@ -107,3 +107,34 @@
 	div.h2 code {
 		font-size: .8em;
 	}
+
+/*	Key Characters
+	================================================ */
+	kbd {
+		border-width: thin;
+		border-style: solid none solid none;
+		cursor: default;
+		font-size: .8em;
+		font-weight: bold;
+
+		padding: 1px 4px;
+		font-family: "Source Sans Pro",sans-serif;
+
+		background-color: #fff;
+		background-image: linear-gradient(to bottom, #fff, #f8f8f8);
+		box-shadow: 0px 2px 2px #666;
+	}
+
+	kbd:first-child {
+		border-radius: 3px 0px 0px 3px;
+		border-style: solid none solid solid;
+	}
+
+	kbd:last-child {
+		border-radius: 0px 3px 3px 0px;
+		border-style: solid solid solid none;
+	}
+	kbd:only-child {
+		border-radius: 3px;
+		border-style: solid;
+	}
