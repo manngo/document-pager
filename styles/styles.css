@@ -85,3 +85,7 @@
 		position: relative;
 		top: -1px;
 	}
+
+	button {
+		outline: none;
+	}

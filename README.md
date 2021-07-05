@@ -8,7 +8,7 @@
 		tab-size: 4 !important;
 	}
 </style>
-#	Document Pager 0.3.1
+#	Document Pager 0.3.2
 
 Document Pager © Mark Simon  
 https://github.com/manngo/document-pager
@@ -39,7 +39,7 @@ Naturally, you will first need to open the document. You can open a document fro
 | Operation         | Menu       | Keyboard Shortcut |
 |-------------------|------------|-------------------|
 | Open a Local File | Open …     | <span><kbd>⌘</kbd><kbd>O</kbd></span> or <span><kbd>⌃</kbd><kbd>O</kbd></span>          |
-| Open a URL        | Open URL … | <span><kbd>⌘</kbd><kbd>⇧</kbd><kbd>O</kbd></span>or <span><kbd>⌃</kbd><kbd>⇧</kbd><kbd>O</kbd></span>        |
+| Open a URL        | Open URL … | <span><kbd>⌘</kbd><kbd>⇧</kbd><kbd>O</kbd></span> or <span><kbd>⌃</kbd><kbd>⇧</kbd><kbd>O</kbd></span>        |
 
 
 ###	Navigating the Document

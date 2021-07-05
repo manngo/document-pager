@@ -112,7 +112,9 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
 			width: 1200,
 			height: 800,
 			webPreferences: {
-				nodeIntegration: true
+				nodeIntegration: true,
+      			contextIsolation: false,
+      			enableRemoteModule: true,
 			}
 		});
 
