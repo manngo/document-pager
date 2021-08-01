@@ -818,3 +818,19 @@
 	div#index>ul>li>ul {
 		margin-left: .625em;
 	}
+
+
+	div#index ul>li.subtitle {
+    	margin-left: 1.25em;
+		display: flex;
+		justify-content: flex-start;
+	}
+	div#index ul>li.subtitle:before {
+		content: "»";
+		display: inline-block;
+		width: .25em;
+		margin-top: .125em;
+	}
+	div#index ul>li.subtitle>span {
+        padding: .25em .5em
+	}

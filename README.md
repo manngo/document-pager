@@ -8,7 +8,7 @@
 		tab-size: 4 !important;
 	}
 </style>
-#	Document Pager 0.3.2
+#	Document Pager 0.3.3
 
 Document Pager © Mark Simon  
 https://github.com/manngo/document-pager

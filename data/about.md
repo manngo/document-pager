@@ -1,4 +1,4 @@
-##	About Text Pager 0.3.2
+##	About Text Pager 0.3.3
 
 Text Pager © Mark Simon
 See also https://pager.internotes.net/

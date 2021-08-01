@@ -541,7 +541,7 @@
 	function doPager(data) {
 		//	Prepare Document
 			var br, major, minor;
-			var headingsRE, headingMajor, headingMinor, RE;
+			var headingsRE, headingMajor, headingMinor, headingMiniscule, RE;
 			//	Heading Regular Expressions:
 				var breaks=settings.languages[data.language].breaks;
 				var literals=/[-\/\\^$*+.()|[\]{}]/g;
@@ -573,8 +573,11 @@
 					//	Special Case: Markdown
 
 						if(data.language=='markdown') {
-							headingsRE=/(?:\n)(?=##?[^#])/;
-							headingMajor=/^(\s*)(##?[^#]*?)\s+(.*)/m;
+							headingsRE=/(?:\n)(?=#{1,3}[^#])/;
+							headingMajor=/^(\s*)(##[^#]*?)\s+(.*)/m;
+							headingMajor=/^(\s*)(#[^#]*?)\s+(.*)/m;
+							headingMinor=/^(\s*)(#{2,3}[^#]*?)\s+(.*)/m;
+							headingMiniscule=/^(\s*)(###[^#]*?)\s+(.*)/m;
 						}
 
 		//	(Re) Select Document
@@ -638,6 +641,7 @@
 				if(!title.length) return;
 
 				li.insertAdjacentHTML('beforeend',`<span>${title}</span>`);
+				if(value.match(headingMiniscule)) li.classList.add('subtitle');
 				li.next=li.previous=undefined;
 				if(previous) {
 					previous.next=li;
@@ -729,7 +733,7 @@
 				div.innerHTML=innerHTML;
 
 
-				var h2=div.querySelector('h1,h2');
+				var h2=div.querySelector('h1,h2,h3');
 				//	var h2=div.querySelector('h2');
 				div.id=h2.id;
 				h2.id='';
