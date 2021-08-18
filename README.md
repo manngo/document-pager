@@ -1,4 +1,6 @@
+<link rel="stylesheet" href="README.css">
 <style>
+	@import 'README.css';
 	th, td {
 		text-align: left;
 		vertical-align: top;
@@ -8,7 +10,7 @@
 		tab-size: 4 !important;
 	}
 </style>
-#	Document Pager 0.3.3
+#	Document Pager 0.3.4
 
 Document Pager © Mark Simon  
 https://github.com/manngo/document-pager

@@ -731,13 +731,9 @@
 			var lines=element.textContent.split(/\r?\n/).length;
 			lineNumbers.textContent=Array.from({length: lines},(v,i)=>i+1).join('\n');
 
-
-
 			var styles=['line-height','font-family','padding-top','padding-bottom','font-size'];
 			var computedStyles=window.getComputedStyle(element);
 			styles.forEach(style=>lineNumbers.style[style]=computedStyles[style]);
-
-
 		};
 		return lineNumbers;
 	};

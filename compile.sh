@@ -1,5 +1,5 @@
 #	rm -rf ../release-builds/Document\ Pager*;
-
+npx electron-builder build
 #	electron-packager . --overwrite --platform=darwin --arch=x64 --prune=true --extend-info "info.plist" --out="../release-builds/" # --icon ./images/edit-virtual-hosts.icns;
 	electron-packager . --overwrite --platform=darwin --arch=x64 --prune=true --out="../release-builds/" # --icon ./images/edit-virtual-hosts.icns;
 #	electron-packager . --overwrite --platform=win32 --arch=x64 --prune=true --out="../release-builds" # --icon images/edit-virtual-hosts.ico;

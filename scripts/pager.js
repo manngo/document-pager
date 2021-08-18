@@ -453,23 +453,24 @@
 	fs.stat
 	================================================ */
 
-	function addDocument(text,language,fileName,path,css) {
+	function addDocument(text,language,fileName,path,css,extension) {
 		var tab=document.createElement('li');
 			// var css='';
 			tab.textContent=fileName;
 			// if(language=='markdown') var css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
 
-			tab.data={text, language, fileName, path, item: 0, highlighted: 1 , css};
+			tab.data={text, language, fileName, path, item: 0, highlighted: 1 , css,extension};
 			tab.onclick=doTab;
 
 		var close=document.createElement('button');
-			close.innerHTML=`<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="8" height="8" viewBox="0, 0, 24, 24"><path d="M3.141,24 L-0,24 L10.332,11.935 L-0,0 L3.401,0 L12,9.06 L20.924,0 L24,0 L13.581,11.935 L24,24 L20.664,24 L12,14.33 z" fill="#000000"/></svg>`;	//	'⨉';	//	✖️
+			//	close.innerHTML=`<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="8" height="8" viewBox="0, 0, 24, 24"><path d="M3.141,24 L-0,24 L10.332,11.935 L-0,0 L3.401,0 L12,9.06 L20.924,0 L24,0 L13.581,11.935 L24,24 L20.664,24 L12,14.33 z" fill="#000000"/></svg>`;	//	'⨉';	//	✖️
+			close.innerHTML='×';
 			close.onclick=closeTab.bind(tab,tab);
-			close.id='tab-close';
+			close.className='tab-close';
 		var refresh=document.createElement('button');
 			refresh.innerHTML='↻';
 			refresh.onclick=refreshTab.bind(tab);
-			refresh.id='tab-refresh';
+			refresh.className='tab-refresh';
 
 		//	Add to DOM
 			tab.appendChild(close);
@@ -641,7 +642,7 @@
 				if(!title.length) return;
 
 				li.insertAdjacentHTML('beforeend',`<span>${title}</span>`);
-				if(value.match(headingMiniscule)) li.classList.add('subtitle');
+				if(data.language=='markdown' && value.match(headingMiniscule)) li.classList.add('subtitle');
 				li.next=li.previous=undefined;
 				if(previous) {
 					previous.next=li;
@@ -668,8 +669,6 @@
 
 				if(!selected) selected=li;
 			});
-
-
 
 			if(selected) selected.click();
 		}
@@ -707,7 +706,7 @@
 			var language=['js','javascript','sql','php'].indexOf(data.language)>-1;
 			elements.codeElement.textContent=item;
 
-			elements.codeElement.classList.forEach(className=>{if(className.startsWith('language-')) elements.codeElement.classList.remove(className);});
+			elements.codeElement.	classList.forEach(className=>{if(className.startsWith('language-')) elements.codeElement.classList.remove(className);});
 			elements.codeElement.classList.add(`language-${data.language}`);
 			lineNumbers.style.display='block';
 			elements.codeElement.style.display='block';
@@ -732,6 +731,17 @@
 
 				div.innerHTML=innerHTML;
 
+//				var doEtc = false;	if(doEtc)
+				div.querySelectorAll('pre').forEach(pre=>{
+					var code = pre.querySelector('code');
+					//	var codeDiv = document.createElement('div');
+				    var html = code.innerHTML.replace(/    /g,'\t');
+				    var language = code.className.match(/\blanguage-(.*)\b/)[1];
+				    code.innerHTML=Prism.highlight(html, Prism.languages[language], language);
+				    //	codeDiv.innerHTML=Prism.highlight(html, Prism.languages[language], language);
+					//	lineNumbers=jx.addLineNumbers(codeDiv);
+					//	code.parentNode.replaceChild(codeDiv,code);
+				});
 
 				var h2=div.querySelector('h1,h2,h3');
 				//	var h2=div.querySelector('h2');
@@ -765,7 +775,6 @@
 							//	event.stopPropagation();
 						},false);
 				});
-
 
 				lineNumbers.style.display='none';
 				elements.codeElement.style.display='none';
@@ -837,14 +846,44 @@ console.log(fileName);
 		else result=openPath(fileName,remember);
 		return result;
 
+		function virtualDocument(pathName) {
+			var {path,fileName,extension,css}=pathDetails(pathName);
+			fsp.stat(pathName)
+			.then(()=>{
+				console.log(pathName);
+				return load(`${path}/${fileName}`);
+			})
+			.then(data=>{
+                data=JSON.parse(data);
+				var md=[];
+				fetch(data.data.url)
+				.then(response=>{
+                    console.log(response);
+                    return response.json();
+                })
+				.then(images=>{
+                    images.forEach(image=>{
+						md.push(`#\t${image.title}`);
+						md.push(`![${image.title}](https://javascript101.webcraft101.com/images/slides/${image.src})`);
+					});
+					data = md.join('\n\n');
+				    addDocument(data,extensions['md'],fileName,path,'','md');
+                });
+
+//					doSlides(images,'div#slides');
+				});
+		}
+
 		function openPath(pathName,remember=false) {
+			var {path,fileName,extension,css}=pathDetails(pathName);
+			if(extension=='dpf') return virtualDocument(pathName);
 			return fsp.stat(pathName)
 			.then(()=>{
-				var {path,fileName,extension,css}=pathDetails(pathName);
+//				var {path,fileName,extension,css}=pathDetails(pathName);
 				return fsp.stat(css).catch(()=>css='')
 				.then(()=>load(`${path}/${fileName}`))
 				.then(data=> {
-					addDocument(data,extensions[extension],fileName,path,css);
+					addDocument(data,extensions[extension],fileName,path,css,extension);
 				})
 				.then(()=>{
 					updateDocuments();
@@ -905,7 +944,7 @@ console.log(fileName);
 			})
 			.then((text)=>{
 				if(cancelled) return;
-				addDocument(data,extensions[extension],fileName,path,css);
+				addDocument(data,extensions[extension],fileName,path,css,extension);
 			})
 			.then(()=>{
 				if(cancelled || !remember) return;

@@ -1,3 +1,5 @@
+
+
 /*	Layout
 	================================================ */
 	html {
@@ -16,7 +18,7 @@
 	body {
 		font-family: "Source Sans Pro";
 		font-size: 1em;
-		--color: #2A5F5B;
+		--color: #204564;
 	}
 	code {
 		font-family: "Source Code Pro";

@@ -12,6 +12,25 @@
 		-webkit-app-region: drag;
 	}
 
+/*	Variables
+	================================================ */
+
+	body {
+		--top-colour: #204564;
+		--bottom-colour: #3c617f;
+		--document-panel-background: linear-gradient(to bottom, var(--top-colour), var(--bottom-colour));
+
+    	--top-inset: hsl(207, 60%, 40%);
+    	--bottom-inset: #2D618C;
+    	--highlight-inset: #63829B;
+    	--highlight-inset: hsl(207, 60%, 56%);
+
+		--text-colour: white;
+		--text-colour-hover: white;
+
+		--monospace: "Source Code Pro", monospace;
+	}
+
 /*	Layout
 	================================================
 	body
@@ -37,6 +56,7 @@
 		display: flex;
 		height: 100vh;
 		flex-direction: column;
+    	overflow: hidden;
 	}
 
 	header,aside,main,footer {
@@ -44,7 +64,7 @@
 		margin: 0em;
 	}
 	header {
-		height: 2.25em;
+		height: 2.5em;
 	}
 
 	main {
@@ -200,11 +220,17 @@
 		border-style: solid none;
 		display: grid;
 		grid-template-columns: 1fr auto auto;
+		background-color: var(--bottom-colour);
+		colour: white;
+		text-shadow: none;
 	}
 
 	footer {
 		background-color: #eee;
 		margin: 0;
+		colour: white;
+		text-shadow: none;
+		background-color: var(--bottom-colour);
 	}
 
 /*	Documents
@@ -212,6 +238,9 @@
 
 	nav#documents {
 		background-color: #f8f8f8;
+		background: var(--document-panel-background);
+		color: white;
+		color: var(--text-colour);
 	}
 
 /*	Pager
@@ -219,7 +248,6 @@
 
 	body {
 		background-color: rgb(221, 221, 221);
-		--monospace: "Source Code Pro", monospace;
 	}
 
 	header {
@@ -229,6 +257,11 @@
 		justify-content: space-between;
 		padding: .125em .5em .125em;
 		background: linear-gradient(to bottom, #eee, #ddd);
+		background: var(--document-panel-background);
+
+		border-bottom: thin solid var(--top-inset);
+		box-shadow: inset 0 -1px 0px var(--top-inset);
+
 	}
 		header>h1 {
 			flex: 1;
@@ -277,6 +310,11 @@
 		font-family: var(--monospace);
 		text-shadow: 0 1px 0 white;
 		text-align: left;
+
+		background-color: var(--bottom-colour);
+		color: white;
+		color: var(--text-colour);
+		text-shadow: none;
 	}
 	span#footer-file {
 		border: none;
@@ -294,36 +332,66 @@
 /*	Control
 	================================================ */
 
+    form#control hr {
+    	display: none;
+    }
+
 	form#control {
 		display: flex;
 		justify-content: flex-end;
 		background-color: transparent;
-		qwidth: 100%;
+		width: 100%;
 	}
 	form#control>p {
 		margin: 0;
-		pading: 0;
+		margin: 0.125em 0.5em;
+		padding: 0;
+		qborder: thin solid red;
+		margin-left: .5em;
+		box-sizing: border-box;
 	}
 	form#control hr {
 		width: .5em;
 		border: none;
 	}
+
 /*	Button Appearances
 	============================================ */
-	form#control button,
-	form#control input[name="show-highlight"]+label,
-		form#control input[name="show-documents"]+label {
+	form#control label {
+		qdisplay: flex;
+		qalign-items: center;
+		qjustify-content: center;
+	}
+	p#font-size {
+		display: flex;
+	}
+	form#control label {
 		background-color: #f8f8f8;
-		border-radius: 2px;
-
+		background-color: var(--top-inset);
+		qborder-radius: 2px;
 		border: thin solid #ccc;
 		padding: .25em .75em;
-		font-size: .85em;
+		font-size: .85rem;
 		color: #333;
-		margin: 0;
+		color: white;
+		color: var(--text-colour);
+		margin: .125em 0 0 0;
+		qheight: 100%;
+		box-sizing: border-box;
+		display: inline-block;
+		font-family: "Source Sans Pro", sans-serif;
+		vertical-align: middle;
+		align-items: center;
+		qjustify-content: center;
+		border: none;
+		line-height: 1.25rem;
+	}
+	p#font-size>label {
+		background: none
 	}
 	form#control button:hover {
 		color: white;
+		color: var(--text-colour-hover);
 		background-color: #bbb;
 	}
 
@@ -336,44 +404,53 @@
 		============================================ */
 
 		form#control input[name="show-highlight"],
-		form#control input[name="show-documents"] {
+		form#control input[name="show-documents"],
+		form#control button {
 			display: none;
+			qdisplay: inline-block;
+			appearance: none;
+			-webkit-appearance: none;
 		}
 		form#control input[name="show-highlight"]+label,
 		form#control input[name="show-documents"]+label {
-
-		}
+            qheight: 100%;
+            qdisplay: inline-block;
+          }
+  }
 
 		form#control input[name="show-highlight"]:hover+label,
 		form#control input[name="show-documents"]:hover+label {
 			background-color: #c8c8c8;
 			animation: none;
-
 		}
+
 		/*	Highlighted Icon
 			============================================
 			form#control input[name="show-highlight"]+label:before {
-				content: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¶";
+				content: "";
 				position: relative;
 				top: .125em;
 				margin-right: .5em;
 			}
 			form#control input[name="show-highlight"]:checked+label:before {
-				content: "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¹ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ";
+				content: "";
 			}
 			============================================ */
 		form#control input[name="show-highlight"]:checked+label,
 		form#control input[name="show-documents"]:checked+label {
-			color: #333;
-			background-color: #999;
-			color: white;
+			qcolor: #333;
+			qbackground-color: #999;
+			background-color: var(--highlight-inset);
+			qcolor: white;
 		}
 		form#control input[name="show-documents"]+label {
-			margin-left: .5em;
+			margin-left: 0.5em;
+			margin-right: 0.5em;
 		}
 
 /*	Tabs
 	============================================ */
+
 
 	ul#tabs {
 		list-style: none;
@@ -381,7 +458,8 @@
 		margin: 0;
 		display: flex;
 		flex-direction: row;
-		background-color: #ccc;
+		qbackground-color: #ccc;
+		background: linear-gradient(to bottom, var(--top-inset), var(--bottom-inset));
 		font-size: .8rem;
 		height: 2rem;
 	}
@@ -396,16 +474,19 @@
 		border: thin solid;
 		border-style: none solid none solid;
 		border-color: transparent #ccc transparent transparent;
-		text-shadow: 0 1px 0 white;
-		background: linear-gradient(to bottom, rgb(238,238,238),rgb(221,221,221));
+		border-color: transparent var(--bottom-inset) transparent transparent;
+		qtext-shadow: 0 1px 0 white;
+		qbackground: linear-gradient(to bottom, rgb(238,238,238),rgb(221,221,221));
 		qposition: relative;
+		color: white;
+		color: var(--text-colour);
 	}
 
 	ul#tabs>li:nth-child(n+2) {
 
 	}
 	ul#tabs>li.selected {
-		background: none #f9f9fa;
+		background-color: var(--highlight-inset);
 	}
 
 	ul#tabs>li>button {
@@ -414,13 +495,19 @@
 		margin-left: .25em;
 		display: inline-block;
 		background-color: transparent;
-		border-radius: .25em;
+		border-radius: .125em;
 		position: relative;
-		top: -.25em;
+		top: .125em;
+		font-weight: light;
+		color: var(--text-colour);
+		font-size: 1.2em;
+		padding: .125em;
+		qbackground-color: orange;
+		height: 1em;
+		line-height: 0.25;
 	}
 	ul#tabs>li>button:hover {
-		background-color: #ccc;
-		border: thin solid #ddd;
+		background-color: var(--highlight-inset);
 	}
 
 /*	Index Properties
@@ -683,6 +770,7 @@
 	}
 	form#search input[id="search-case-sensitive"]:checked+label {
 		color: white;
+		color: var(--text-colour);
 		border: thin solid #666;
 		background: linear-gradient(to bottom, #777, #666);
 		box-shadow:
@@ -722,7 +810,9 @@
 		display: block;
 		color: #333;
 		padding: .25em 0 .375em;
-		text-shadow: 0 1px 0 white;
+		qtext-shadow: 0 1px 0 white;
+		color: white;
+		color: var(--text-color);
 	}
 	nav#documents li>a:hover {
 		background-color: #ddd;
@@ -767,7 +857,7 @@
 
 	nav#documents>ul>li::before {
 		font-size: 1.6em;
-		content: "›";
+		content: "»";
 		display: inline-block;
 		width: .5em;
 		position: relative;
