@@ -59,7 +59,7 @@
 		"dist-win": "build --win"
 	},
 	"devDependencies": {
-		"electron": "^12.0.1",
+		"electron": "^12.1.0",
 		"electron-builder": "^22.10.4"
 	}
 }
