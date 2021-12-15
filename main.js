@@ -8,7 +8,8 @@ const log = require('electron-log');
 	if(DEVELOPMENT && process.platform == 'darwin') require('electron-reload')(__dirname);
 
 //	Required Modules
-	const {app, BrowserWindow, Menu, MenuItem, shell, ipcRenderer, protocol, ipcMain} = require('electron');
+	const {app, BrowserWindow, Menu, MenuItem, shell, ipcRenderer, protocol, ipcMain, dialog} = require('electron');
+
 	//	https://github.com/electron/electron/issues/18214#issuecomment-495043193
 		app.commandLine.appendSwitch('disable-site-isolation-trials');
 	//	console.log(require.resolve('electron'))
@@ -219,4 +220,24 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
 	ipcMain.on('prompt',(event,options)=>{
 		promptOptions=options;
 		doPrompt(window,data=>event.returnValue=data);
+	});
+
+	ipcMain.on('message-box',(event,data)=>{
+		dialog.showMessageBox(data);
+	});
+	ipcMain.on('open-file',(event,data)=>{
+		dialog.showOpenDialog(null, data).then(filePaths => {
+	    	event.sender.send('open-file-paths', filePaths);
+	    });
+	});
+
+
+	ipcMain.on('home',(event,options)=>{
+		var home=`${app.getPath('home')}/.document-pager`;
+		event.returnValue = home;
+	});
+
+	ipcMain.on('init',(event,data)=>{
+		var home=`${app.getPath('home')}/.document-pager`;
+		event.returnValue = JSON.stringify({home});
 	});

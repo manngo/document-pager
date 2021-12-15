@@ -37,9 +37,10 @@
 	================================================ */
 
 	const electron=require('electron');
-	const { ipcRenderer, shell, remote } = electron;
-	const {app,BrowserWindow,dialog,Menu,MenuItem}=remote;
-	const focusedWindow=BrowserWindow.getFocusedWindow();
+	const { ipcRenderer,  } = electron;
+
+	var { home } = JSON.parse(ipcRenderer.sendSync('init'));
+
 	const path = require('path');
 	const fs = require('fs');
 	const fsp = fs.promises;
@@ -77,11 +78,11 @@
 		else return marked(text);
 	};
 
-	const window=remote.getCurrentWindow();
-	window.webContents.on('new-window', function(event, url) {
-	  event.preventDefault();
-	  shell.openExternal(url);
-	});
+//	const window=remote.getCurrentWindow();
+//	window.webContents.on('new-window', function(event, url) {
+//	  event.preventDefault();
+//	  shell.openExternal(url);
+//	});
 
 /**	Support Functions
 	================================================
@@ -107,10 +108,10 @@
 	var settings,languages,extensions;
 	var documentTitle;
 
-	var home=`${app.getPath('home')}/.document-pager`;
-	var languagesJSON=`${home}/languages.json`;
-	var filesJSON=`${home}/files.json`, files={}, pseudoFiles=[];
-	var stateJSON=`${home}/state.json`, state={};
+//	var home=`${app.getPath('home')}/.document-pager`;
+	var languagesJSON = `${home}/languages.json`;
+	var filesJSON = `${home}/files.json`, files = {}, pseudoFiles = [];
+	var stateJSON = `${home}/state.json`, state={};
 
 	var rearrangeableTabs=new jx.Rearrangeable('h','tabgroup');
 
@@ -193,10 +194,19 @@
 
 			//	Files
 				.then(()=>fs.promises.stat(filesJSON))
-				.catch(()=>fs.promises.writeFile(filesJSON,`{"current":[],"recent":[],"favorites":[]}${eol}`))
+				.catch(()=>fs.promises.writeFile(filesJSON,`{"current":[],"recent":[],"favourites":[]}${eol}`))
 				.then(()=>fs.promises.readFile(filesJSON))
 				.then(data=>{
 					files=JSON.parse(data);
+					//	Migrate favorites to favourites
+						if(!files.favourites) {
+							if(files.favorites) {
+								files.favourites = files.favorites.slice();
+								delete files.favorites;
+							}
+							else files.favourites = {};
+							updateFiles();
+						}
 					//	Current Files
 						if(files.current) files.current.forEach(v=>{
 							openFile(v);
@@ -259,20 +269,25 @@
 	//	files.json
 		//	data={action, pathName}
 		function updateFiles(data) {
-			switch(data.action) {
-				case 'add':
+			if(data) switch(data.action) {
+				case 'add-current':
 					if(!files.current.includes(data.pathName))  files.current.push(data.pathName);
+					break;
+				case 'remove-current':
+					files.current=files.current.filter(value=>value!=data.pathName);
+					break;
+				case 'add-recent':
 					if(!files.recent.includes(data.pathName))  files.recent.push(data.pathName);
 					if(files.recent.length>16) files.recent.shift();
 					break;
-				case 'remove':
-					files.current=files.current.filter(value=>value!=data.pathName);
+				case 'remove-recent':
+					files.recent=files.recent.filter(value=>value!=data.pathName);
 					break;
-				case 'favorite':
-					if(!files.favorites.includes(data.pathName))  files.favorites.push(data.pathName);
+				case 'add-favourite':
+					if(!files.favourites.includes(data.pathName)) files.favourites.push(data.pathName);
 					break;
-				case 'unfavorite':
-					files.favorites=files.favorites.filter(value=>value!=data.pathName);
+				case 'remove-favourite':
+					files.favourites=files.favourites.filter(value=>value!=data.pathName);
 					break;
 			}
 			fs.promises.writeFile(filesJSON,JSON.stringify(files));
@@ -286,16 +301,32 @@
 			open.innerHTML='';
 			let recent=elements.documents.querySelector('li#documents-recent>ul');
 			recent.innerHTML='';
-			let favorites=elements.documents.querySelector('li#documents-favourite>ul');
-			favorites.innerHTML='';
+			let favourites=elements.documents.querySelector('li#documents-favourite>ul');
+			favourites.innerHTML='';
 			//	Recent Files
 				if(files.recent) {
 					files.recent.forEach(v=>{
 						let li=document.createElement('li');
 						let name=path.basename(v);
-						li.innerHTML=`<a href="doit:open:${v}">${name}</a>`;
+
+						li.innerHTML=`${name}<button>×</button>`;
+						li.href = v;
+						li.onclick = doRecent;
+
 						recent.appendChild(li);
 					});
+				}
+				function doRecent(event) {
+					console.log(event);
+					var href = this.href;
+					switch(event.target.nodeName) {
+						case 'button':
+						case 'BUTTON':
+							updateFiles({'action':'remove-recent','pathName':href});
+							break;
+						default:
+							openFile(href,true);
+					}
 				}
 			//	Current Files
 				pseudoFiles.forEach(v=>{
@@ -308,18 +339,40 @@
 					files.current.forEach(v=>{
 						let li=document.createElement('li');
 						let name=path.basename(v);
-						li.innerHTML=`<a href="doit:click:${v}">${name}</a>`;
+						li.innerHTML=`${name}`;
+						li.href = v;
+						li.onclick = doCurrent;
 						open.appendChild(li);
 					});
 				}
-			//	favorite Files
-				if(files.favorites) {
-					files.favorites.forEach(v=>{
+				function doCurrent(event) {
+					console.log(event);
+					var href = this.href;
+					var {index,tab}=getTab(href);
+					tabs[index].click();
+				}
+			//	favourite Files
+				if(files.favourites) {
+					files.favourites.forEach(v=>{
 						let li=document.createElement('li');
 						let name=path.basename(v);
-						li.innerHTML=`<a href="doit:open:${v}">${name}</a>`;
-						favorites.appendChild(li);
+						li.innerHTML=`${name}<button>×</button>`;
+						li.href = v;
+						li.onclick = doFavourite;
+						favourites.appendChild(li);
 					});
+				}
+				function doFavourite(event) {
+					console.log(event);
+					var href = this.href;
+					switch(event.target.nodeName) {
+						case 'button':
+						case 'BUTTON':
+							updateFiles({'action':'remove-favourite','pathName':href});
+							break;
+						default:
+							openFile(href,true);
+					}
 				}
 		}
 
@@ -414,7 +467,7 @@
 			switch(input.key) {
 		        case 'Escape':
 		            elements.fullCSS.disabled=true;
-						focusedWindow.webContents.off('before-input-event',doFullScreenKeys);
+//						focusedWindow.webContents.off('before-input-event',doFullScreenKeys);
 		            break;
 		        case 'ArrowRight':
 					elements.nextButton.click();
@@ -432,7 +485,7 @@
 		}
 		elements.formControl.elements['full-screen'].onclick=function (event) {
 			elements.fullCSS.disabled=false;
-			focusedWindow.webContents.on('before-input-event',doFullScreenKeys);
+//			focusedWindow.webContents.on('before-input-event',doFullScreenKeys);
 		};
 
 		jx.contentEditable(elements.codeElement,true);
@@ -512,7 +565,7 @@
 		tabs=tabs.filter(value=>value!=tab);
 		var path=`${this.data.path}/${this.data.fileName}`;
 		//	var path=`${tab.data.path}/${tab.data.fileName}`;
-		updateFiles({'action': 'remove', 'pathName': `${this.data.path}/${this.data.fileName}`});
+		updateFiles({'action': 'remove-current', 'pathName': `${this.data.path}/${this.data.fileName}`});
 
 		var sibling=this.previousElementSibling||this.nextElementSibling||undefined;
 		//	var sibling=tab.previousElementSibling||tab.nextElementSibling||undefined;
@@ -652,7 +705,6 @@
 
 				headingItems.push(li);
 
-
 //				var thing=value.split(/\r?\n/).forEach((v,i,a)=>a[i]=v.replace(new RegExp(`^${RE[1]}`),''));
 				if(RE[1]) {
 					var lines=value.split(/\r?\n/);
@@ -735,10 +787,15 @@
 				div.querySelectorAll('pre').forEach(pre=>{
 					var code = pre.querySelector('code');
 					//	var codeDiv = document.createElement('div');
-				    var html = code.innerHTML.replace(/    /g,'\t');
-				    var language = code.className.match(/\blanguage-(.*)\b/)[1];
-				    code.innerHTML=Prism.highlight(html, Prism.languages[language], language);
-				    //	codeDiv.innerHTML=Prism.highlight(html, Prism.languages[language], language);
+					var html = code.textContent;
+					//	var html = code.innerHTML.replace(/    /g,'\t');
+					var language = code.className.match(/\blanguage-(.*)\b/);
+					//	var language = code.className.match(/\blanguage-(.*)\b/)[1];
+					if(language) {
+						language = language[1];
+						code.innerHTML=Prism.highlight(html, Prism.languages[language], language);
+					}
+					//	codeDiv.innerHTML=Prism.highlight(html, Prism.languages[language], language);
 					//	lineNumbers=jx.addLineNumbers(codeDiv);
 					//	code.parentNode.replaceChild(codeDiv,code);
 				});
@@ -888,17 +945,14 @@ console.log(fileName);
 				.then(()=>{
 					updateDocuments();
 					if(!remember) return;
-					updateFiles({'action':'add',pathName});
-					// if(!files.current.includes(pathName))  files.current.push(pathName);
-					// if(!files.recent.includes(pathName))  files.recent.push(pathName);
-					// if(files.recent.length>16) files.recent.shift();
-					// fs.promises.writeFile(filesJSON,JSON.stringify(files));
+					updateFiles({'action':'add-current',pathName});
+					updateFiles({'action':'add-recent',pathName});
 				})
 				.catch(error=>{console.log(error);});
 			})
 			.catch(error=>{
 				//	Error
-					dialog.showMessageBox({
+					ipcRenderer.sendSync('message-box',{
 						buttons: ['OK'],
 						message: `Oh Dear. The File ${pathName} appears to have disappeared.`
 					});
@@ -924,15 +978,15 @@ console.log(fileName);
 				else return response.text();
 			})
 			.catch((error)=>{
-				dialog.showMessageBox({
+				ipcRenderer.sendSync('message-box',{
 					buttons: ['OK'],
 					message: `Oh Dear. The URL ${url} appears to be unavailable.`
 				});
+
 				console.log(error);
 				cancelled=true;
 				files.current=files.current.filter(value=>value!=url);
 				fsp.writeFile(filesJSON,JSON.stringify(files));
-
 			})
 			.then((text)=>{
 				if(cancelled) return;
@@ -995,7 +1049,7 @@ console.log(data);
 
 				break;
 			case 'OPEN':
-//				if(dialog.showOpenDialog.then)
+/*
 					dialog.showOpenDialog({
 						title: 'Title',
 						defaultPath: localStorage.getItem('defaultPath')
@@ -1005,15 +1059,18 @@ console.log(data);
 						localStorage.setItem('defaultPath',path);
 						openFile(result.filePaths[0],true);
 					});
-//				else
-//					dialog.showOpenDialog({
-//						title: 'Title',
-//						defaultPath: localStorage.getItem('defaultPath')||'/nfs/html/internotes.net/pager/content'
-//					},result=> {
-//						if(result===undefined) return;
-//						localStorage.setItem('defaultPath',path);
-//						openFile(result[0],true);
-//					});
+*/
+					ipcRenderer.send('open-file',{
+						title: 'Title',
+						defaultPath: localStorage.getItem('defaultPath')
+					});
+					ipcRenderer.on('open-file-paths',(event,result)=>{
+						if(result.canceled) return;
+						localStorage.setItem('defaultPath',path);
+						openFile(result.filePaths[0],true);
+console.log(result);
+					});
+
 				break;
 			case 'URL':
 				var url=ipcRenderer.sendSync('prompt',{
@@ -1048,10 +1105,10 @@ console.log(data);
 				elements.formControl.elements['show-documents'].click();
 				break;
 			case 'FAVOURITE':
-				updateFiles({'action':'favorite','pathName':`${currentTab.data.path}/${currentTab.data.fileName}`});
+				updateFiles({'action':'add-favourite','pathName':`${currentTab.data.path}/${currentTab.data.fileName}`});
 				break;
 			case 'UNFAVOURITE':
-				updateFiles({'action':'unfavorite','pathName':`${currentTab.data.path}/${currentTab.data.fileName}`});
+				updateFiles({'action':'remove-favourite','pathName':`${currentTab.data.path}/${currentTab.data.fileName}`});
 				break;
 
 			case 'FIND':

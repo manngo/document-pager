@@ -777,7 +777,6 @@
 			inset 1px 1px 1px #666;
 	}
 
-
 /*	Search
 	================================================ */
 
@@ -804,18 +803,42 @@
 	nav#documents>ul>li>ul>li:last-of-type {
 		border-bottom: thin solid #ccc;
 	}
+	nav#documents>ul>li>ul>li,
 	nav#documents li>a {
 		font-size: .9rem;
 		text-decoration: none;
 		display: block;
 		color: #333;
-		padding: .25em 0 .375em;
+		padding: .25em 0 .125em .5em;
 		qtext-shadow: 0 1px 0 white;
 		color: white;
 		color: var(--text-color);
+        display: flex;
+        justify-content: space-between;
 	}
+	nav#documents>ul>li>ul>li:hover,
 	nav#documents li>a:hover {
-		background-color: #ddd;
+		background-color: var(--top-inset);
+	}
+
+	nav#documents>ul>li>ul>li>button,
+	nav#documents li>a>button {
+	    box-sizing: border-box;
+	    border: thin solid transparent;
+	    display: inline-block;
+	    background-color: transparent;
+	    position: relative;
+	    top: .0625em;
+	    font-weight: light;
+	    color: var(--highlight-inset);
+	    font-size: 1.2em;
+	    padding: .125em;
+	    line-height: 1;
+	}
+
+	nav#documents>ul>li>ul>li>button:hover,
+	nav#documents li>a>button:hover {
+		color: var(--text-color);
 	}
 
 /*	Tabs
