@@ -39,7 +39,14 @@
 	const electron=require('electron');
 	const { ipcRenderer,  } = electron;
 
+	ipcRenderer.on('debug-data',(event,result)=>{
+console.log(result);
+	});
+
+
+
 	var { home } = JSON.parse(ipcRenderer.sendSync('init'));
+	var settingsDir = `${home}/.document-pager`;
 
 	const path = require('path');
 	const fs = require('fs');
@@ -108,10 +115,9 @@
 	var settings,languages,extensions;
 	var documentTitle;
 
-//	var home=`${app.getPath('home')}/.document-pager`;
-	var languagesJSON = `${home}/languages.json`;
-	var filesJSON = `${home}/files.json`, files = {}, pseudoFiles = [];
-	var stateJSON = `${home}/state.json`, state={};
+	var languagesJSON = `${settingsDir}/languages.json`;
+	var filesJSON = `${settingsDir}/files.json`, files = {}, pseudoFiles = [];
+	var stateJSON = `${settingsDir}/state.json`, state={};
 
 	var rearrangeableTabs=new jx.Rearrangeable('h','tabgroup');
 
@@ -151,8 +157,8 @@
 				})
 
 			//	Home Directory
-				.then(()=>fsp.stat(home))
-				.catch(()=>{fsp.mkdir(home);})
+				.then(()=>fsp.stat(settingsDir))
+				.catch(()=>{fsp.mkdir(settingsDir);})
 
 			//	Languages
 				.then(()=>fsp.stat(languagesJSON))
@@ -194,10 +200,14 @@
 
 			//	Files
 				.then(()=>fs.promises.stat(filesJSON))
-				.catch(()=>fs.promises.writeFile(filesJSON,`{"current":[],"recent":[],"favourites":[]}${eol}`))
+				.catch((error)=>fs.promises.writeFile(filesJSON,`{"current":[],"recent":[],"favourites":[]}${eol}`))
 				.then(()=>fs.promises.readFile(filesJSON))
 				.then(data=>{
-					files=JSON.parse(data);
+					try {
+						files=JSON.parse(data);
+					} catch(error) {
+						files = {"current":[],"recent":[],"favourites":[]};
+					}
 					//	Migrate favorites to favourites
 						if(!files.favourites) {
 							if(files.favorites) {
@@ -217,10 +227,12 @@
 
 			//	State
 				.then(()=>fs.promises.stat(stateJSON))
-				.catch(()=>fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120}${eol}`))
+				.catch((error)=>fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120,"default-path":"${home}"}${eol}`))
 				.then(()=>fs.promises.readFile(stateJSON))
 				.then(data=>{
 					state=JSON.parse(data);
+					//	For now, default path:
+						if(!state['default-path']) state['default-path'] = home;
 					//	Documents Pane
 						document.querySelector('main').classList.toggle('show-documents',state['documents-width']);
 						if(state['documents-width']) document.querySelector('nav#documents').style.width=`${state['documents-width']}px`;
@@ -1060,13 +1072,19 @@ console.log(data);
 						openFile(result.filePaths[0],true);
 					});
 */
+					console.log(state);
+					console.log(state['default-path']);
 					ipcRenderer.send('open-file',{
 						title: 'Title',
-						defaultPath: localStorage.getItem('defaultPath')
+						//	defaultPath: localStorage.getItem('defaultPath')
+						defaultPath: state['default-path']
 					});
 					ipcRenderer.on('open-file-paths',(event,result)=>{
 						if(result.canceled) return;
 						localStorage.setItem('defaultPath',path);
+						state['default-path'] = path;
+						updateState();
+						//	to do: results.filePaths.forEach(f=>{openFile(f,true)});
 						openFile(result.filePaths[0],true);
 console.log(result);
 					});

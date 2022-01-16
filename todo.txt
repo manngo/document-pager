@@ -1,0 +1,5 @@
+-	Prefs:	Currently a JSON file
+-	Prefs:	Sections default open or closed
+-	Remember open/close sections
+	Current session only, and forget when refreshed
+-	Better alignment of headings with and without subheadings

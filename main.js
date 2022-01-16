@@ -7,6 +7,7 @@ const log = require('electron-log');
 
 	if(DEVELOPMENT && process.platform == 'darwin') require('electron-reload')(__dirname);
 
+
 //	Required Modules
 	const {app, BrowserWindow, Menu, MenuItem, shell, ipcRenderer, protocol, ipcMain, dialog} = require('electron');
 
@@ -90,8 +91,10 @@ const log = require('electron-log');
 				{	label: 'Instructions …', id: 'INSTRUCTIONS', click: send },
 				{	type:'separator' },
 				{	label: 'Document Pager Home', icon: path.join(__dirname, 'images/external.png'), click: () => { shell.openExternal('https://github.com/manngo/document-pager'); } },
-				{	label: 'Internotes Pager', icon: path.join(__dirname,'images/external.png'), click: () => { shell.openExternal('https://pager.internotes.net/'); }
-				},
+				{	label: 'Internotes Pager', icon: path.join(__dirname,'images/external.png'), click: () => { shell.openExternal('https://pager.internotes.net/'); } },
+				{	id: 'debug-separator', type:'separator' },
+				{	id: 'debug-developer-tools', label: 'Show Development Tools', click: function (menuItem, focusedWindow) { window.webContents.openDevTools({mode: 'detach'}); } },
+//				{	id: 'debug-developer-tools', label: JSON.stringify(process.argv), click: function (menuItem, focusedWindow) { window.webContents.openDevTools({mode: 'detach'}); } },
 			]
 		}
 	];
@@ -104,7 +107,11 @@ const log = require('electron-log');
 		]
 	}];
 
-if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
+//	if(DEVELOPMENT) menu=menu.concat(developmentMenu);
+//if(DEVELOPMENT) window.webContents.openDevTools({mode: 'detach'});
+//if(process.argv.includes('debug')) window.webContents.openDevTools({mode: 'detach'});
+if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
+
 
 //	Init
 	function init() {
@@ -118,6 +125,7 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
       			enableRemoteModule: true,
 			}
 		});
+//	window.webContents.send('debug-data', process);
 
 
 	protocol.registerStringProtocol('doit',(request,callback)=>{
@@ -133,7 +141,11 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
 
 		window.setTitle('Document Pager');
 		menu=Menu.buildFromTemplate(menu);
-
+/*	not working for main menuy
+		menu.addListener('menu-will-show',event=>{
+			console.log(event);
+		});
+*/
 		Menu.setApplicationMenu(menu);
 
 		window.loadURL(path.join('file://', __dirname, '/index.html'));
@@ -231,13 +243,12 @@ if(DEVELOPMENT) 	menu=menu.concat(developmentMenu);
 	    });
 	});
 
-
 	ipcMain.on('home',(event,options)=>{
 		var home=`${app.getPath('home')}/.document-pager`;
 		event.returnValue = home;
 	});
 
 	ipcMain.on('init',(event,data)=>{
-		var home=`${app.getPath('home')}/.document-pager`;
+		var home=`${app.getPath('home')}`;
 		event.returnValue = JSON.stringify({home});
 	});
