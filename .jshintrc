@@ -1,6 +1,6 @@
 {
 	"indent": 1,
-	"esversion": 6,
+	"esversion": 8,
 	"-W086": true,
 	"-W097": false,
 	"-W083": true,
@@ -9,6 +9,7 @@
 	"-W040": true,
 	"-W030": true,
 	"-W014": true,
+	"-W117": true,
 	"eqeqeq": false,
 	"shadow": true,
 	"sub": true,

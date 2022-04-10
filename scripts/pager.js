@@ -993,7 +993,6 @@ console.log(fileName);
 					})
 					.then(()=>{
 						console.log(`Error: The File ${pathName} appears to have disappeared.`);
-
 						//	Remove from Current & Recent
 							files.current=files.current.filter(value=>value!=pathName);
 							files.recent=files.recent.filter(value=>value!=pathName);
@@ -1015,15 +1014,16 @@ console.log(fileName);
 				else return response.text();
 			})
 			.catch((error)=>{
-				ipcRenderer.sendSync('message-box',{
+				ipcRenderer.invoke('message-box',{
 					buttons: ['OK'],
 					message: `Oh Dear. The URL ${url} appears to be unavailable.`
+				})
+				.then(()=>{
+					console.log(error);
+					cancelled=true;
+					files.current=files.current.filter(value=>value!=url);
+					fs.promises.writeFile(filesJSON,JSON.stringify(files));
 				});
-
-				console.log(error);
-				cancelled=true;
-				files.current=files.current.filter(value=>value!=url);
-				fs.promises.writeFile(filesJSON,JSON.stringify(files));
 			})
 			.then((text)=>{
 				if(cancelled) return;

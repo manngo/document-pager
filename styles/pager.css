@@ -269,7 +269,14 @@
 			text-align: left;
 		}
 		header>form {
-			margin-right: 2em;
+
+		}
+		header>form#prompt {
+			flex: 3;
+			display: none;
+		}
+		header>form#control {
+			flex: 2;
 		}
 
 	div#index>h2,

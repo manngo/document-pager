@@ -45,7 +45,7 @@ const log = require('electron-log');
 //                {	label: `New Document`, accelerator: 'CmdOrCtrl+N', id:'NEW', click: send },
 				{	label: `Open …`, accelerator: 'CmdOrCtrl+O', id:'OPEN', click: send },
 				{	label: `Reload`, accelerator: 'CmdOrCtrl+R', id:'LOAD', click: send },
-				{	label: `Open URL …`, accelerator: 'CmdOrCtrl+Shift+O', id:'URL', click: send },
+//				{	label: `Open URL …`, accelerator: 'CmdOrCtrl+Shift+O', id:'URL', click: send },
 				{	label: `Close`, accelerator: 'CmdOrCtrl+W', id:'CLOSE', click: send },
 				{	label: `Save`, accelerator: 'CmdOrCtrl+S', id:'SAVE', click: send },
 //				{	label: `Save As …`, accelerator: 'CmdOrCtrl+Shift+S', id:'SAVEAS', click: send },
@@ -238,7 +238,7 @@ if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
 	// 	dialog.showMessageBoxSync(window,data);
 	// });
 
-	ipcMain.handle("message-box", (e, data) => {
+	ipcMain.handle('message-box', (event, data) => {
 	    dialog.showMessageBox(window,data);
 	});
 
