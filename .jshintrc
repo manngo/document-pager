@@ -8,6 +8,7 @@
 	"-W080": true,
 	"-W040": true,
 	"-W030": true,
+	"-W014": true,
 	"eqeqeq": false,
 	"shadow": true,
 	"sub": true,

@@ -234,9 +234,14 @@ if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
 		doPrompt(window,data=>event.returnValue=data);
 	});
 
-	ipcMain.on('message-box',(event,data)=>{
-		dialog.showMessageBox(data);
+	// ipcMain.on('message-box',(event,data)=>{
+	// 	dialog.showMessageBoxSync(window,data);
+	// });
+
+	ipcMain.handle("message-box", (e, data) => {
+	    dialog.showMessageBox(window,data);
 	});
+
 	ipcMain.on('open-file',(event,data)=>{
 		dialog.showOpenDialog(null, data).then(filePaths => {
 	    	event.sender.send('open-file-paths', filePaths);

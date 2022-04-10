@@ -474,7 +474,46 @@ console.log(result);
 		};
 		elements.main.classList.toggle('show-documents',elements.formControl.elements['show-documents'].checked);
 
-		function doFullScreenKeys(event,input) {
+		elements.formControl.elements['full-screen'].onclick=function (event) {
+			elements.fullCSS.disabled=false;
+			document.addEventListener('keyup',doFullScreenKeys);
+//			focusedWindow.webContents.on('before-input-event',doFullScreenKeys);
+		};
+		function doFullScreenKeys(event) {
+			console.log(event.key);
+			switch(event.key) {
+		        case 'Escape':
+		            elements.fullCSS.disabled=true;
+					document.removeEventListener('keyup',doFullScreenKeys);
+		            break;
+		        case 'ArrowRight':
+					elements.nextButton.click();
+		            break;
+		        case 'ArrowLeft':
+					elements.previousButton.click();
+		            break;
+		        case 'ArrowUp':
+					elements.indexUL.firstElementChild.click();
+		            break;
+		        case 'ArrowDown':
+					elements.indexUL.lastElementChild.click();
+		            break;
+		    }
+		}
+
+		jx.contentEditable(elements.codeElement,true);
+		elements.codeElement.onblur=event=>{
+			console.log('blur');
+		};
+
+		elements.mdElement.addEventListener('click',event=>{
+			if (event.target.href && event.target.href.match(/^https?:\/\//)) {
+				event.preventDefault();
+				require('electron').shell.openExternal(event.target.href);
+			}
+		});
+
+		function something(event,input) {
 			if(input.type!=='keyUp') return;
 			switch(input.key) {
 		        case 'Escape':
@@ -495,22 +534,7 @@ console.log(result);
 		            break;
 		    }
 		}
-		elements.formControl.elements['full-screen'].onclick=function (event) {
-			elements.fullCSS.disabled=false;
-//			focusedWindow.webContents.on('before-input-event',doFullScreenKeys);
-		};
 
-		jx.contentEditable(elements.codeElement,true);
-		elements.codeElement.onblur=event=>{
-			console.log('blur');
-		};
-
-		elements.mdElement.addEventListener('click',event=>{
-			if (event.target.href && event.target.href.match(/^https?:\/\//)) {
-				event.preventDefault();
-				require('electron').shell.openExternal(event.target.href);
-			}
-		});
 
 /**	Add Document
 	================================================
@@ -605,7 +629,7 @@ console.log(result);
 
 	================================================ */
 	function doPager(data) {
-		//	Prepare Document
+		//	Document Breaks
 			var br, major, minor;
 			var headingsRE, headingMajor, headingMinor, headingMiniscule, RE;
 			//	Heading Regular Expressions:
@@ -646,46 +670,46 @@ console.log(result);
 							headingMiniscule=/^(\s*)(###[^#]*?)\s+(.*)/m;
 						}
 
-		//	(Re) Select Document
+		//	Document Info Footer
 			elements.indexHeading.innerHTML=data.fileName;
 			elements.footerHeading.innerHTML=`Breaks: ${data.br}`;
 
-	//	Variables
-		var selected=null;
-		var title;
+		//	Variables
+			var selected=null;
+			var title;
 
-				function toggleHeading(event) {
-				    if(this!==event.target) return;
-					if(event.shiftKey) {
-						var open=this.parentElement.classList.contains('open');
-						headingItems.forEach(i=>{
-							i.classList.toggle('open',!open);
-						});
-				    }
-				    else this.parentElement.classList.toggle('open');
-				}
+		//	Toggle Heading
+			function toggleHeading(event) {
+			    if(this!==event.target) return;
+				if(event.shiftKey) {
+					var open=this.parentElement.classList.contains('open');
+					headingItems.forEach(i=>{
+						i.classList.toggle('open',!open);
+					});
+			    }
+			    else this.parentElement.classList.toggle('open');
+			}
 
 
-	//	Populate Index
-		var items=data.text.split(headingsRE);
-		elements.indexUL.innerHTML='';
-		var nested=false, ul, previous=null;
-		var headingItems=[];
-		if(items.length>1) {
-			var previous=undefined, selected=undefined;
-			items.forEach(function(value,i) {
+		//	Populate Index
+			elements.indexUL.innerHTML='';
+			var nested=false, ul, previous=null;
+			var headingItems=[];
 
-				var li=document.createElement('li');
-				RE=value.match(headingMajor);
+			var items=data.text.split(headingsRE);
+			if(items.length>1) {
+				var previous=undefined, selected=undefined;
+				items.forEach(function(value,i) {
+					var li=document.createElement('li');
 
-				if(RE && RE[3]) {	//	Major Heading
-					nested=false;
-					title=RE[3];
-				}
-				else {
-					RE=value.match(headingMinor);
-					if(RE && RE[3]) {
-						//	Nesting
+					RE=value.match(headingMajor);
+					if(RE && RE[3]) {		//	Major Heading
+						nested=false;
+						title=RE[3];
+					}
+					else {
+						RE=value.match(headingMinor);
+						if(RE && RE[3]) {	//	Nesting
 							if(!nested) {
 								nested=true;
 								elements.indexUL.appendChild(li);
@@ -699,44 +723,42 @@ console.log(result);
 								ul=document.createElement('ul');
 								previous.appendChild(ul);
 							}
-
-						title=RE[3];
+							title=RE[3];
+						}
+						else title='';
 					}
-					else title='';
-				}
-				if(!title.length) return;
+					if(!title.length) return;
 
-				li.insertAdjacentHTML('beforeend',`<span>${title}</span>`);
-				if(data.language=='markdown' && value.match(headingMiniscule)) li.classList.add('subtitle');
-				li.next=li.previous=undefined;
-				if(previous) {
-					previous.next=li;
-					li.previous=previous;
-				}
-				previous=li;
+					li.insertAdjacentHTML('beforeend',`<span>${title}</span>`);
+					if(data.language=='markdown' && value.match(headingMiniscule)) li.classList.add('subtitle');
+					li.next=li.previous=undefined;
+					if(previous) {
+						previous.next=li;
+						li.previous=previous;
+					}
+					previous=li;
+					headingItems.push(li);
 
-				headingItems.push(li);
+//					var thing=value.split(/\r?\n/).forEach((v,i,a)=>a[i]=v.replace(new RegExp(`^${RE[1]}`),''));
+					if(RE[1]) {
+						var lines=value.split(/\r?\n/);
+						var indent=new RegExp(`^${RE[1]}`);
+						lines.forEach((v,i,a)=>a[i]=v.replace(indent,''));
+						value=lines.join('\n');
+					}
 
-//				var thing=value.split(/\r?\n/).forEach((v,i,a)=>a[i]=v.replace(new RegExp(`^${RE[1]}`),''));
-				if(RE[1]) {
-					var lines=value.split(/\r?\n/);
-					var indent=new RegExp(`^${RE[1]}`);
-					lines.forEach((v,i,a)=>a[i]=v.replace(indent,''));
-					value=lines.join('\n');
-				}
+					li.onclick=loadItem.bind(li,data,value,title,i);
+					if(nested) ul.appendChild(li);
+					else elements.indexUL.appendChild(li);
+					if(i==data.item) selected=li;
+					previous=li;
 
-				li.onclick=loadItem.bind(li,data,value,title,i);
-				if(nested) ul.appendChild(li);
-				else elements.indexUL.appendChild(li);
-				if(i==data.item) selected=li;
-				previous=li;
+					if(!selected) selected=li;
+				});
 
-				if(!selected) selected=li;
-			});
-
-			if(selected) selected.click();
-		}
-		else showItem(data.text,data.fileName,true);
+				if(selected) selected.click();
+			}
+			else showItem(data.text,data.fileName,true);
 
 	//	Not Empty
 		elements.contentDiv.classList.remove('empty');
@@ -770,14 +792,14 @@ console.log(result);
 			var language=['js','javascript','sql','php'].indexOf(data.language)>-1;
 			elements.codeElement.textContent=item;
 
-			elements.codeElement.	classList.forEach(className=>{if(className.startsWith('language-')) elements.codeElement.classList.remove(className);});
+			elements.codeElement.classList.forEach(className=>{if(className.startsWith('language-')) elements.codeElement.classList.remove(className);});
 			elements.codeElement.classList.add(`language-${data.language}`);
 			lineNumbers.style.display='block';
 			elements.codeElement.style.display='block';
 			elements.mdElement.style.display='none';
 			elements.iframeCSS.href='';
 
-			if(language && doHighlight) elements.codeElement.innerHTML=Prism.highlight(item, Prism.languages[data.language], data.language);
+			if(data.language && doHighlight) elements.codeElement.innerHTML=Prism.highlight(item, Prism.languages[data.language], data.language);
 			else if(data.language=='markdown' && doHighlight) {
 				var div=document.createElement('div');
 
@@ -860,6 +882,7 @@ console.log(result);
 
 		}
 	}
+
 	function zoom(direction) {
 		switch(direction) {
 			case -1:
@@ -964,16 +987,18 @@ console.log(fileName);
 			})
 			.catch(error=>{
 				//	Error
-					ipcRenderer.sendSync('message-box',{
+					ipcRenderer.invoke('message-box',{
 						buttons: ['OK'],
 						message: `Oh Dear. The File ${pathName} appears to have disappeared.`
-					});
-					console.log(`Error: The File ${pathName} appears to have disappeared.`);
+					})
+					.then(()=>{
+						console.log(`Error: The File ${pathName} appears to have disappeared.`);
 
-				//	Remove from Current & Recent
-					files.current=files.current.filter(value=>value!=pathName);
-					files.recent=files.recent.filter(value=>value!=pathName);
-					fsp.writeFile(filesJSON,JSON.stringify(files));
+						//	Remove from Current & Recent
+							files.current=files.current.filter(value=>value!=pathName);
+							files.recent=files.recent.filter(value=>value!=pathName);
+							fs.promises.writeFile(filesJSON,JSON.stringify(files,null,'\t'));
+					});
 			});
 		}
 
@@ -998,7 +1023,7 @@ console.log(fileName);
 				console.log(error);
 				cancelled=true;
 				files.current=files.current.filter(value=>value!=url);
-				fsp.writeFile(filesJSON,JSON.stringify(files));
+				fs.promises.writeFile(filesJSON,JSON.stringify(files));
 			})
 			.then((text)=>{
 				if(cancelled) return;
@@ -1081,11 +1106,14 @@ console.log(data);
 					});
 					ipcRenderer.on('open-file-paths',(event,result)=>{
 						if(result.canceled) return;
-						localStorage.setItem('defaultPath',path);
-						state['default-path'] = path;
+						var pd = pathDetails(result.filePaths[0]);
+						localStorage.setItem('defaultPath',pd.path);
+						state['default-path'] = pd.path;
 						updateState();
-						//	to do: results.filePaths.forEach(f=>{openFile(f,true)});
-						openFile(result.filePaths[0],true);
+						result.filePaths.forEach(f=>{
+							openFile(f,true);
+						});
+						//	openFile(result.filePaths[0],true);
 console.log(result);
 					});
 
