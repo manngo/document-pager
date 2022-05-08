@@ -112,7 +112,6 @@ const log = require('electron-log');
 //if(process.argv.includes('debug')) window.webContents.openDevTools({mode: 'detach'});
 if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
 
-
 //	Init
 	function init() {
 
