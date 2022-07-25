@@ -1083,6 +1083,19 @@ console.log(fileName);
 		}
 	});
 
+					ipcRenderer.on('open-file-paths',(event,result)=>{
+						if(result.canceled) return;
+						var pd = pathDetails(result.filePaths[0]);
+						localStorage.setItem('defaultPath',pd.path);
+						state['default-path'] = pd.path;
+						updateState();
+						result.filePaths.forEach(f=>{
+							openFile(f,true);
+						});
+						//	openFile(result.filePaths[0],true);
+console.log(result);
+					});
+
 	ipcRenderer.on('MENU',(event,data,more)=>{
 console.log(data);
 		switch(data) {
@@ -1108,7 +1121,7 @@ console.log(data);
 						//	defaultPath: localStorage.getItem('defaultPath')
 						defaultPath: state['default-path']
 					});
-					ipcRenderer.on('open-file-paths',(event,result)=>{
+					ipcRenderer.on('open-file-paths?',(event,result)=>{
 						if(result.canceled) return;
 						var pd = pathDetails(result.filePaths[0]);
 						localStorage.setItem('defaultPath',pd.path);
