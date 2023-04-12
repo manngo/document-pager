@@ -53,7 +53,7 @@ console.log(result);
 	const temp=require('temp').track();
 
 	//	Others
-		const {jx,DOM}=require('../scripts/utilities.js');
+		const {jx, DOM, JSONFile} = require('../scripts/utilities.js');
 		const marked = require('marked');
 
 /**	Environment
@@ -132,9 +132,9 @@ console.log(result);
 
 				if(this==documentsTab) this.classList.toggle('open');
 				else {
-				    if(documentsTab) documentsTab.classList.remove('open');
-				    documentsTab=this;
-				    documentsTab.classList.add('open');
+					if(documentsTab) documentsTab.classList.remove('open');
+					documentsTab=this;
+					documentsTab.classList.add('open');
 				}
 
 				state['documents-toggle']=this.id;
@@ -225,7 +225,7 @@ console.log(result);
 
 			//	State
 				.then(()=>fs.promises.stat(stateJSON))
-				.catch((error)=>fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120,"default-path":"${home}"}${eol}`))
+				.catch((error)=>fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120,"default-path":"${home}","index-open-all":false}${eol}`))
 				.then(()=>fs.promises.readFile(stateJSON))
 				.then(data=>{
 					state=JSON.parse(data);
@@ -237,6 +237,7 @@ console.log(result);
 						if(state['documents-toggle']) document.querySelector(`li#${state['documents-toggle']}`).classList.add('open');
 					//	Index
 						if(state['index-width']) document.querySelector('div#index').style.width=`${state['index-width']}px`;
+						state['index-open-all'] = !!state['index-open-all'];
 				})
 		;
 
@@ -480,23 +481,23 @@ console.log(result);
 		function doFullScreenKeys(event) {
 			console.log(event.key);
 			switch(event.key) {
-		        case 'Escape':
-		            elements.fullCSS.disabled=true;
+				case 'Escape':
+					elements.fullCSS.disabled=true;
 					document.removeEventListener('keyup',doFullScreenKeys);
-		            break;
-		        case 'ArrowRight':
+					break;
+				case 'ArrowRight':
 					elements.nextButton.click();
-		            break;
-		        case 'ArrowLeft':
+					break;
+				case 'ArrowLeft':
 					elements.previousButton.click();
-		            break;
-		        case 'ArrowUp':
+					break;
+				case 'ArrowUp':
 					elements.indexUL.firstElementChild.click();
-		            break;
-		        case 'ArrowDown':
+					break;
+				case 'ArrowDown':
 					elements.indexUL.lastElementChild.click();
-		            break;
-		    }
+					break;
+			}
 		}
 
 		jx.contentEditable(elements.codeElement,true);
@@ -514,25 +515,68 @@ console.log(result);
 		function something(event,input) {
 			if(input.type!=='keyUp') return;
 			switch(input.key) {
-		        case 'Escape':
-		            elements.fullCSS.disabled=true;
+				case 'Escape':
+					elements.fullCSS.disabled=true;
 //						focusedWindow.webContents.off('before-input-event',doFullScreenKeys);
-		            break;
-		        case 'ArrowRight':
+					break;
+				case 'ArrowRight':
 					elements.nextButton.click();
-		            break;
-		        case 'ArrowLeft':
+					break;
+				case 'ArrowLeft':
 					elements.previousButton.click();
-		            break;
-		        case 'ArrowUp':
+					break;
+				case 'ArrowUp':
 					elements.indexUL.firstElementChild.click();
-		            break;
-		        case 'ArrowDown':
+					break;
+				case 'ArrowDown':
 					elements.indexUL.lastElementChild.click();
-		            break;
-		    }
+					break;
+			}
 		}
 
+		var index = document.querySelector('div#index');
+		index.tabIndex=1;
+		index.onkeydown = event => {
+			//	console.log(event.key);
+			var selected = index.querySelector('li.selected');
+			var group = index.querySelector('div#index>ul>li.selected');
+			//	console.log(selected);
+			//	console.log(group);
+			switch (event.key) {
+				case 'ArrowDown':
+					var next = selected.nextElementSibling;
+					if(next) {
+						next.click();
+						next.scrollIntoViewIfNeeded(false);
+					}
+					break;
+				case 'ArrowUp':
+					var next = selected.previousElementSibling;
+					if(next) {
+						next.click();
+						next.scrollIntoViewIfNeeded(false);
+					}
+					else {
+						var grandParent = selected.parentNode.parentNode;
+						if(grandParent.tagName=='LI') grandParent.click();
+					}
+					break;
+				case 'ArrowRight':
+					if(group) {
+						group.classList.add('open');
+						group.querySelector('li').click();
+					}
+					break;
+				case 'ArrowLeft':
+					if(group) group.classList.remove('open');
+					else {
+						var grandParent = selected.parentNode.parentNode;
+						grandParent.click();
+					}
+					break;
+			}
+
+		};
 
 /**	Add Document
 	================================================
@@ -678,14 +722,14 @@ console.log(result);
 
 		//	Toggle Heading
 			function toggleHeading(event) {
-			    if(this!==event.target) return;
+				if(this!==event.target) return;
 				if(event.shiftKey) {
 					var open=this.parentElement.classList.contains('open');
 					headingItems.forEach(i=>{
 						i.classList.toggle('open',!open);
 					});
-			    }
-			    else this.parentElement.classList.toggle('open');
+				}
+				else this.parentElement.classList.toggle('open');
 			}
 
 
@@ -712,7 +756,7 @@ console.log(result);
 								nested=true;
 								elements.indexUL.appendChild(li);
 
-								previous.classList.add('open');
+								if(state['index-open-all']) previous.classList.add('open');
 								var button=document.createElement('button');
 									button.innerHTML='›';
 									button.onclick=toggleHeading;
@@ -811,7 +855,8 @@ console.log(result);
 					// });
 
 					innerHTML=innerHTML.replace(/<img(.*?)src="(.*)"(.*?)>/g,function(match,p1,p2,p3,offset,string) {
-						if (p2.match(/^https?:\/\//)) return string;
+						//	if (p2.match(/^https?:\/\//) || p2.startsWith('/')) return string;
+						if (p2.match(/^https?:\/\//) || p2.startsWith('/')) return `<img${p1}src="${p2}"${p3}>`;
 						else return `<img${p1}src="${currentTab.data.path}/${p2.replace(/^\//,'')}"${p3}>`;
 					});
 
@@ -950,21 +995,21 @@ console.log(fileName);
 				return load(`${path}/${fileName}`);
 			})
 			.then(data=>{
-                data=JSON.parse(data);
+				data=JSON.parse(data);
 				var md=[];
 				fetch(data.data.url)
 				.then(response=>{
-                    console.log(response);
-                    return response.json();
-                })
+					console.log(response);
+					return response.json();
+				})
 				.then(images=>{
-                    images.forEach(image=>{
+					images.forEach(image=>{
 						md.push(`#\t${image.title}`);
 						md.push(`![${image.title}](https://javascript101.webcraft101.com/images/slides/${image.src})`);
 					});
 					data = md.join('\n\n');
-				    addDocument(data,extensions['md'],fileName,path,'','md');
-                });
+					addDocument(data,extensions['md'],fileName,path,'','md');
+				});
 
 //					doSlides(images,'div#slides');
 				});
@@ -1083,18 +1128,18 @@ console.log(fileName);
 		}
 	});
 
-					ipcRenderer.on('open-file-paths',(event,result)=>{
-						if(result.canceled) return;
-						var pd = pathDetails(result.filePaths[0]);
-						localStorage.setItem('defaultPath',pd.path);
-						state['default-path'] = pd.path;
-						updateState();
-						result.filePaths.forEach(f=>{
-							openFile(f,true);
-						});
-						//	openFile(result.filePaths[0],true);
+	ipcRenderer.on('open-file-paths',(event,result)=>{
+		if(result.canceled) return;
+		var pd = pathDetails(result.filePaths[0]);
+		localStorage.setItem('defaultPath',pd.path);
+		state['default-path'] = pd.path;
+		updateState();
+		result.filePaths.forEach(f=>{
+			openFile(f,true);
+		});
+		//	openFile(result.filePaths[0],true);
 console.log(result);
-					});
+	});
 
 	ipcRenderer.on('MENU',(event,data,more)=>{
 console.log(data);

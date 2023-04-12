@@ -128,6 +128,7 @@
 	div#index,
 	div#content {
 		background-color: white;
+		outline: none;
 	}
 	nav#documents,
 	div#index,
@@ -673,13 +674,11 @@
 		opacity: .25;
 		transition: opacity .25s;
 		outline: none;
-		margin-top: .25em;
+		margin-top: .5em;
+		border: none;
 	}
 	p#navigation:hover>button#previous,
 	p#navigation:hover>button#next {
-		font-size: 2em;
-		padding: 0 .25em .1875em;
-		line-height: .5em;
 		opacity: 1;
 	}
 
