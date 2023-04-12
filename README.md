@@ -9,17 +9,32 @@
 	pre {
 		tab-size: 4 !important;
 	}
+
+	div#header {
+
+	}
+	div#header img {
+		float: left;
+		padding-right: 1em;
+	}
+
 </style>
 #	Document Pager 0.3.5
 
-Document Pager © Mark Simon  
-https://github.com/manngo/document-pager
+<div id="header">
+	<img src="images/document-pager.png" width="140">
+	<p>Document Pager © Mark Simon<br>
+		https://github.com/manngo/document-pager
+	</p>
+</div>
 
-##what	What does it do?
+
+
+##What does it do?
 
 Displays and Pages a document which is sectioned using a special heading pattern.
 
-##preparing.normal	Preparing the Document
+##Preparing the Document
 
 Your document should include headings which are generally comments which follow a pattern.
 
