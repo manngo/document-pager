@@ -1,34 +1,9 @@
-<link rel="stylesheet" href="README.css">
-<style>
-	@import 'README.css';
-	th, td {
-		text-align: left;
-		vertical-align: top;
-	}
-
-	pre {
-		tab-size: 4 !important;
-	}
-
-	div#header {
-
-	}
-	div#header img {
-		float: left;
-		padding-right: 1em;
-	}
-
-</style>
 #	Document Pager 0.3.5
 
-<div id="header">
-	<img src="images/document-pager.png" width="140">
-	<p>Document Pager © Mark Simon<br>
-		https://github.com/manngo/document-pager
-	</p>
-</div>
+<img src="images/document-pager.png" width="140">
 
-
+Document Pager © Mark Simon  
+https://github.com/manngo/document-pager
 
 ##What does it do?
 
