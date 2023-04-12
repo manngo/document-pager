@@ -5,11 +5,11 @@
 Document Pager © Mark Simon  
 https://github.com/manngo/document-pager
 
-##What does it do?
+##	What does it do?
 
 Displays and Pages a document which is sectioned using a special heading pattern.
 
-##Preparing the Document
+##	Preparing the Document
 
 Your document should include headings which are generally comments which follow a pattern.
 
