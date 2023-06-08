@@ -13,7 +13,7 @@
 		"electron-log": "^4.4.7",
 		"electron-notarize": "^1.2.1",
 		"electron-osx-sign": "^0.6.0",
-		"electron-packager": "^15.5.1",
+		"electron-packager": "^17.1.1",
 		"electron-reload": "^1.5.0",
 		"ini": ">=3.0.0",
 		"marked": "^4.0.15",
@@ -64,7 +64,7 @@
 		"dist-win": "build --win"
 	},
 	"devDependencies": {
-		"electron": "^18.2.0",
-		"electron-builder": "^23.0.3"
+		"electron": "^24.1.0",
+		"electron-builder": "^23.6.0"
 	}
 }
