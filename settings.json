@@ -15,10 +15,10 @@
 			"extensions": ["php"],
 			"breaks": { "major": ["/**","/*:"], "minor": ["/*"] }
 		},
-	    "python": {
-	        "extensions": ["py"],
-	        "breaks": { "major": ["#:"], "minor": ["#::"] }
-	    },
+		"python": {
+			"extensions": ["py"],
+			"breaks": { "major": ["#:"], "minor": ["#::"] }
+		},
 		"sql": {
 			"extensions": ["sql"],
 			"breaks": { "major": ["/**"], "minor": ["/*"] }

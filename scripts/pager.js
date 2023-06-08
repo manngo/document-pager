@@ -462,9 +462,9 @@ console.log(result);
 		elements.formControl.elements['show-highlight'].onclick=function(event) {
 			currentItem.click();
 		};
-		elements.formControl.elements['zoom-larger'].onclick=zoom.bind(null,1);
-		elements.formControl.elements['zoom-smaller'].onclick=zoom.bind(null,-1);
-		elements.formControl.elements['zoom-default'].onclick=zoom.bind(null,0);
+		//	elements.formControl.elements['zoom-larger'].onclick=zoom.bind(null,1);
+		//	elements.formControl.elements['zoom-smaller'].onclick=zoom.bind(null,-1);
+		//	elements.formControl.elements['zoom-default'].onclick=zoom.bind(null,0);
 
 		elements.formControl.elements['show-documents'].onclick=function(event){
 			elements.main.classList.toggle('show-documents',this.checked);
@@ -856,7 +856,7 @@ console.log(result);
 
 					innerHTML=innerHTML.replace(/<img(.*?)src="(.*)"(.*?)>/g,function(match,p1,p2,p3,offset,string) {
 						//	if (p2.match(/^https?:\/\//) || p2.startsWith('/')) return string;
-						if (p2.match(/^https?:\/\//) || p2.startsWith('/')) return `<img${p1}src="${p2}"${p3}>`;
+						if (p2.match(/^https?:\/\//) || p2.startsWith('/') || p2.match(/^[A-Z]:\//)) return `<img${p1}src="${p2}"${p3}>`;
 						else return `<img${p1}src="${currentTab.data.path}/${p2.replace(/^\//,'')}"${p3}>`;
 					});
 

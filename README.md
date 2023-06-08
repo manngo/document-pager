@@ -85,6 +85,8 @@ You can omit any of the sub sections, and you can have multiple values inside th
 
 As you might have guessed from the name, the file is in JSON format. JSON is very fussy, so it’s easy to make a mistake.
 
+###	Default Language Settings
+
 Here are the default language settings:
 
 ```js
@@ -96,6 +98,10 @@ Here are the default language settings:
 	"php": {
 		"extensions": ["php"],
 		"breaks": { "major": ["/**","/*:"], "minor": ["/*"] }
+	},
+	"python": {
+		"extensions": ["py"],
+		"breaks": { "major": ["#:"], "minor": ["#::"] }
 	},
 	"sql": {
 		"extensions": ["sql"],
@@ -113,7 +119,6 @@ Here are the default language settings:
 		"extensions": ["txt","text","*"],
 		"breaks": { "major": ["#"], "minor": ["##"] }
 	}
-
 }
 ```
 

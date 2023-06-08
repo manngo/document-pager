@@ -32,27 +32,30 @@
 <!--
 		<h1>Document Pager</h1>
 -->
-		<form id="control">
-<!--
-			<button type="button" name="about">About …</button>
--->
-			<p><input type="checkbox" name="show-highlight" id="control-show-highlight" checked><label for="control-show-highlight">Show Highlighted</label></p>
-			<hr>
-			<p id="font-size"><!-- ▼▲✚ -->
-				<button type="button" name="zoom-smaller" id="control-zoom-smaller">-</button><label for="control-zoom-smaller">⬇︎</label>
-				<button type="button" name="zoom-default" id="control-zoom-default">•</button><label for="control-zoom-default">◼︎</label>
-				<button type="button" name="zoom-larger" id="control-zoom-larger">+</button><label for="control-zoom-larger">⬆︎</label>
-			</p>
-			<p><input type="checkbox" name="show-documents" id="control-show-documents" checked><label for="control-show-documents">Documents</label></p>
-<!--
-			<label for="upload-file">Open or Drop File …</label><input type="file" name="upload" id="upload-file">
--->
-			<p><button type="button" name="full-screen" id="control-full-screen">Full Screen</button><label for="control-full-screen">Full Screen</label></p>
-		</form>
 	</header>
 	<aside id="about" data-load="/content/about.html"></aside>
 	<main>
-		<ul id="tabs"></ul>
+		<ul id="tabs">
+			<form id="control">
+	<!--
+				<button type="button" name="about">About …</button>
+	-->
+				<p><input type="checkbox" name="show-highlight" id="control-show-highlight" checked><label for="control-show-highlight">Show Highlighted</label></p>
+				<hr>
+	<!--
+				<p id="font-size">
+					<button type="button" name="zoom-smaller" id="control-zoom-smaller">-</button><label for="control-zoom-smaller">⬇︎</label>
+					<button type="button" name="zoom-default" id="control-zoom-default">•</button><label for="control-zoom-default">◼︎</label>
+					<button type="button" name="zoom-larger" id="control-zoom-larger">+</button><label for="control-zoom-larger">⬆︎</label>
+				</p>
+	-->
+				<p><input type="checkbox" name="show-documents" id="control-show-documents" checked><label for="control-show-documents">Documents</label></p>
+	<!--
+				<label for="upload-file">Open or Drop File …</label><input type="file" name="upload" id="upload-file">
+	-->
+				<p><button type="button" name="full-screen" id="control-full-screen">Full Screen</button><label for="control-full-screen">Full Screen</label></p>
+			</form>
+		</ul>
 		<div id="pager">
 			<nav id="documents">
 				<ul>
