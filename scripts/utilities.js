@@ -714,26 +714,28 @@
 	};
 
 
-	jx.addLineNumbers=function(element) {
-		var styles=['line-height','font-family','padding-top','padding-bottom','font-size'];
-		//	var styles=['font-family','padding-top','padding-bottom'];
-		var lineNumbers=document.createElement('div');
+	jx.addLineNumbers = function(element) {
+		let lineNumbers = document.createElement('div');
 		return jx.setLineNumbers(element,lineNumbers);
 	};
-	jx.setLineNumbers=function(element,lineNumbers) {
-		var styles=['line-height','font-family','padding-top','padding-bottom','font-size'];
-		//	var styles=['font-family','padding-top','padding-bottom'];
-		var computedStyles=window.getComputedStyle(element);
-		styles.forEach(style=>lineNumbers.style[style]=computedStyles[style]);
+	jx.setLineNumbers = function(element,lineNumbers) {
+		let styles = ['line-height','font-family','padding-top','padding-bottom','font-size'];
+		let computedStyles = window.getComputedStyle(element);
+		styles.forEach(style => {
+			lineNumbers.style[style] = computedStyles[style];
+		});
 		lineNumbers.classList.add('line-numbers');
 		element.insertAdjacentElement('beforebegin',lineNumbers);
-		element.resetLineNumbers=function() {
-			var lines=element.textContent.split(/\r?\n/).length;
-			lineNumbers.textContent=Array.from({length: lines},(v,i)=>i+1).join('\n');
 
-			var styles=['line-height','font-family','padding-top','padding-bottom','font-size'];
-			var computedStyles=window.getComputedStyle(element);
-			styles.forEach(style=>lineNumbers.style[style]=computedStyles[style]);
+		element.resetLineNumbers = function() {
+			let lines = element.textContent.split(/\r?\n/).length;
+			lineNumbers.textContent = Array.from({length: lines},(v,i) => i+1).join('\n');
+
+			let styles = ['line-height','font-family','padding-top','padding-bottom','font-size'];
+			let computedStyles = window.getComputedStyle(element);
+			styles.forEach(style => {
+				lineNumbers.style[style] = computedStyles[style];
+			});
 		};
 		return lineNumbers;
 	};

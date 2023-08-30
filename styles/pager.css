@@ -39,6 +39,7 @@
 			ul#tabs
 			div#pager
 				nav#documents
+					ul
 				span.resize
 				div#index
 					h2
@@ -50,6 +51,25 @@
 					iframe
 			p#content-footer
 		footer
+
+
+			div#pager
+				nav#documents
+					ul
+				span.resize
+				div#document
+					div#index
+						h2
+						ul
+						p#raw-message
+					span.resize
+					div#content
+						p#navigation
+						h2
+						iframe
+			p#content-footer
+		footer
+
 	================================================ */
 
 	body {
@@ -116,25 +136,47 @@
 		grid-template-columns: auto 1px 1fr;
 		margin: 0;
 	}
+	div#document {
+		display: grid;
+		grid-template-columns: auto 1px 1fr;
+		qgrid-template-rows: auto;
+		qwidth: 100%;
+	}
 
-	nav#documents, nav#documents+span.resize { display: none; }
+	nav#documents,
+	nav#documents+span.resize {
+		display: block;
+	}
 
-	div#documents { width: 18em; }
-	div#index { width: 18em; }
+	div#documents {
+		width: 18em;
+	}
 
-	main.show-documents div#pager { grid-template-columns: auto 1px auto 1px 1fr; }
-	main.show-documents nav#documents, main.show-documents nav#documents+span.resize { display: block; }
+
+	div#index {
+		width: 18em;
+	}
 
 	div#index,
 	div#content {
 		background-color: white;
 		outline: none;
+		qwidth: 100% !important;
 	}
 	nav#documents,
 	div#index,
 	div#content {
 		box-sizing: border-box;
 		max-height: calc(100vh - 6.5em);
+	}
+
+	div#index {
+		qgrid-column: 1/2;
+		qgrid-row: 1/2;
+	}
+	div#content {
+		qgrid-column: 3/4;
+		qgrid-row: 1/2;
 	}
 
 	div#index>h2,
@@ -592,7 +634,7 @@
 /*	resize
 	============================================ */
 
-	div#pager>span.resize {
+	span.resize {
 		qbox-sizing: border-box;
 		cursor: col-resize;
 		background: none;
@@ -601,15 +643,15 @@
 		border-left: thin solid #999;
 		position: relative;
 	}
-	div#pager>span.resize:after {
+	span.resize:after {
 		content: "a";
 		left: 0;
 	}
-	div#pager>span.resize:before {
+	span.resize:before {
 		content: "b";
 		right: 0;
 	}
-	div#pager>span.resize:after, div#pager>span.resize:before {
+	span.resize:after, span.resize:before {
 		opacity: 0;
 		width: 4px;
 		display: block;
@@ -617,8 +659,6 @@
 		position: absolute;
 		background-color: red;
 	}
-
-
 
 /*	Raw Message
 	============================================ */

@@ -34,7 +34,7 @@
 /*	Content Code
 	============================================ */
 
-	body>div#main-content>code {
+	body>div#main-content>div>code {
 		white-space: pre;
 		tab-size: 4;
 		outline: none;
@@ -44,10 +44,10 @@
 /*	Content Markdown
 	============================================ */
 
-	body.markdown>div#main-content {
+	body.markdown>div#main-content>div {
 		border: none;
 	}
-	body.markdown>div#main-content>div#md {
+	body.markdown>div#main-content>div>div.md {
 		white-space: normal;
 		padding: 1rem;
 		width: 100%;
@@ -56,20 +56,24 @@
 /*	Prism
 	================================================ */
 
-    div#md>div>pre>code[class*="language-"],
-	div#main-content>code[class*="language-"] {
+    div.md>div>pre>code[class*="language-"],
+	div#main-content>div>code[class*="language-"] {
 		background-color: white;
 	}
 
-	div#md>div>pre>code,
-	div#main-content code {
-height: calc(100vh - 1rem);
+	div.md>div>pre>code,
+	div#main-content>div:only-child>code {
+		height: calc(100vh - 1rem);
 	}
 
-	div#md>div>pre>code .token.tab,
-	div#md>div>pre>code .token.crlf,
-	div#md>div>pre>code .token.lf,
-	div#md>div>pre>code .token.cr,
+	div#main-content>div+div {
+		margin-top: 2em;
+	}
+
+	div.md>div>pre>code .token.tab,
+	div.md>div>pre>code .token.crlf,
+	div.md>div>pre>code .token.lf,
+	div.md>div>pre>code .token.cr,
 	div#main-content .token.tab,
 	div#main-content .token.crlf,
 	div#main-content .token.lf,
@@ -77,8 +81,8 @@ height: calc(100vh - 1rem);
 		visibility: hidden;
     }
 
-	div#md>div>pre>code[class*="language-"],
-	div#main-content>code[class*="language-"] {
+	div.md>div>pre>code[class*="language-"],
+	div#main-content>div>code[class*="language-"] {
 		font-family: "Source Code Pro", monospace;
 		font-size: .8em;
 		qpadding: .5em 0;
@@ -92,7 +96,7 @@ height: calc(100vh - 1rem);
 		code
 	================================================ */
 
-	div#main-content {
+	div#main-content>div {
 		display: flex;
 	}
 
@@ -124,4 +128,14 @@ height: calc(100vh - 1rem);
 		border: thin solid #999;
 		box-shadow: 2px 2px 2px #999;
 		padding: .5em 1em;
+	}
+
+	@media print {
+		div#main-content>div:nth-child(n+1) {
+			break-before: page;
+		}
+		div.md>div>pre>code,
+		div#main-content code {
+			height: auto;
+		}
 	}

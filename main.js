@@ -54,6 +54,9 @@ const log = require('electron-log');
 				{	label: `Show Documents`,  accelerator: 'CmdOrCtrl+D', id:'DOCUMENTS', click: send},
 				{	label: `Set as Favourite`, accelerator: 'CmdOrCtrl+Y', id:'FAVOURITE', click: send},
 				{	label: `Unset as Favourite`, accelerator: 'CmdOrCtrl+Shift+Y', id:'UNFAVOURITE', click: send},
+				{	type:'separator' },
+				{	label: `Print Page`,  accelerator: 'CmdOrCtrl+P', id:'PRINTPAGE', click: send},
+				{	label: `Print Document`,  accelerator: 'Shift+CmdOrCtrl+P', id:'PRINTDOCUMENT', click: send},
 
 				{	type:'separator' },
 				{	role: `quit`, accelerator: 'CmdOrCtrl+Q' }

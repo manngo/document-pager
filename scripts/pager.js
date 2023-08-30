@@ -40,7 +40,7 @@
 	const { ipcRenderer,  } = electron;
 
 	ipcRenderer.on('debug-data',(event,result)=>{
-console.log(result);
+		console.log(result);
 	});
 
 	var { home } = JSON.parse(ipcRenderer.sendSync('init'));
@@ -83,12 +83,6 @@ console.log(result);
 		else return marked.parse(text);
 	};
 
-//	const window=remote.getCurrentWindow();
-//	window.webContents.on('new-window', function(event, url) {
-//	  event.preventDefault();
-//	  shell.openExternal(url);
-//	});
-
 /**	Support Functions
 	================================================
 	================================================ */
@@ -110,14 +104,14 @@ console.log(result);
 	================================================ */
 
 //	Globals
-	var settings,languages,extensions;
+	var settings, languages, extensions;
 	var documentTitle;
 
 	var languagesJSON = `${settingsDir}/languages.json`;
 	var filesJSON = `${settingsDir}/files.json`, files = {}, pseudoFiles = [];
 	var stateJSON = `${settingsDir}/state.json`, state={};
 
-	var rearrangeableTabs=new jx.Rearrangeable('h','tabgroup');
+	var rearrangeableTabs = new jx.Rearrangeable('h', 'tabgroup');
 
 //	Main
 	init();
@@ -125,15 +119,15 @@ console.log(result);
 	function init() {
 
 		//	Toggle Documents Headings
-			var li=document.querySelectorAll('nav#documents>ul>li');
-			var documentsTab=undefined;
+			var li = document.querySelectorAll('nav#documents>ul>li');
+			var documentsTab = undefined;
 			function doDocumentsTab(event) {
-				if(this!=event.target) return;
+				if(this != event.target) return;
 
-				if(this==documentsTab) this.classList.toggle('open');
+				if(this == documentsTab) this.classList.toggle('open');
 				else {
 					if(documentsTab) documentsTab.classList.remove('open');
-					documentsTab=this;
+					documentsTab = this;
 					documentsTab.classList.add('open');
 				}
 
@@ -141,41 +135,41 @@ console.log(result);
 				updateState();
 			}
 			li.forEach(i=>{
-				i.onclick=doDocumentsTab;
+				i.onclick = doDocumentsTab;
 			});
 
+//		var breaks;
 
-		var breaks;
-
+		//	Settings
 		var promise=
 			//	Default Settings
 				load(path.join(cwd, '/settings.json'))
-				.then(data=>{
-					settings=JSON.parse(data);
+				.then(data => {
+					settings = JSON.parse(data);
 				})
 
 			//	Home Directory
-				.then(()=>fsp.stat(settingsDir))
-				.catch(()=>{fsp.mkdir(settingsDir);})
+				.then(() => fsp.stat(settingsDir))
+				.catch(() => { fsp.mkdir(settingsDir); })
 
 			//	Languages
-				.then(()=>fsp.stat(languagesJSON))
-				.catch(()=>fsp.writeFile(languagesJSON,'{}'))
-				.then(()=>fsp.readFile(languagesJSON))
-				.then(data=>{
-					languages=JSON.parse(data);
+				.then(() => fsp.stat(languagesJSON))
+				.catch(() => fsp.writeFile(languagesJSON,'{}'))
+				.then(() => fsp.readFile(languagesJSON))
+				.then(data => {
+					languages = JSON.parse(data);
 					Object.keys(languages).forEach(l=> {
-						if(!settings.languages[l]) settings.languages[l]=languages[l];
+						if(!settings.languages[l]) settings.languages[l] = languages[l];
 						else {
-							if(languages[l].extensions) languages[l].extensions.forEach(ext=>settings.languages[l].extensions.push(ext));
+							if(languages[l].extensions) languages[l].extensions.forEach(ext => settings.languages[l].extensions.push(ext));
 							if(languages[l].breaks) {
 								if(languages[l].breaks.major) {
-									if(!settings.languages[l].breaks.major) settings.languages[l].breaks.major=[];
-									languages[l].breaks.major.forEach(br=>settings.languages[l].breaks.major.push(br));
+									if(!settings.languages[l].breaks.major) settings.languages[l].breaks.major = [];
+									languages[l].breaks.major.forEach(br => settings.languages[l].breaks.major.push(br));
 								}
 								if(languages[l].breaks.minor) {
-									if(!settings.languages[l].breaks.minor) settings.languages[l].breaks.minor=[];
-									languages[l].breaks.minor.forEach(br=>settings.languages[l].breaks.minor.push(br));
+									if(!settings.languages[l].breaks.minor) settings.languages[l].breaks.minor = [];
+									languages[l].breaks.minor.forEach(br => settings.languages[l].breaks.minor.push(br));
 								}
 							}
 						}
@@ -188,7 +182,7 @@ console.log(result);
 				})
 
 			//	Details
-				.then(()=>documentTitle=settings.headings.title+' '+settings.version)
+				.then(() => documentTitle = settings.headings.title+' '+settings.version)
 
 			//	About
 				.then(()=>{
@@ -253,7 +247,7 @@ console.log(result);
 			.then(()=>tabs[0].click())
 //			.then(()=>console.log('hello'))
 			;
-	}
+	}	//	init()
 
 	//	get Tab Number
 		function getTab(fileName) {
@@ -401,7 +395,7 @@ console.log(result);
 		var codeFontSize,originalCodeFontSize;
 
 	//	Elements
-		var elements={
+		var elements = {
 			//	Header
 				h1: document.querySelector('h1'),
 				formControl: document.querySelector('form#control'),
@@ -423,8 +417,8 @@ console.log(result);
 				iframeCSS: document.querySelector('div#content>iframe').contentWindow.document.querySelector('link#additional-css'),
 				iframeBody: document.querySelector('div#content>iframe').contentWindow.document.querySelector('body'),
 				mainContent: document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content'),
-				codeElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content>code'),
-				mdElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content>div#md'),
+				codeElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content>div>code'),
+				mdElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content>div>div.md'),
 				highlightButton: document.querySelector('button#highlight'),
 				smallerButton: document.querySelector('button#smaller'),
 				defaultButton: document.querySelector('button#default'),
@@ -440,44 +434,45 @@ console.log(result);
 				fullCSS: document.querySelector('link#full-css'),
 		};
 
-		codeFontSize=getComputedStyle(document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content')).getPropertyValue('--font-size');
-		codeFontSize=codeFontSize.match(/((\d*)(\.\d+)?)([a-z]+)/);
-		codeFontSize={size: codeFontSize[1], units: codeFontSize[4]};
-		originalCodeFontSize=codeFontSize.size;
+		codeFontSize = getComputedStyle(document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content')).getPropertyValue('--font-size');
+		codeFontSize = codeFontSize.match(/((\d*)(\.\d+)?)([a-z]+)/);
+		codeFontSize = {size: codeFontSize[1], units: codeFontSize[4]};
+		originalCodeFontSize = codeFontSize.size;
 
 	//	Adjust Elements
 		//	jx.stretch(elements.indexDiv,elements.resizeIndex);
 		//	jx.resize(elements.pager,'--index-width',elements.resizeIndex);
 		document.querySelectorAll('span.resize').forEach(span=>{
-			jx.resize(span,width=>{
-				state['documents-width']=parseInt(getComputedStyle(elements.documents).width);
-				state['index-width']=parseInt(getComputedStyle(elements.indexDiv).width);
+			jx.resize(span, width => {
+				state['documents-width'] = parseInt(getComputedStyle(elements.documents).width);
+				state['index-width'] = parseInt(getComputedStyle(elements.indexDiv).width);
 				updateState();
 			});
 		});
 
-		lineNumbers=jx.addLineNumbers(elements.codeElement);
+		lineNumbers = jx.addLineNumbers(elements.codeElement);
 		elements.codeElement.resetLineNumbers();
 
-		elements.formControl.elements['show-highlight'].onclick=function(event) {
+		elements.formControl.elements['show-highlight'].onclick = event => {
 			currentItem.click();
 		};
 		//	elements.formControl.elements['zoom-larger'].onclick=zoom.bind(null,1);
 		//	elements.formControl.elements['zoom-smaller'].onclick=zoom.bind(null,-1);
 		//	elements.formControl.elements['zoom-default'].onclick=zoom.bind(null,0);
 
-		elements.formControl.elements['show-documents'].onclick=function(event){
+		elements.formControl.elements['show-documents'].onclick = event => {
 			elements.main.classList.toggle('show-documents',this.checked);
 			state['show-documents']=this.checked;
 			updateState();
 		};
-		elements.main.classList.toggle('show-documents',elements.formControl.elements['show-documents'].checked);
+		elements.main.classList.toggle('show-documents', elements.formControl.elements['show-documents'].checked);
 
-		elements.formControl.elements['full-screen'].onclick=function (event) {
+		elements.formControl.elements['full-screen'].onclick = event => {
 			elements.fullCSS.disabled=false;
 			document.addEventListener('keyup',doFullScreenKeys);
 //			focusedWindow.webContents.on('before-input-event',doFullScreenKeys);
 		};
+
 		function doFullScreenKeys(event) {
 			console.log(event.key);
 			switch(event.key) {
@@ -501,11 +496,11 @@ console.log(result);
 		}
 
 		jx.contentEditable(elements.codeElement,true);
-		elements.codeElement.onblur=event=>{
+		elements.codeElement.onblur = event => {
 			console.log('blur');
 		};
 
-		elements.mdElement.addEventListener('click',event=>{
+		elements.mdElement.addEventListener('click', event => {
 			if (event.target.href && event.target.href.match(/^https?:\/\//)) {
 				event.preventDefault();
 				require('electron').shell.openExternal(event.target.href);
@@ -590,7 +585,7 @@ console.log(result);
 			tab.textContent=fileName;
 			// if(language=='markdown') var css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
 
-			tab.data={text, language, fileName, path, item: 0, highlighted: 1 , css,extension};
+			tab.data={text, language, fileName, path, item: 0, highlighted: 1 , css, extension, indexStatus: []};
 			tab.onclick=doTab;
 
 		var close=document.createElement('button');
@@ -618,10 +613,10 @@ console.log(result);
 			rearrangeableTabs.add(tab);
 
 		function doTab(event) {
-			if(currentTab!==undefined) currentTab.classList.remove('selected');
-			currentTab=this;
+			if(currentTab !== undefined) currentTab.classList.remove('selected');
+			currentTab = event.target;
 			currentTab.classList.add('selected');
-			doPager(this.data);
+			doPager(event.target.data);
 		}
 	}
 
@@ -638,7 +633,7 @@ console.log(result);
 	================================================
 	================================================ */
 
-	function closeTab(tab,event) {
+	function closeTab(tab, event) {
 		if(!this) return;
 		tabs=tabs.filter(value=>value!=tab);
 		var path=`${this.data.path}/${this.data.fileName}`;
@@ -668,7 +663,7 @@ console.log(result);
 
 /**	doPager
 	================================================
-
+	Executed when tab is clicked.
 	================================================ */
 	function doPager(data) {
 		//	Document Breaks
@@ -717,86 +712,117 @@ console.log(result);
 			elements.footerHeading.innerHTML=`Breaks: ${data.br}`;
 
 		//	Variables
-			var selected=null;
-			var title;
+			let selected = null;
+			let title;
 
 		//	Toggle Heading
 			function toggleHeading(event) {
-				if(this!==event.target) return;
+				//	if(this !== event.target) return;
 				if(event.shiftKey) {
-					var open=this.parentElement.classList.contains('open');
-					headingItems.forEach(i=>{
+					var open = event.target.parentElement.classList.contains('open');
+					headingItems.forEach(i => {
 						i.classList.toggle('open',!open);
 					});
 				}
-				else this.parentElement.classList.toggle('open');
+				else event.target.parentElement.classList.toggle('open');
+
+				//	Save Index Status
+					data.indexStatus = [];
+
+					let ul = elements.indexUL.querySelectorAll('li');
+					ul.forEach(li => {
+						data.indexStatus.push(Array.from(li.classList));
+					});
 			}
 
-
 		//	Populate Index
-			elements.indexUL.innerHTML='';
-			var nested=false, ul, previous=null;
-			var headingItems=[];
+			elements.indexUL.innerHTML = '';
+			let nested=false, ul, previous=null;
+			let headingItems = [];
+			let items = data.text.split(headingsRE);
 
-			var items=data.text.split(headingsRE);
 			if(items.length>1) {
-				var previous=undefined, selected=undefined;
-				items.forEach(function(value,i) {
-					var li=document.createElement('li');
+				let previous = undefined, selected = undefined;
+				items.forEach((value,i) => {
+					let li = document.createElement('li');
 
-					RE=value.match(headingMajor);
+					RE = value.match(headingMajor);
 					if(RE && RE[3]) {		//	Major Heading
-						nested=false;
+						nested = false;
 						title=RE[3];
 					}
 					else {
-						RE=value.match(headingMinor);
+						RE = value.match(headingMinor);
 						if(RE && RE[3]) {	//	Nesting
 							if(!nested) {
-								nested=true;
+								nested = true;
 								elements.indexUL.appendChild(li);
 
 								if(state['index-open-all']) previous.classList.add('open');
-								var button=document.createElement('button');
-									button.innerHTML='›';
-									button.onclick=toggleHeading;
+								var button = document.createElement('button');
+									button.innerHTML = '›';
+									button.onclick = toggleHeading;
 								previous.insertAdjacentElement('afterbegin',button);
 
-								ul=document.createElement('ul');
+								previous.ondblclick = toggleHeading;
+
+								ul = document.createElement('ul');
 								previous.appendChild(ul);
 							}
-							title=RE[3];
+							title = RE[3];
 						}
-						else title='';
+						else title = '';
 					}
+
 					if(!title.length) return;
 
 					li.insertAdjacentHTML('beforeend',`<span>${title}</span>`);
-					if(data.language=='markdown' && value.match(headingMiniscule)) li.classList.add('subtitle');
-					li.next=li.previous=undefined;
+					if(data.language == 'markdown' && value.match(headingMiniscule)) li.classList.add('subtitle');
+					li.next=li.previous = undefined;
 					if(previous) {
-						previous.next=li;
-						li.previous=previous;
+						previous.next = li;
+						li.previous = previous;
 					}
-					previous=li;
+					previous = li;
 					headingItems.push(li);
 
 //					var thing=value.split(/\r?\n/).forEach((v,i,a)=>a[i]=v.replace(new RegExp(`^${RE[1]}`),''));
 					if(RE[1]) {
-						var lines=value.split(/\r?\n/);
-						var indent=new RegExp(`^${RE[1]}`);
-						lines.forEach((v,i,a)=>a[i]=v.replace(indent,''));
-						value=lines.join('\n');
+						var lines = value.split(/\r?\n/);
+						var indent = new RegExp(`^${RE[1]}`);
+						lines.forEach((v,i,a) => {
+							a[i]=v.replace(indent,'');
+						});
+						value = lines.join('\n');
 					}
 
-					li.onclick=loadItem.bind(li,data,value,title,i);
+					li.data = data;
+					li.item = value;
+					li.title = title;
+					li.i = i;
+
+//					li.onclick = loadItem.bind(li,data,value,title,i);
+					li.onclick = loadItem;
+
+
 					if(nested) ul.appendChild(li);
 					else elements.indexUL.appendChild(li);
-					if(i==data.item) selected=li;
-					previous=li;
+					if(i==data.item) selected = li;
+					previous = li;
 
-					if(!selected) selected=li;
+					if(!selected) selected = li;
 				});
+
+				if(data.indexStatus.length) {
+					let ul = elements.indexUL.querySelectorAll('li');
+
+					ul.forEach(li => {
+						let shift = data.indexStatus.shift();
+						shift.forEach(className => {
+							li.classList.add(className);
+						});
+					});
+				}
 
 				if(selected) selected.click();
 			}
@@ -805,57 +831,66 @@ console.log(result);
 	//	Not Empty
 		elements.contentDiv.classList.remove('empty');
 
-	//	Load Content
-		function loadItem(data,item,title,i,event) {
-			elements.previousButton.onclick=elements.nextButton.onclick=null;
-			var p=this.previous;
-			if(p) {
-				elements.previousButton.onclick=function(event) { p.click(); };
-			}
-			var n=this.next;
-			if(n) {
-				elements.nextButton.onclick=function(event) { n.click(); };
-			}
+	//	Load Content - when heading selected
+		function loadItem(event) {
+			event.stopPropagation();
 
-			var doHighlight=elements.formControl.elements['show-highlight'].checked?!event.altKey:event.altKey;
-			currentItem=data.li=this;
+			let data = event.currentTarget.data;
+			let item = event.currentTarget.item;
+			let title = event.currentTarget.title;
+			let i = event.currentTarget.i;
+
+			elements.previousButton.onclick = elements.nextButton.onclick = null;
+			let p, n;
+			if(p = event.currentTarget.previous) elements.previousButton.onclick = event => {
+					p.click();
+				};
+			if(n = event.currentTarget.next) elements.nextButton.onclick = event=> {
+					n.click();
+				};
+
+			var doHighlight = elements.formControl.elements['show-highlight'].checked?!event.altKey:event.altKey;
+			currentItem = data.li = event.currentTarget;
 
 			if(selected) selected.classList.remove('selected');
-			selected=this;
+			selected = event.currentTarget;
 			selected.classList.add('selected');
-			data.item=i;
-			showItem(item,title,doHighlight);
-			event.stopPropagation();
-		}
-		function showItem(item,title,doHighlight) {
-			elements.footerFile.innerHTML=`${data.path}/${data.fileName}`;
-			elements.footerLanguage.innerHTML=`Language: ${data.language}`;
-			elements.iframeBody.classList.remove('markdown');
-			var language=['js','javascript','sql','php'].indexOf(data.language)>-1;
-			elements.codeElement.textContent=item;
+			data.item = i;
 
-			elements.codeElement.classList.forEach(className=>{if(className.startsWith('language-')) elements.codeElement.classList.remove(className);});
+			showItem(item, title, doHighlight);
+		}
+
+		function prepareItem() {
+
+		}
+
+		function showItem(item, title, doHighlight) {
+			elements.footerFile.innerHTML = `${data.path}/${data.fileName}`;
+			elements.footerLanguage.innerHTML = `Language: ${data.language}`;
+			elements.iframeBody.classList.remove('markdown');
+
+			var language=['js','javascript','sql','php'].indexOf(data.language)>-1;
+			elements.codeElement.textContent = item;
+
+			elements.codeElement.classList.forEach(className => {
+				if(className.startsWith('language-')) elements.codeElement.classList.remove(className);
+			});
 			elements.codeElement.classList.add(`language-${data.language}`);
 			lineNumbers.style.display='block';
-			elements.codeElement.style.display='block';
-			elements.mdElement.style.display='none';
-			elements.iframeCSS.href='';
-
+			elements.codeElement.style.display = 'block';
+			elements.mdElement.style.display = 'none';
+			elements.iframeCSS.href = '';
 
 			if(data.language && doHighlight) {
-				if(data.language != 'markdown') elements.codeElement.innerHTML=Prism.highlight(item, Prism.languages[data.language], data.language);
+				if(data.language != 'markdown') {
+					elements.codeElement.innerHTML = Prism.highlight(item, Prism.languages[data.language], data.language);
+				}
 				else {
 					var div=document.createElement('div');
 
 					var innerHTML=marked.parse(item,{baseUrl: `${data.path}/${data.fileName}`, renderer});
 
-					// innerHTML=innerHTML.replace(/<img(.*?)src="(.*)"(.*?)>/g,function(match,p1,p2,p3,offset,string) {
-					// 	if (p2.match(/^https?:\/\//)) return string;
-					// 	else return `<img${p1}src="${currentTab.data.path}/${currentTab.data.fileName.replace(/\.[^.]*$/,'')}/${p2.replace(/^\//,'')}"${p3}>`;
-					// });
-
 					innerHTML=innerHTML.replace(/<img(.*?)src="(.*)"(.*?)>/g,function(match,p1,p2,p3,offset,string) {
-						//	if (p2.match(/^https?:\/\//) || p2.startsWith('/')) return string;
 						if (p2.match(/^https?:\/\//) || p2.startsWith('/') || p2.match(/^[A-Z]:\//)) return `<img${p1}src="${p2}"${p3}>`;
 						else return `<img${p1}src="${currentTab.data.path}/${p2.replace(/^\//,'')}"${p3}>`;
 					});
@@ -865,29 +900,21 @@ console.log(result);
 	//				var doEtc = false;	if(doEtc)
 					div.querySelectorAll('pre').forEach(pre=>{
 						var code = pre.querySelector('code');
-						//	var codeDiv = document.createElement('div');
 						var html = code.textContent;
-						//	var html = code.innerHTML.replace(/    /g,'\t');
 						var language = code.className.match(/\blanguage-(.*)\b/);
-						//	var language = code.className.match(/\blanguage-(.*)\b/)[1];
 						if(language) {
 							language = language[1];
 							code.innerHTML=Prism.highlight(html, Prism.languages[language], language);
 						}
-						//	codeDiv.innerHTML=Prism.highlight(html, Prism.languages[language], language);
-						//	lineNumbers=jx.addLineNumbers(codeDiv);
-						//	code.parentNode.replaceChild(codeDiv,code);
 					});
 
-					var h2=div.querySelector('h1,h2,h3');
-					//	var h2=div.querySelector('h2');
+					var h2 = div.querySelector('h1,h2,h3');
 					div.id=h2.id;
 					h2.id='';
 					div.className=h2.className;
 					div.classList.add(h2.tagName.toLowerCase());
 					h2.removeAttribute('id');
 					h2.removeAttribute('class');
-	//				innerHTML=innerHTML.replace(/(<h.*>.*<\/h.>)([\s\S]*)/g,'$1\n<div>$2</div>');
 					elements.mdElement.innerHTML=div.outerHTML;
 					elements.iframeBody.classList.add('markdown');
 
@@ -935,25 +962,20 @@ console.log(result);
 	function zoom(direction) {
 		switch(direction) {
 			case -1:
-				codeFontSize.size/=1.25;
+				codeFontSize.size /= 1.25;
 				break;
 			case 1:
-				codeFontSize.size*=1.25;
+				codeFontSize.size *= 1.25;
 				break;
 			default:
-				codeFontSize.size=originalCodeFontSize;
+				codeFontSize.size = originalCodeFontSize;
 				break;
 		}
 		document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content').style.setProperty('--font-size',`${codeFontSize.size}${codeFontSize.units}`);
 		elements.codeElement.resetLineNumbers();
-
-//		jx.setLineNumbers(elements.codeElement,lineNumbers);
-//		elements.codeElement.resetLineNumbers();
 	}
 
 	zoom(0);
-
-
 
 	function footerMessage(message) {
 		elements.footerMessage.textContent=message;
@@ -1108,6 +1130,30 @@ console.log(fileName);
 		.catch(error=>console.log(error));
 	}
 
+	function printPage() {
+		elements.iframe.print();
+	}
+
+	function printDocument() {
+		let printWindow;
+		let content = elements.iframe.document.querySelector('div#main-content');
+		while(content.children.length>1) content.lastChild.remove();
+		elements.indexUL.querySelectorAll('li').forEach(li => {
+		    let div = document.createElement('div');
+		    div.innerHTML = '<code class="language-none">Content</code>';
+		    content.append(div);
+		    let code = div.querySelector('code');
+		    code.innerHTML = Prism.highlight(li.item, Prism.languages['sql'], 'sql');
+		    jx.addLineNumbers(code);
+		    code.resetLineNumbers();
+		    code.classList.add('language-sql');
+		});
+		content.children[0].style['display'] = 'none';
+		elements.iframe.print();
+		while(content.children.length>1) content.lastChild.remove();
+		content.children[0].style['display'] = '';
+	}
+
 //	IPC
 
 	ipcRenderer.on('DOIT',(event,action,data,more)=>{
@@ -1195,6 +1241,12 @@ console.log(result);
 				break;
 			case 'LOAD':
 				refreshTab();
+				break;
+			case 'PRINTPAGE':
+				printPage();
+				break;
+			case 'PRINTDOCUMENT':
+				printDocument();
 				break;
 			case 'CLOSE':
 				closeTab.call(currentTab);
