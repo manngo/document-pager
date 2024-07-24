@@ -15,14 +15,15 @@
 
 /*	Basic
 	================================================ */
-	body {
+	html {
 		font-family: "Source Sans Pro";
-		font-size: 1em;
+		qfont-size: 1em;
 		--color: #204564;
+		font-size: 3vw;
 	}
 	code {
 		font-family: "Source Code Pro";
-		font-size: .8em;
+		font-size: 1rem;
 	}
 
 	table {
@@ -102,7 +103,7 @@
 	================================================ */
 	div.h2, div.h3 {
 		color: #333;
-		font-size: 3vw;
+		qfont-size: 3vw;
 	}
 
 	div.h2>h2 {

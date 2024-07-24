@@ -1,4 +1,4 @@
-#	Document Pager 0.3.5
+#	Document Pager 0.3.6
 
 <img src="images/document-pager.png" width="140">
 
@@ -22,9 +22,19 @@ Currently, the default pattern is:
 
 Note that the `/*` style comment is a block comment. The heading will only extend to the end of the line.
 
-##	Viewing the Document
+###	Highlighed Code Lines
 
-###	Opening the Document
+You can mark one or more lines for highlighting by ending it with a special marker. Typically it’s a comment marker with an exclamation mark (`!`) at the end.
+
+For example:
+
+```js
+var newInfo = null;		//!
+```
+
+The line number will appear hightlighted.
+
+##	Viewing the Document
 
 Naturally, you will first need to open the document. You can open a document from the local file system or from the Internet.
 
@@ -93,23 +103,28 @@ Here are the default language settings:
 {
 	"javascript": {
 		"extensions": ["js","javascript"],
-		"breaks": { "major": ["/**"], "minor": ["/*"]}
+		"breaks": { "major": ["/**"], "minor": ["/*"]},
+		"highlight": "//!"
 	},
 	"php": {
 		"extensions": ["php"],
-		"breaks": { "major": ["/**","/*:"], "minor": ["/*"] }
+		"breaks": { "major": ["/**","/*:"], "minor": ["/*"] },
+		"highlight": "//!"
 	},
 	"python": {
 		"extensions": ["py"],
-		"breaks": { "major": ["#:"], "minor": ["#::"] }
+		"breaks": { "major": ["#:"], "minor": ["#::"] },
+		"highlight": "#!"
 	},
 	"sql": {
 		"extensions": ["sql"],
-		"breaks": { "major": ["/**"], "minor": ["/*"] }
+		"breaks": { "major": ["/**"], "minor": ["/*"] },
+		"highlight": "--!"
 	},
 	"css": {
 		"extensions": ["css"],
-		"breaks": { "major": ["/**"], "minor": ["/*"] }
+		"breaks": { "major": ["/**"], "minor": ["/*"] },
+		"highlight": "/*!*/"
 	},
 	"markdown": {
 		"extensions": ["md","markdown","mds"],
@@ -117,7 +132,8 @@ Here are the default language settings:
 	},
 	"text": {
 		"extensions": ["txt","text","*"],
-		"breaks": { "major": ["#"], "minor": ["##"] }
+		"breaks": { "major": ["#"], "minor": ["##"] },
+		"highlight": "#!"
 	}
 }
 ```
@@ -182,5 +198,7 @@ images/
 Syntax Highlighting is made available through [Prism](https://prismjs.com/) by [Lea Verou](https://lea.verou.me/).
 
 The Markdown Parser is [Marked](https://marked.js.org/).
+
+This application does what it does and doesn’t do what it doesn’t do.
 
 E & OE. Share & Enjoy

@@ -714,11 +714,11 @@
 	};
 
 
-	jx.addLineNumbers = function(element) {
+	jx.addLineNumbers = function(element, highlight) {
 		let lineNumbers = document.createElement('div');
-		return jx.setLineNumbers(element,lineNumbers);
+		return jx.setLineNumbers(element, lineNumbers, highlight);
 	};
-	jx.setLineNumbers = function(element,lineNumbers) {
+	jx.setLineNumbers = function(element, lineNumbers, highlight) {
 		let styles = ['line-height','font-family','padding-top','padding-bottom','font-size'];
 		let computedStyles = window.getComputedStyle(element);
 		styles.forEach(style => {
@@ -727,9 +727,23 @@
 		lineNumbers.classList.add('line-numbers');
 		element.insertAdjacentElement('beforebegin',lineNumbers);
 
-		element.resetLineNumbers = function() {
-			let lines = element.textContent.split(/\r?\n/).length;
-			lineNumbers.textContent = Array.from({length: lines},(v,i) => i+1).join('\n');
+		element.resetLineNumbers = function(highlight) {
+			let lines = element.textContent.split(/\r?\n/);
+//			lineNumbers.textContent = Array.from({length: lines.length},(v,i) => i+1).join('\n');
+//			lineNumbers.innerHTML = `<span>${Array.from({length: lines.length},(v,i) => i+1).join('</span><span>')}</span>`;
+
+			let domFragment = document.createDocumentFragment();
+			let regex = highlight ? RegExp(`^.*${highlight}$`) : undefined;
+
+			lines.forEach((v,k) => {
+				var span = document.createElement('span');
+				span.textContent = k+1;
+				if(regex && v.match(regex)) span.classList.add('highlight');
+				domFragment.appendChild(span);
+			});
+
+			lineNumbers.replaceChildren();
+			lineNumbers.appendChild(domFragment);
 
 			let styles = ['line-height','font-family','padding-top','padding-bottom','font-size'];
 			let computedStyles = window.getComputedStyle(element);

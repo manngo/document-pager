@@ -21,12 +21,12 @@
 /**	settings.js
 	================================================ */
 
-	const {DEVELOPMENT,cwd}=require('../settings.js');
+	const {DEVELOPMENT,cwd} = require('../settings.js');
 
 /**	Generic
 	================================================ */
 
-	const iterableProperties={
+	const iterableProperties = {
 		enumerable: false,
 		value: function * () {
 			for(let key in this) if(this.hasOwnProperty(key)) yield this[key];
@@ -36,10 +36,10 @@
 /**	Requires
 	================================================ */
 
-	const electron=require('electron');
+	const electron = require('electron');
 	const { ipcRenderer,  } = electron;
 
-	ipcRenderer.on('debug-data',(event,result)=>{
+	ipcRenderer.on('debug-data', (event,result) => {
 		console.log(result);
 	});
 
@@ -59,9 +59,9 @@
 /**	Environment
 	================================================ */
 
-	const platform=process.platform;
+	const platform = process.platform;
 	const eol = process.platform === 'win32' ? '\r\n' : '\n';
-	const os=require('os');
+	const os = require('os');
 
 /**	Extensions
 	================================================
@@ -70,14 +70,14 @@
 	================================================ */
 
 	var renderer = new marked.Renderer();
-	renderer.paragraph=function(text) {
-		var pattern=/^(#+)(.*?)(\.(.*?))?(\s+(.*?))?$/;
-		var parts=text.match(pattern);
+	renderer.paragraph = function(text) {
+		var pattern = /^(#+)(.*?)(\.(.*?))?(\s+(.*?))?$/;
+		var parts = text.match(pattern);
 		if(parts) {
-			var id=parts[2]?` id="${parts[2]}"`:'';
-			var className=parts[4]?` class="${parts[4]}"`:'';
-			var level=parts[1].length;
-			var content=parts[6]||'';
+			var id = parts[2]?` id="${parts[2]}"`:'';
+			var className = parts[4]?` class="${parts[4]}"`:'';
+			var level = parts[1].length;
+			var content = parts[6]||'';
 			return `<h${level}${id}${className}>${content}</h${level}>`;
 		}
 		else return marked.parse(text);
@@ -88,12 +88,12 @@
 	================================================ */
 
 	function load(theDocument) {
-		return new Promise((resolve,reject)=>{
+		return new Promise((resolve, reject) => {
 			if(!theDocument) return;
 			fsp
 			.readFile(theDocument)
 			.then(data => {
-				data=data.toString();
+				data = data.toString();
 				resolve(data);
 			});
 		});
@@ -131,17 +131,16 @@
 					documentsTab.classList.add('open');
 				}
 
-				state['documents-toggle']=this.id;
+				state['documents-toggle'] = this.id;
 				updateState();
 			}
-			li.forEach(i=>{
+			li.forEach(i => {
 				i.onclick = doDocumentsTab;
 			});
 
-//		var breaks;
-
 		//	Settings
-		var promise=
+			var promise=
+
 			//	Default Settings
 				load(path.join(cwd, '/settings.json'))
 				.then(data => {
@@ -159,8 +158,11 @@
 				.then(data => {
 					languages = JSON.parse(data);
 					Object.keys(languages).forEach(l=> {
+						settings.languages[l] = languages[l];
+/*
 						if(!settings.languages[l]) settings.languages[l] = languages[l];
 						else {
+							settings.languages[l] = languages[l];
 							if(languages[l].extensions) languages[l].extensions.forEach(ext => settings.languages[l].extensions.push(ext));
 							if(languages[l].breaks) {
 								if(languages[l].breaks.major) {
@@ -172,8 +174,10 @@
 									languages[l].breaks.minor.forEach(br => settings.languages[l].breaks.minor.push(br));
 								}
 							}
+
 						}
-					});
+*/
+				});
 
 					extensions={};
 					Object.keys(settings.languages).forEach(l=>{
@@ -185,18 +189,18 @@
 				.then(() => documentTitle = settings.headings.title+' '+settings.version)
 
 			//	About
-				.then(()=>{
+				.then(() => {
 					pseudoFiles.push(path.join(cwd, '/README.md'));
 					return openFile(path.join(cwd, '/README.md'));
 				})
 
 			//	Files
-				.then(()=>fs.promises.stat(filesJSON))
-				.catch((error)=>fs.promises.writeFile(filesJSON,`{"current":[],"recent":[],"favourites":[]}${eol}`))
-				.then(()=>fs.promises.readFile(filesJSON))
-				.then(data=>{
+				.then(() => fs.promises.stat(filesJSON))
+				.catch((error) => fs.promises.writeFile(filesJSON, `{"current":[],"recent":[],"favourites":[]}${eol}`))
+				.then(() => fs.promises.readFile(filesJSON))
+				.then(data => {
 					try {
-						files=JSON.parse(data);
+						files = JSON.parse(data);
 					} catch(error) {
 						files = {"current":[],"recent":[],"favourites":[]};
 					}
@@ -210,7 +214,7 @@
 							updateFiles();
 						}
 					//	Current Files
-						if(files.current) files.current.forEach(v=>{
+						if(files.current) files.current.forEach(v => {
 							openFile(v);
 						});
 					//	Recent Files List
@@ -218,60 +222,59 @@
 				})
 
 			//	State
-				.then(()=>fs.promises.stat(stateJSON))
-				.catch((error)=>fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120,"default-path":"${home}","index-open-all":false}${eol}`))
-				.then(()=>fs.promises.readFile(stateJSON))
-				.then(data=>{
-					state=JSON.parse(data);
+				.then(() => fs.promises.stat(stateJSON))
+				.catch(error => fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120,"default-path":"${home}","index-open-all":false}${eol}`))
+				.then(() => fs.promises.readFile(stateJSON))
+				.then(data => {
+					state = JSON.parse(data);
 					//	For now, default path:
 						if(!state['default-path']) state['default-path'] = home;
 					//	Documents Pane
-						document.querySelector('main').classList.toggle('show-documents',state['documents-width']);
-						if(state['documents-width']) document.querySelector('nav#documents').style.width=`${state['documents-width']}px`;
+						document.querySelector('main').classList.toggle('show-documents', state['documents-width']);
+						if(state['documents-width']) document.querySelector('nav#documents').style.width = `${state['documents-width']}px`;
 						if(state['documents-toggle']) document.querySelector(`li#${state['documents-toggle']}`).classList.add('open');
 					//	Index
 						if(state['index-width']) document.querySelector('div#index').style.width=`${state['index-width']}px`;
 						state['index-open-all'] = !!state['index-open-all'];
 				})
 		;
-
+		//	End Settings
 
 
 		if(DEVELOPMENT)
 			promise
 //			.then(()=>openURL('https://pager.internotes.net/content/mssql-techniques.sql',true))
-			.then(()=>{
+			.then(() => {
 				pseudoFiles.push(path.join(cwd, 'data/exercises.sql'));
 				return openFile(path.join(cwd, 'data/exercises.sql'));
 			})
-			.then(()=>tabs[0].click())
-//			.then(()=>console.log('hello'))
+			.then(() => tabs[0].click())
+//			.then(() => console.log('hello'))
 			;
-	}	//	init()
+	}	//	End init()
 
 	//	get Tab Number
 		function getTab(fileName) {
-			var result= {
+			var result = {
 				index: -1,
 				tab: null,
 				pathName: null
 			};
-			if (tabs.length) tabs.forEach((tab,index)=> {
+			if (tabs.length) tabs.forEach((tab,index) => {
 				var pathName;
-				if((pathName=`${tab.data.path}/${tab.data.fileName}`)==fileName) {
-					result={index,tab,pathName};
+				if((pathName = `${tab.data.path}/${tab.data.fileName}`) == fileName) {
+					result = {index,tab,pathName};
 				}
 			});
 			return result;
 		}
 
-	//	State
+	//	Update state.json
 		function updateState() {
-			fs.promises.writeFile(stateJSON,JSON.stringify(state));
+			fs.promises.writeFile(stateJSON, JSON.stringify(state));
 		}
 
-
-	//	files.json
+	//	Update files.json
 		//	data={action, pathName}
 		function updateFiles(data) {
 			if(data) switch(data.action) {
@@ -302,25 +305,27 @@
 
 	//	Documents Lists
 		function updateDocuments() {
-			let open=elements.documents.querySelector('li#documents-open>ul');
-			open.innerHTML='';
-			let recent=elements.documents.querySelector('li#documents-recent>ul');
-			recent.innerHTML='';
-			let favourites=elements.documents.querySelector('li#documents-favourite>ul');
-			favourites.innerHTML='';
+			let open = elements.documents.querySelector('li#documents-open>ul');
+			open.innerHTML = '';
+			let recent = elements.documents.querySelector('li#documents-recent>ul');
+			recent.innerHTML = '';
+			let favourites = elements.documents.querySelector('li#documents-favourite>ul');
+			favourites.innerHTML = '';
+
 			//	Recent Files
 				if(files.recent) {
-					files.recent.forEach(v=>{
-						let li=document.createElement('li');
-						let name=path.basename(v);
+					files.recent.forEach(v => {
+						let li = document.createElement('li');
+						let name = path.basename(v);
 
-						li.innerHTML=`${name}<button>×</button>`;
+						li.innerHTML = `${name}<button>×</button>`;
 						li.href = v;
 						li.onclick = doRecent;
 
 						recent.appendChild(li);
 					});
 				}
+
 				function doRecent(event) {
 					console.log(event);
 					var href = this.href;
@@ -333,6 +338,7 @@
 							openFile(href,true);
 					}
 				}
+
 			//	Current Files
 				pseudoFiles.forEach(v=>{
 					let li=document.createElement('li');
@@ -340,6 +346,7 @@
 					li.innerHTML=`<a href="doit:click:${v}">${name}</a>`;
 					open.appendChild(li);
 				});
+
 				if(files.current) {
 					files.current.forEach(v=>{
 						let li=document.createElement('li');
@@ -350,12 +357,14 @@
 						open.appendChild(li);
 					});
 				}
+
 				function doCurrent(event) {
 					console.log(event);
 					var href = this.href;
 					var {index,tab}=getTab(href);
 					tabs[index].click();
 				}
+
 			//	favourite Files
 				if(files.favourites) {
 					files.favourites.forEach(v=>{
@@ -367,6 +376,7 @@
 						favourites.appendChild(li);
 					});
 				}
+
 				function doFavourite(event) {
 					console.log(event);
 					var href = this.href;
@@ -434,7 +444,8 @@
 				fullCSS: document.querySelector('link#full-css'),
 		};
 
-		codeFontSize = getComputedStyle(document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content')).getPropertyValue('--font-size');
+//		codeFontSize = getComputedStyle(document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content')).getPropertyValue('--font-size');
+		codeFontSize = getComputedStyle(document.querySelector('div#content>iframe').contentWindow.document.querySelector('html')).getPropertyValue('--font-size');
 		codeFontSize = codeFontSize.match(/((\d*)(\.\d+)?)([a-z]+)/);
 		codeFontSize = {size: codeFontSize[1], units: codeFontSize[4]};
 		originalCodeFontSize = codeFontSize.size;
@@ -495,7 +506,7 @@
 			}
 		}
 
-		jx.contentEditable(elements.codeElement,true);
+		jx.contentEditable(elements.codeElement, true);
 		elements.codeElement.onblur = event => {
 			console.log('blur');
 		};
@@ -507,6 +518,7 @@
 			}
 		});
 
+/*
 		function something(event,input) {
 			if(input.type!=='keyUp') return;
 			switch(input.key) {
@@ -528,7 +540,7 @@
 					break;
 			}
 		}
-
+*/
 		var index = document.querySelector('div#index');
 		index.tabIndex=1;
 		index.onkeydown = event => {
@@ -553,7 +565,7 @@
 					}
 					else {
 						var grandParent = selected.parentNode.parentNode;
-						if(grandParent.tagName=='LI') grandParent.click();
+						if(grandParent.tagName == 'LI') grandParent.click();
 					}
 					break;
 				case 'ArrowRight':
@@ -589,7 +601,6 @@
 			tab.onclick=doTab;
 
 		var close=document.createElement('button');
-			//	close.innerHTML=`<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="8" height="8" viewBox="0, 0, 24, 24"><path d="M3.141,24 L-0,24 L10.332,11.935 L-0,0 L3.401,0 L12,9.06 L20.924,0 L24,0 L13.581,11.935 L24,24 L20.664,24 L12,14.33 z" fill="#000000"/></svg>`;	//	'⨉';	//	✖️
 			close.innerHTML='×';
 			close.onclick=closeTab.bind(tab,tab);
 			close.className='tab-close';
@@ -667,11 +678,12 @@
 	================================================ */
 	function doPager(data) {
 		//	Document Breaks
-			var br, major, minor;
+			var br, major, minor, highlight;
 			var headingsRE, headingMajor, headingMinor, headingMiniscule, RE;
 			//	Heading Regular Expressions:
 				var breaks=settings.languages[data.language].breaks;
 				var literals=/[-\/\\^$*+.()|[\]{}]/g;
+				var lineHighlight = settings.languages[data.language].highlight;
 			//	Breaks
 				if(Array.isArray(breaks.major)) {
 					major=[];
@@ -689,6 +701,7 @@
 				}
 				else minor=null;
 				data.br=`${major}\\s+|${minor}\\s+`;
+				data.br=`[\\r\\n]${major}\\s+|${minor}[^\\S\\r\\n]+`;	//	data.br = '[\\r\\n]\\/\\*\\*\\s+|\\/\\*[^\\S\\r\\n]+'
 				//	Break Regular Expressions
 
 					headingsRE=new RegExp(`(?:\\n\\s*)(?=${data.br})`);
@@ -954,7 +967,7 @@
 			document.title=documentTitle+': '+data.fileName+' — '+title;
 //			elements.h1.innerHTML=documentTitle+': '+data.fileName+' — '+title;
 			elements.contentHeading.innerHTML=title;
-			elements.codeElement.resetLineNumbers();
+			elements.codeElement.resetLineNumbers(lineHighlight);
 
 		}
 	}
@@ -971,7 +984,8 @@
 				codeFontSize.size = originalCodeFontSize;
 				break;
 		}
-		document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content').style.setProperty('--font-size',`${codeFontSize.size}${codeFontSize.units}`);
+	//	document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content').style.setProperty('--font-size',`${codeFontSize.size}${codeFontSize.units}`);
+		document.querySelector('div#content>iframe').contentWindow.document.querySelector('html').style.setProperty('--font-size',`${codeFontSize.size}${codeFontSize.units}`);
 		elements.codeElement.resetLineNumbers();
 	}
 
@@ -1150,8 +1164,11 @@ console.log(fileName);
 		});
 		content.children[0].style['display'] = 'none';
 		elements.iframe.print();
-		while(content.children.length>1) content.lastChild.remove();
-		content.children[0].style['display'] = '';
+		elements.iframe.addEventListener('afterprint', event => {
+			console.log('finished printing');
+			while(content.children.length>1) content.lastChild.remove();
+			content.children[0].style['display'] = '';
+		});
 	}
 
 //	IPC

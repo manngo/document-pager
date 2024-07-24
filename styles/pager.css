@@ -109,7 +109,7 @@
 		grid-template-rows: 1.875rem 1fr 2rem;
 		grid-template-columns: 1fr;
 	}
-	ul#tabs {
+	form#control {
 		grid-row: 1/2;
 	}
 	div#pager {
@@ -119,77 +119,72 @@
 		grid-row: 3/4;
 	}
 
-
-
 /*	Pager
 	================================================
 	div#pager
 		nav#documents
 		span.resize
-		div#index
-		span.resize
-		div#content
+		div#document
+			div#index
+			span.resize
+			div#content
 	================================================ */
 
 	div#pager {
 		display: grid;
-		grid-template-columns: auto 1px 1fr;
+		qgrid-template-columns: auto 1px 1fr;
 		margin: 0;
-	}
-	div#document {
-		display: grid;
-		grid-template-columns: auto 1px 1fr;
-		qgrid-template-rows: auto;
-		qwidth: 100%;
+
+		nav#documents,
+		div#index,
+		div#content {
+			box-sizing: border-box;
+			max-height: calc(100vh - 6.5em);
+		}
+
+		div#document {
+			display: grid;
+			grid-template-columns: auto 1px 1fr;
+
+			div#index,
+			div#content {
+				background-color: white;
+				outline: none;
+				&>h2 {
+					box-sizing: border-box;
+					margin: 0;
+					width: 100%;
+					height: 2.75rem;
+					padding: .25em .25em .25em .75em;
+				}
+			}
+
+			div#index {
+				width: 18em;
+				overflow: auto;
+			}
+		}
 	}
 
-	nav#documents,
-	nav#documents+span.resize {
-		display: block;
-	}
 
-	div#documents {
-		width: 18em;
-	}
+	main {
+		div#pager {
+			nav#documents,
+			nav#documents+span.resize {
+				display: none;
+			}
+		}
+		&.show-documents {
+			div#pager {
+				grid-template-columns: auto 1px 1fr;
 
+				nav#documents,
+				nav#documents+span.resize {
+					display: block;
+				}
 
-	div#index {
-		width: 18em;
-	}
-
-	div#index,
-	div#content {
-		background-color: white;
-		outline: none;
-		qwidth: 100% !important;
-	}
-	nav#documents,
-	div#index,
-	div#content {
-		box-sizing: border-box;
-		max-height: calc(100vh - 6.5em);
-	}
-
-	div#index {
-		qgrid-column: 1/2;
-		qgrid-row: 1/2;
-	}
-	div#content {
-		qgrid-column: 3/4;
-		qgrid-row: 1/2;
-	}
-
-	div#index>h2,
-	div#content>h2 {
-		box-sizing: border-box;
-		margin: 0;
-		width: 100%;
-		height: 2.75rem;
-		padding: .25em .25em .25em .75em;
-	}
-
-	div#index {
-		overflow: auto;
+			}
+		}
 	}
 
 /*	Index Grid
@@ -381,126 +376,70 @@
 
 /*	Control
 	================================================ */
-
-    form#control hr {
-    	display: none;
-    }
-
 	form#control {
-		display: flex;
-		justify-content: flex-end;
-		background-color: transparent;
-		width: 100%;
-	}
-	form#control>p {
-		margin: 0;
-		margin: 0.125em 0.5em;
-		padding: 0;
-		qborder: thin solid red;
-		margin-left: .5em;
-		box-sizing: border-box;
-	}
-	form#control hr {
-		width: .5em;
-		border: none;
-	}
-
-/*	Button Appearances
-	============================================ */
-	form#control label {
-		qdisplay: flex;
-		qalign-items: center;
-		qjustify-content: center;
-	}
-	p#font-size {
-		display: flex;
-	}
-	form#control label {
-		background-color: #f8f8f8;
+		display: grid;
+		grid-template-columns: auto auto auto 1fr;
 		background-color: var(--top-inset);
-		qborder-radius: 2px;
-		border: thin solid #ccc;
-		padding: .25em .75em;
-		font-size: .85rem;
-		color: #333;
-		color: white;
-		color: var(--text-colour);
-		margin: .125em 0 0 0;
-		qheight: 100%;
-		box-sizing: border-box;
-		display: inline-block;
-		font-family: "Source Sans Pro", sans-serif;
-		vertical-align: middle;
-		align-items: center;
-		qjustify-content: center;
-		border: none;
-		line-height: 1.25rem;
-	}
-	p#font-size>label {
-		background: none
-	}
-	form#control button:hover {
-		color: white;
-		color: var(--text-colour-hover);
-		background-color: #bbb;
-	}
+		width: 100%;
 
-	/*	About
+	/*	Button Appearances
 		============================================ */
-
-
-	/*	Highlighted
-		============================================
-		============================================ */
-
-		form#control input[name="show-highlight"],
-		form#control input[name="show-documents"],
-		form#control button {
-			display: none;
-			qdisplay: inline-block;
-			appearance: none;
-			-webkit-appearance: none;
+		label {
+			background-color: var(--top-inset);
+			border: thin solid #ccc;
+			padding: .25em .75em;
+			font-size: .85rem;
+			color: var(--text-colour);
+			margin: .125em 0 0 0;
+			box-sizing: border-box;
+			display: inline-block;
+			font-family: "Source Sans Pro", sans-serif;
+			border: none;
+			line-height: 1.25rem;
+			&:has(:checked) {
+				background-color: var(--highlight-inset);
+			}
+			&:has(:hover) {
+				background-color: #c8c8c8;
+				animation: none;
+			}
 		}
-		form#control input[name="show-highlight"]+label,
-		form#control input[name="show-documents"]+label {
-            qheight: 100%;
-            qdisplay: inline-block;
-          }
-  }
-
-		form#control input[name="show-highlight"]:hover+label,
-		form#control input[name="show-documents"]:hover+label {
-			background-color: #c8c8c8;
-			animation: none;
+		button:hover {
+			color: white;
+			color: var(--text-colour-hover);
+			background-color: #bbb;
+			border: thick solid green !important;
 		}
 
-		/*	Highlighted Icon
+		/*	Highlighted
 			============================================
-			form#control input[name="show-highlight"]+label:before {
-				content: "";
-				position: relative;
-				top: .125em;
-				margin-right: .5em;
-			}
-			form#control input[name="show-highlight"]:checked+label:before {
-				content: "";
-			}
 			============================================ */
-		form#control input[name="show-highlight"]:checked+label,
-		form#control input[name="show-documents"]:checked+label {
-			qcolor: #333;
-			qbackground-color: #999;
-			background-color: var(--highlight-inset);
-			qcolor: white;
-		}
-		form#control input[name="show-documents"]+label {
-			margin-left: 0.5em;
-			margin-right: 0.5em;
+
+			input[name="show-highlight"],
+			input[name="show-documents"],
+			input[name="full-screen"] {
+				display: none;
+				appearance: none;
+				-webkit-appearance: none;
+				&+label {
+
+				}
+				&:hover+label {
+					background-color: #c8c8c8;
+					animation: none;
+				}
+				&:checked+label {
+					background-color: var(--highlight-inset);
+				}
+			}
+			input[name="show-documents"]+label {
+				margin-left: 0.5em;
+				margin-right: 0.5em;
+			}
 		}
 
 /*	Tabs
 	============================================ */
-
 
 	ul#tabs {
 		list-style: none;
@@ -508,56 +447,43 @@
 		margin: 0;
 		display: flex;
 		flex-direction: row;
-		qbackground-color: #ccc;
+		margin-left: auto;
 		background: linear-gradient(to bottom, var(--top-inset), var(--bottom-inset));
 		font-size: .8rem;
 		height: 2rem;
-	}
-
-	ul#tabs>li {
-		padding: .5em .25em .25em .75em;
-		qmin-width: 8em;
-		text-align: center;
-		display: flex;
-		justify-content: space-between;
-		qborder-right: thin solid #ccc;
-		border: thin solid;
-		border-style: none solid none solid;
-		border-color: transparent #ccc transparent transparent;
-		border-color: transparent var(--bottom-inset) transparent transparent;
-		qtext-shadow: 0 1px 0 white;
-		qbackground: linear-gradient(to bottom, rgb(238,238,238),rgb(221,221,221));
-		qposition: relative;
-		color: white;
-		color: var(--text-colour);
-	}
-
-	ul#tabs>li:nth-child(n+2) {
-
-	}
-	ul#tabs>li.selected {
-		background-color: var(--highlight-inset);
-	}
-
-	ul#tabs>li>button {
-		box-sizing: border-box;
-		border: thin solid transparent;
-		margin-left: .25em;
-		display: inline-block;
-		background-color: transparent;
-		border-radius: .125em;
-		position: relative;
-		top: .125em;
-		font-weight: light;
-		color: var(--text-colour);
-		font-size: 1.2em;
-		padding: .125em;
-		qbackground-color: orange;
-		height: 1em;
-		line-height: 0.25;
-	}
-	ul#tabs>li>button:hover {
-		background-color: var(--highlight-inset);
+		&>li {
+			padding: .5em .25em .25em .75em;
+			text-align: center;
+			display: flex;
+			justify-content: space-between;
+			border: thin solid;
+			border-style: none solid none solid;
+			border-color: transparent var(--bottom-inset) transparent transparent;
+			color: var(--text-colour);
+			&.selected {
+				background-color: var(--highlight-inset);
+			}
+			&>button {
+				box-sizing: border-box;
+				border: thin solid transparent;
+				margin-left: .25em;
+				display: inline-block;
+				background-color: transparent;
+				border-radius: .125em;
+				position: relative;
+				top: .125em;
+				font-weight: light;
+				color: var(--text-colour);
+				font-size: 1.2em;
+				padding: .125em;
+				qbackground-color: orange;
+				height: 1em;
+				line-height: 0.25;
+				&:hover {
+					background-color: var(--highlight-inset);
+				}
+			}
+		}
 	}
 
 /*	Index Properties

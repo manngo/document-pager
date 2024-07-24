@@ -1,5 +1,5 @@
 {
-	"version": "0.3.54",
+	"version": "0.3.6",
 	"headings": {
 		"title": "Document Pager",
 		"h1": "Document Pager",
@@ -9,23 +9,28 @@
 	"languages": {
 		"javascript": {
 			"extensions": ["js","javascript"],
-			"breaks": { "major": ["/**"], "minor": ["/*"]}
+			"breaks": { "major": ["/**"], "minor": ["/*"]},
+			"highlight": "//!"
 		},
 		"php": {
 			"extensions": ["php"],
-			"breaks": { "major": ["/**","/*:"], "minor": ["/*"] }
+			"breaks": { "major": ["/**","/*:"], "minor": ["/*"] },
+			"highlight": "//!"
 		},
 		"python": {
 			"extensions": ["py"],
-			"breaks": { "major": ["#:"], "minor": ["#::"] }
+			"breaks": { "major": ["#:"], "minor": ["#::"] },
+			"highlight": "#!"
 		},
 		"sql": {
 			"extensions": ["sql"],
-			"breaks": { "major": ["/**"], "minor": ["/*"] }
+			"breaks": { "major": ["/**"], "minor": ["/*"] },
+			"highlight": "--!"
 		},
 		"css": {
 			"extensions": ["css"],
-			"breaks": { "major": ["/**"], "minor": ["/*"] }
+			"breaks": { "major": ["/**"], "minor": ["/*"] },
+			"highlight": "/*!*/"
 		},
 		"markdown": {
 			"extensions": ["md","markdown","mds"],
@@ -33,7 +38,8 @@
 		},
 		"text": {
 			"extensions": ["txt","text","*"],
-			"breaks": { "major": ["#"], "minor": ["##"] }
+			"breaks": { "major": ["#"], "minor": ["##"] },
+			"highlight": "#!"
 		}
 	}
 }

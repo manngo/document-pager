@@ -1,6 +1,12 @@
 /*	Content Text Properties
 	============================================ */
 
+	html {
+		--font-size: 1em;
+		font-size: var(--font-size);
+		--line-height: calc(var(--font-size) * 1.5);
+	}
+
 	html, body {
 		margin: 0;
 		padding: 0;
@@ -8,7 +14,6 @@
 
 
 	body>div#main-content {
-		--font-size:   1em;
 		font-size: var(--font-size);
 	}
 
@@ -18,7 +23,9 @@
 	body {
 		background-color: #f8f8f8;
 	}
-
+	body.markdown {
+		background-color: white;
+	}
 	body>div#main-content {
 		margin: 0;
 		box-sizing: border-box;
@@ -28,7 +35,9 @@
 		border: thin solid #ccc;
 		border: thin solid #f8f8f8;
 		--margin: 1em;
-		background-color: white;
+		qbackground-color: white;
+
+
 	}
 
 /*	Content Code
@@ -58,9 +67,17 @@
 
     div.md>div>pre>code[class*="language-"],
 	div#main-content>div>code[class*="language-"] {
-		background-color: white;
-	}
 
+	}
+    div#main-content>div>code[class*="language-"] {
+		background: white repeating-linear-gradient(
+			transparent,
+			transparent calc(var(--line-height) - 1px),
+			#eee calc(var(--line-height) - 1px),
+			#eee var(--line-height)
+		);
+		background-position: 0 calc(var(--line-height) * 0.125);
+	}
 	div.md>div>pre>code,
 	div#main-content>div:only-child>code {
 		height: calc(100vh - 1rem);
@@ -84,9 +101,9 @@
 	div.md>div>pre>code[class*="language-"],
 	div#main-content>div>code[class*="language-"] {
 		font-family: "Source Code Pro", monospace;
-		font-size: .8em;
+		font-size: 1rem;
 		qpadding: .5em 0;
-		line-height: 1.5;
+		line-height: var(--line-height);
 	}
 
 /*	Line Numbers
@@ -102,24 +119,29 @@
 
 	div.line-numbers {
 		box-sizing: border-box;
-		white-space: pre;
 		text-align: right;
-		padding-right: .5rem;
 		margin-right: .5rem;
-		qbackground-color: #eee;
 		overflow: auto;
 		border-right: thin solid #ccc;
-		background-color: #2A5F5B;
-		background-color: #eee;
 		background-color: #f8f8f8;
 		border: none;
-		color: white;
 		color: #666;
 		flex: 0 0 3em;
+		&::-webkit-scrollbar {
+		    display: none;
+		}
+		span {
+			display: block;
+			padding-right: .5rem;
+			&.highlight {
+				font-weight: bold;
+				background-color: #666;
+				color: #f8f8f8;
+			}
+			line-height: var(--line-height);
+		}
 	}
-	div.line-numbers::-webkit-scrollbar {
-	    display: none;
-	}
+
 	code {
 		flex: 1;
 	}

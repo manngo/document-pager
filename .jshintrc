@@ -10,8 +10,10 @@
 	"-W030": true,
 	"-W014": true,
 	"-W117": true,
+	"-W093": true,
 	"eqeqeq": false,
 	"shadow": true,
+	"elision": true,
 	"sub": true,
 	"globals": {
 		"window": true,
