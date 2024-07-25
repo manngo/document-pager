@@ -3,15 +3,18 @@
 
 	html {
 		--font-size: 1em;
-		font-size: var(--font-size);
 		--line-height: calc(var(--font-size) * 1.5);
+		--rule-colour: #eee;
+		--line-highlight-background: #666;
+		--line-highlight-colour: #f8f8f8;
+
+		font-size: var(--font-size);
 	}
 
 	html, body {
 		margin: 0;
 		padding: 0;
 	}
-
 
 	body>div#main-content {
 		font-size: var(--font-size);
@@ -22,89 +25,67 @@
 
 	body {
 		background-color: #f8f8f8;
+		&.markdown {
+			background-color: white;
+		}
+		&>div#main-content {
+			margin: 0;
+			box-sizing: border-box;
+			overflow: auto;
+			height: 100%;
+			padding: 0 0 0 0;
+			border: thin solid #ccc;
+			border: thin solid #f8f8f8;
+			--margin: 1em;
+		}
 	}
-	body.markdown {
-		background-color: white;
+
+	code {
+		flex: 1;
 	}
-	body>div#main-content {
-		margin: 0;
-		box-sizing: border-box;
-		overflow: auto;
-		height: 100%;
-		padding: 0 0 0 0;
-		border: thin solid #ccc;
-		border: thin solid #f8f8f8;
-		--margin: 1em;
-		qbackground-color: white;
 
-
+	h2+div {
+		border: thin solid #999;
+		box-shadow: 2px 2px 2px #999;
+		padding: .5em 1em;
 	}
 
 /*	Content Code
 	============================================ */
 
-	body>div#main-content>div>code {
-		white-space: pre;
-		tab-size: 4;
-		outline: none;
+	body>div#main-content>div {
+		&>code {
+			white-space: pre;
+			tab-size: 4;
+			outline: none;
+		}
+		&:only-child>code {
+		/*	height: calc(100vh - 1rem); */
+		}
+		&+div {
+			margin-top: 2em;
+		}
+		& :is(.token.tab, .token.crlf, .token.lf, .token.cr) {
+			visibility: hidden;
+	    }
+		&>code[class*="language-"] {
+			background-color: white;
+			font-family: "Source Code Pro", monospace;
+			font-size: 1rem;
+			line-height: var(--line-height);
+		}
 	}
 
-
-/*	Content Markdown
-	============================================ */
-
-	body.markdown>div#main-content>div {
-		border: none;
-	}
-	body.markdown>div#main-content>div>div.md {
-		white-space: normal;
-		padding: 1rem;
-		width: 100%;
-	}
-
-/*	Prism
-	================================================ */
-
-    div.md>div>pre>code[class*="language-"],
-	div#main-content>div>code[class*="language-"] {
-
-	}
-    div#main-content>div>code[class*="language-"] {
+    div#main-content.ruled>div>code[class*="language-"] {
 		background: white repeating-linear-gradient(
 			transparent,
 			transparent calc(var(--line-height) - 1px),
-			#eee calc(var(--line-height) - 1px),
-			#eee var(--line-height)
+			var(--rule-colour) calc(var(--line-height) - 1px),
+			var(--rule-colour) var(--line-height)
 		);
 		background-position: 0 calc(var(--line-height) * 0.125);
 	}
-	div.md>div>pre>code,
-	div#main-content>div:only-child>code {
-		height: calc(100vh - 1rem);
-	}
 
-	div#main-content>div+div {
-		margin-top: 2em;
-	}
-
-	div.md>div>pre>code .token.tab,
-	div.md>div>pre>code .token.crlf,
-	div.md>div>pre>code .token.lf,
-	div.md>div>pre>code .token.cr,
-	div#main-content .token.tab,
-	div#main-content .token.crlf,
-	div#main-content .token.lf,
-	div#main-content .token.cr {
-		visibility: hidden;
-    }
-
-	div.md>div>pre>code[class*="language-"],
-	div#main-content>div>code[class*="language-"] {
-		font-family: "Source Code Pro", monospace;
-		font-size: 1rem;
-		qpadding: .5em 0;
-		line-height: var(--line-height);
-	}
 
 /*	Line Numbers
 	================================================
@@ -135,22 +116,39 @@
 			padding-right: .5rem;
 			&.highlight {
 				font-weight: bold;
-				background-color: #666;
-				color: #f8f8f8;
+				background-color: var(--line-highlight-background);
+				color: var(--line-highlight-colour);
 			}
 			line-height: var(--line-height);
 		}
 	}
 
-	code {
-		flex: 1;
+/*	Content Markdown
+	============================================ */
+
+	body.markdown>div#main-content>div {
+		border: none;
+		&>div.md {
+			white-space: normal;
+			padding: 1rem;
+			width: 100%;
+			&>div>pre>code {
+				height: calc(100vh - 1rem);
+				&[class*="language-"] {
+					font-family: "Source Code Pro", monospace;
+					font-size: 1rem;
+					qpadding: .5em 0;
+					line-height: var(--line-height);
+				}
+				& :is(.token.tab, .token.crlf, .token.lf, .token.cr) {
+					visibility: hidden;
+				}
+			}
+		}
 	}
 
-	h2+div {
-		border: thin solid #999;
-		box-shadow: 2px 2px 2px #999;
-		padding: .5em 1em;
-	}
+/*	Print
+	============================================ */
 
 	@media print {
 		div#main-content>div:nth-child(n+1) {

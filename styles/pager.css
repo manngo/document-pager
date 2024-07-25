@@ -408,7 +408,7 @@
 			color: white;
 			color: var(--text-colour-hover);
 			background-color: #bbb;
-			border: thick solid green !important;
+			border: thick solid green;
 		}
 
 		/*	Highlighted
@@ -481,6 +481,7 @@
 				line-height: 0.25;
 				&:hover {
 					background-color: var(--highlight-inset);
+					border: thin solid transparent;
 				}
 			}
 		}

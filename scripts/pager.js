@@ -223,7 +223,7 @@
 
 			//	State
 				.then(() => fs.promises.stat(stateJSON))
-				.catch(error => fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120,"default-path":"${home}","index-open-all":false}${eol}`))
+				.catch(error => fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120,"default-path":"${home}","index-open-all":false, "content-ruled":true}${eol}`))
 				.then(() => fs.promises.readFile(stateJSON))
 				.then(data => {
 					state = JSON.parse(data);
@@ -233,10 +233,19 @@
 						document.querySelector('main').classList.toggle('show-documents', state['documents-width']);
 						if(state['documents-width']) document.querySelector('nav#documents').style.width = `${state['documents-width']}px`;
 						if(state['documents-toggle']) document.querySelector(`li#${state['documents-toggle']}`).classList.add('open');
+						document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content').classList.toggle('ruled',!!state['content-ruled']);
 					//	Index
 						if(state['index-width']) document.querySelector('div#index').style.width=`${state['index-width']}px`;
 						state['index-open-all'] = !!state['index-open-all'];
 				})
+
+			//	Theme
+			.then(() => fs.promises.stat(`${settingsDir}/content.css`))
+			.catch(() => { console.log('no content.css'); })
+			.then(() => {
+				console.log('content.css');
+				document.querySelector('div#content>iframe').contentWindow.document.querySelector('head').insertAdjacentHTML('beforeend',`<link rel="stylesheet" href="${settingsDir}/content.css">`);
+			})
 		;
 		//	End Settings
 
@@ -704,8 +713,10 @@
 				data.br=`[\\r\\n]${major}\\s+|${minor}[^\\S\\r\\n]+`;	//	data.br = '[\\r\\n]\\/\\*\\*\\s+|\\/\\*[^\\S\\r\\n]+'
 				//	Break Regular Expressions
 
-					headingsRE=new RegExp(`(?:\\n\\s*)(?=${data.br})`);
-					headingsRE=new RegExp(`(?:\\n)(?=\\s*(${data.br}))`);
+//					headingsRE=new RegExp(`(?:\\n\\s*)(?=${data.br})`);
+//					headingsRE=new RegExp(`(?:\\n)(?=\\s*(${data.br}))`);
+					headingsRE=new RegExp(`(?:\\n)(?=(?:${minor}|${major}))`);
+					//	headingsRE = new Regexp(`(?:\\n)`)	//	/(?:\n)(?=(?:\/\*|\/\*\*))/
 
 					headingMajor=new RegExp(`^(\\s*)(${major})\\s+(.*?)\\r?\\n`);
 					headingMinor=new RegExp(`^(\\s*)(${minor})\\s+(.*?)\\r?\\n`);
