@@ -227,6 +227,8 @@
 				.then(() => fs.promises.readFile(stateJSON))
 				.then(data => {
 					state = JSON.parse(data);
+					state['index-open-all'] = !!state['index-open-all'];
+					state['content-ruled'] = !!state['content-ruled'];
 					//	For now, default path:
 						if(!state['default-path']) state['default-path'] = home;
 					//	Documents Pane
@@ -236,7 +238,6 @@
 						document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content').classList.toggle('ruled',!!state['content-ruled']);
 					//	Index
 						if(state['index-width']) document.querySelector('div#index').style.width=`${state['index-width']}px`;
-						state['index-open-all'] = !!state['index-open-all'];
 				})
 
 			//	Theme

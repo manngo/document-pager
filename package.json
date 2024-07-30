@@ -40,8 +40,6 @@
 		},
 		"win": {
 			"target": [
-				"zip",
-				"nsis",
 				"portable"
 			],
 			"icon": "images/document-pager.ico"

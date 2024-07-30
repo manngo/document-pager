@@ -230,7 +230,7 @@
 		padding: 0;
 		display: grid;
 		grid-template-areas: "content-h2" "content-iframe" "content-footer";
-		grid-template-rows: 2.75rem 1fr 2rem;
+		grid-template-rows: 2.75rem 1fr 0.25rem;
 	}
 
 	div#content h2					{grid-area: content-h2;}
@@ -241,6 +241,7 @@
 		box-sizing: border-box;
 		width: 100%;
 		height: calc(100% - 2.75rem - 0px);
+		height: 100%;
 	}
 
 

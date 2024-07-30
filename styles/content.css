@@ -1,13 +1,23 @@
-/*	Content Text Properties
+/*	Settings
 	============================================ */
 
 	html {
 		--font-size: 1em;
 		--line-height: calc(var(--font-size) * 1.5);
+
 		--rule-colour: #eee;
+
 		--line-highlight-background: #666;
 		--line-highlight-colour: #f8f8f8;
 
+		--background-colour: #f8f8f8f8;
+		--markdown-background-colour: white;
+	}
+
+/*	Content Text Properties
+	============================================ */
+
+	html {
 		font-size: var(--font-size);
 	}
 
@@ -24,19 +34,14 @@
 	============================================ */
 
 	body {
-		background-color: #f8f8f8;
-		&.markdown {
-			background-color: white;
-		}
+		background-color: var(--background-colour);
 		&>div#main-content {
 			margin: 0;
 			box-sizing: border-box;
 			overflow: auto;
 			height: 100%;
 			padding: 0 0 0 0;
-			border: thin solid #ccc;
-			border: thin solid #f8f8f8;
-			--margin: 1em;
+			border: thin solid var(--background-color);
 		}
 	}
 
@@ -126,22 +131,25 @@
 /*	Content Markdown
 	============================================ */
 
-	body.markdown>div#main-content>div {
-		border: none;
-		&>div.md {
-			white-space: normal;
-			padding: 1rem;
-			width: 100%;
-			&>div>pre>code {
-				height: calc(100vh - 1rem);
-				&[class*="language-"] {
-					font-family: "Source Code Pro", monospace;
-					font-size: 1rem;
-					qpadding: .5em 0;
-					line-height: var(--line-height);
-				}
-				& :is(.token.tab, .token.crlf, .token.lf, .token.cr) {
-					visibility: hidden;
+	body.markdown {
+		background-color: var(--markdown-background-colour);
+		&>div#main-content>div {
+			border: none;
+			&>div.md {
+				white-space: normal;
+				padding: 1rem;
+				width: 100%;
+				&>div>pre>code {
+					height: calc(100vh - 1rem);
+					&[class*="language-"] {
+						font-family: "Source Code Pro", monospace;
+						font-size: 1rem;
+						qpadding: .5em 0;
+						line-height: var(--line-height);
+					}
+					& :is(.token.tab, .token.crlf, .token.lf, .token.cr) {
+						visibility: hidden;
+					}
 				}
 			}
 		}
