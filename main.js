@@ -1,35 +1,42 @@
 'use strict';
+console.log('main.js');
 
-const log = require('electron-log');
+//	Global Variables
+	var window, menu;
 
 //	Settings
-	const {DEVELOPMENT}=require('./settings.js');
+	const {DEVELOPMENT} = require('./settings.js');
 
-	if(DEVELOPMENT && process.platform == 'darwin') require('electron-reload')(__dirname);
+	if(DEVELOPMENT && process.platform == 'darwin') {
+	//	require('electron-reload')(__dirname);
+	//	require('electron-reload')(__dirname, {
+	//	// Note that the path to electron may vary according to the main file
+	//		electron: require(`${__dirname}/node_modules/.bin/electron`)
+	//	});
+		try {
+			require('electron-reloader')(module);
+		}
+		catch {}
+	}
 
 
 //	Required Modules
 	const {app, BrowserWindow, Menu, MenuItem, shell, ipcRenderer, protocol, ipcMain, dialog} = require('electron');
 
-	//	https://github.com/electron/electron/issues/18214#issuecomment-495043193
-		app.commandLine.appendSwitch('disable-site-isolation-trials');
-	//	console.log(require.resolve('electron'))
+	app.commandLine.appendSwitch('disable-site-isolation-trials');
 	const path = require('path');
 
 //	Startup
 
 	// if(app.requestSingleInstanceLock()) {
 	//     app.on('second-instance', (event, argv, cwd) => {
-	//         console.log(JSON.stringify(argv));
-	//         window.webContents.send('DOIT','message',JSON.stringify(argv));
+	//         console.log(JSON.stringify(argv, null, '\t'));
+	//         window.webContents.send('DOIT','message',JSON.stringify(argv, null, '\t'));
 	//     });
 	// }
 	// else {
 	//     app.quit();
 	// }
-
-//	Global Variables
-	var window, menu;
 
 //	Menu
 	//	click: function (menuItem, focusedWindow) { focusedWindow.webContents.undo(); }
@@ -38,11 +45,18 @@ const log = require('electron-log');
 		window.webContents.send('MENU',menuItem.id);
 	}
 
-	menu=[
+	menu = [
 		{
 			label: 'Document Pager',
 			submenu: [
-//                {	label: `New Document`, accelerator: 'CmdOrCtrl+N', id:'NEW', click: send },
+				{	label: `Show Documents`,  accelerator: 'CmdOrCtrl+D', id:'DOCUMENTS', click: send},
+				{	role: `quit`, accelerator: 'CmdOrCtrl+Q' }
+			]
+		},
+		{
+			label: 'File',
+			submenu: [
+				//                {	label: `New Document`, accelerator: 'CmdOrCtrl+N', id:'NEW', click: send },
 				{	label: `Open …`, accelerator: 'CmdOrCtrl+O', id:'OPEN', click: send },
 				{	label: `Reload`, accelerator: 'CmdOrCtrl+R', id:'LOAD', click: send },
 //				{	label: `Open URL …`, accelerator: 'CmdOrCtrl+Shift+O', id:'URL', click: send },
@@ -51,15 +65,11 @@ const log = require('electron-log');
 //				{	label: `Save As …`, accelerator: 'CmdOrCtrl+Shift+S', id:'SAVEAS', click: send },
 
 				{	type:'separator' },
-				{	label: `Show Documents`,  accelerator: 'CmdOrCtrl+D', id:'DOCUMENTS', click: send},
 				{	label: `Set as Favourite`, accelerator: 'CmdOrCtrl+Y', id:'FAVOURITE', click: send},
 				{	label: `Unset as Favourite`, accelerator: 'CmdOrCtrl+Shift+Y', id:'UNFAVOURITE', click: send},
 				{	type:'separator' },
 				{	label: `Print Page`,  accelerator: 'CmdOrCtrl+P', id:'PRINTPAGE', click: send},
 				{	label: `Print Document`,  accelerator: 'Shift+CmdOrCtrl+P', id:'PRINTDOCUMENT', click: send},
-
-				{	type:'separator' },
-				{	role: `quit`, accelerator: 'CmdOrCtrl+Q' }
 			]
 		},
 		{
@@ -90,14 +100,14 @@ const log = require('electron-log');
 		{
 			role: 'help',
 			submenu: [
-				{	label: 'About …', id: 'ABOUT', click: send },
-				{	label: 'Instructions …', id: 'INSTRUCTIONS', click: send },
+				{	label: 'About …', id: 'INFO', click: send },
 				{	type:'separator' },
 				{	label: 'Document Pager Home', icon: path.join(__dirname, 'images/external.png'), click: () => { shell.openExternal('https://github.com/manngo/document-pager'); } },
 				{	label: 'Internotes Pager', icon: path.join(__dirname,'images/external.png'), click: () => { shell.openExternal('https://pager.internotes.net/'); } },
 				{	id: 'debug-separator', type:'separator' },
-				{	id: 'debug-developer-tools', label: 'Show Development Tools', click: function (menuItem, focusedWindow) { window.webContents.openDevTools({mode: 'detach'}); } },
-//				{	id: 'debug-developer-tools', label: JSON.stringify(process.argv), click: function (menuItem, focusedWindow) { window.webContents.openDevTools({mode: 'detach'}); } },
+			//	{	id: 'debug-developer-tools', label: 'Show Development Tools', click: function (menuItem, focusedWindow) { window.webContents.openDevTools({mode: 'detach'}); } },
+				{	id: 'debug-developer-tools', label: 'Show Development Tools', click: function (menuItem, focusedWindow) { window.webContents.openDevTools(); } },
+//				{	id: 'debug-developer-tools', label: JSON.stringify(process.argv, null, '\t'), click: function (menuItem, focusedWindow) { window.webContents.openDevTools({mode: 'detach'}); } },
 			]
 		}
 	];
@@ -113,7 +123,8 @@ const log = require('electron-log');
 //	if(DEVELOPMENT) menu=menu.concat(developmentMenu);
 //if(DEVELOPMENT) window.webContents.openDevTools({mode: 'detach'});
 //if(process.argv.includes('debug')) window.webContents.openDevTools({mode: 'detach'});
-if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
+if(process.argv.includes('debug'))
+	menu=menu.concat(developmentMenu);
 
 //	Init
 	function init() {
@@ -123,19 +134,34 @@ if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
 			height: 800,
 			webPreferences: {
 				nodeIntegration: true,
-      			contextIsolation: false,
-      			enableRemoteModule: true,
+				contextIsolation: false,
+				enableRemoteModule: true,
 			}
 		});
 //	window.webContents.send('debug-data', process);
 
-
-	protocol.registerStringProtocol('doit',(request,callback)=>{
-//		console.log(request);
-//		console.log(callback);
-		var [dummy,action,data,more]=request.url.split(/:/);
-		window.webContents.send('DOIT',action,data,more);
-	},(error)=> {});
+	protocol.registerStringProtocol(
+		'doit',
+		(request, callback) => {
+			let [dummy, action, data, more] = request.url.split(/:/);
+			window.webContents.send('DOIT', action, data, more);
+		},
+		error => {}
+	);
+//	protocol.registerStringProtocol(
+	protocol.interceptFileProtocol(
+		'do-zip',
+	//	'file',
+		async (request, callback) => {
+			let [dummy, zipfile, path] = request.url.split(/:/);
+		//	window.webContents.send('DO-ZIP', zipfile, path);
+			let data = window.webContents.send('DO-ZIP', zipfile, path);
+		//	callback(data);
+		},
+		error => {
+			console.log(`172: ${error}`);
+		}
+	);
 
 		window.once('ready-to-show', () => {
 			window.show();
@@ -145,18 +171,18 @@ if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
 		menu=Menu.buildFromTemplate(menu);
 /*	not working for main menuy
 		menu.addListener('menu-will-show',event=>{
-			console.log(event);
+			dbug(event);
 		});
 */
 		Menu.setApplicationMenu(menu);
 
-		window.loadURL(path.join('file://', __dirname, '/index.html'));
+		window.loadURL(path.join('file://',  __dirname, '/index.html'));
 		if(DEVELOPMENT) window.webContents.openDevTools({mode: 'detach'});
 		// if(DEVELOPMENT) window.webContents.openDevTools();
 
 	//	window.webContents.setDevToolsWebContents(devtools.webContents);
 
-		window.on('closed', function () {
+		window.on('closed', () => {
 			window = null;
 		});
 	}
@@ -164,7 +190,7 @@ if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
 //	Events
 
 	app.on('ready', init);
-	app.on('window-all-closed', function () {
+	app.on('window-all-closed', () => {
 		//	if (process.platform !== 'darwin')
 		app.quit();
 	});
@@ -172,27 +198,30 @@ if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
 		if (window === null) init();
 	});
 
-//    process.argv.forEach(onOpen);
+	process.argv.forEach(av => {
+	//	window.webContents.send('CLOG',`${info}${message ? ` - ${message}` : ''}`);
+	//	window.webContents.send('CLOG',av);
+	});
 
 	app.on('open-file', onOpen);
 	app.on('open-url', onOpen);
 
 	function onOpen(path) {
 		if(!path) return;
-		console.log(JSON.stringify(arguments));
-		window.webContents.send('DOIT','open',path);
+		dbug(JSON.stringify(arguments, null, '\t'));
+		window.webContents.send('DOIT', 'open', path);
 	}
 
 //  Prompt
 	var prompt, promptResponse;
-	var promptOptions={
+	var promptOptions = {
 		message: 'Enter a URL:',
 		match: /https?:\/\//,
 		error: 'URL must begin with http:// or https://'
 	};
 
-	function doPrompt(parent,callback) {
-		prompt=new BrowserWindow({
+	function doPrompt(parent, callback) {
+		prompt = new BrowserWindow({
 //            width: 1400, height: 200,
 			width: 400,
 			frame: false,
@@ -207,33 +236,33 @@ if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
 				sandbox : false,
 			}
 		});
-		prompt.on('closed',()=>{
+		prompt.on('closed', ()=>{
 			prompt=null;
 			callback(promptResponse);
 		});
-		prompt.loadURL(`file://${path.join(__dirname,'content/prompt.html')}`);
-		prompt.once('read-to-show',()=>prompt.show());
+		prompt.loadURL(`file://${path.join(__dirname, 'content/prompt.html')}`);
+		prompt.once('read-to-show', () => prompt.show());
 	}
 
-	ipcMain.on('prompt-ok',(event,data)=>{log.info(data);});
-	ipcMain.on('prompt-ok',(event,data)=>{promptResponse=data;});
-	ipcMain.on('prompt-cancel',(event,data)=>{promptResponse=undefined;});
-	ipcMain.on('prompt-size',(event,data)=>{
+	ipcMain.on('prompt-ok', (event, data) => {log.info(data);});
+	ipcMain.on('prompt-ok', (event, data) => {promptResponse=data;});
+	ipcMain.on('prompt-cancel', (event, data) => {promptResponse=undefined;});
+	ipcMain.on('prompt-size', (event, data) => {
 		data=JSON.parse(data);
 
 		prompt.setBounds({
-//            width: data.width, height: data.height
+//			width: data.width, height: data.height
 			height: parseInt(data.height+1)
 		});
 	});
 
-	ipcMain.on('prompt-init',(event,data)=>{
-		event.returnValue=JSON.stringify(promptOptions);
+	ipcMain.on('prompt-init' , (event , data) => {
+		event.returnValue = JSON.stringify(promptOptions, null, '\t');
 	});
 
-	ipcMain.on('prompt',(event,options)=>{
-		promptOptions=options;
-		doPrompt(window,data=>event.returnValue=data);
+	ipcMain.on('prompt' , (event , options) => {
+		promptOptions = options;
+		doPrompt(window , data => {event.returnValue = data; });
 	});
 
 	// ipcMain.on('message-box',(event,data)=>{
@@ -244,18 +273,18 @@ if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
 	    dialog.showMessageBox(window,data);
 	});
 
-	ipcMain.on('open-file',(event,data)=>{
+	ipcMain.on('open-file', (event, data) => {
 		dialog.showOpenDialog(null, data).then(filePaths => {
 	    	event.sender.send('open-file-paths', filePaths);
 	    });
 	});
 
-	ipcMain.on('home',(event,options)=>{
-		var home=`${app.getPath('home')}/.document-pager`;
+	ipcMain.on('home', (event, options) => {
+		let home = `${app.getPath('home')}/.document-pager`;
 		event.returnValue = home;
 	});
 
-	ipcMain.on('init',(event,data)=>{
-		var home=`${app.getPath('home')}`;
-		event.returnValue = JSON.stringify({home});
+	ipcMain.on('init', (event, data) => {
+		var home = `${app.getPath('home')}`;
+		event.returnValue = JSON.stringify({home}, null, '\t');
 	});

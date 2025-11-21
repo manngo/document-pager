@@ -168,7 +168,7 @@
 		data=(data).split(/[,;]\s*/);
 		var i=data.length;
 
-		var options=JSON.parse(JSON.stringify(defaults||{}));
+		var options=JSON.parse(JSON.stringify(defaults||{}, null, '\t'));
 		while(i--) {
 			var option=data[i].split(/[=:]\s*/);
 			if(option[1]===undefined) option[1]=true;
