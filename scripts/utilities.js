@@ -190,7 +190,7 @@
 		data=(data).split(/[,;]\s*/);
 		var i=data.length;
 
-		var options=JSON.parse(JSON.stringify(defaults||{}));
+		var options=JSON.parse(JSON.stringify(defaults||{}, null, '\t'));
 		while(i--) {
 			var option=data[i].split(/[=:]\s*/);
 			if(option[1]===undefined) option[1]=true;
@@ -940,7 +940,7 @@
 			if(clear) this.data = data;
 			else for(let k in data) this.data[k] = data[k];
 	//		fsp.readFile(this.file)
-			return fsp.writeFile(this.file,JSON.stringify(this.data));
+			return fsp.writeFile(this.file,JSON.stringify(this.data, null, '\t'));
 		}
 	}
 

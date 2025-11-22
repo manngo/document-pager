@@ -1,5 +1,5 @@
 {
-	"version": "0.3.6",
+	"version": "0.3.7",
 	"headings": {
 		"title": "Document Pager",
 		"h1": "Document Pager",
@@ -33,7 +33,7 @@
 			"highlight": "/*!*/"
 		},
 		"markdown": {
-			"extensions": ["md","markdown","mds"],
+			"extensions": ["md","markdown","mdzip"],
 			"breaks": { "major": ["##"]}
 		},
 		"text": {

@@ -4,6 +4,18 @@
 
 	'use strict';
 
+	const { openZip } = require('../scripts/dozip.js');
+
+	function dbug(message) {
+		let error = new Error();
+		let [dummy, file, line, column] = [...error.stack.matchAll(/\n *at (.*?) \(.*:(.*?):(.*)\)/g)][1];
+		let info = `${file}: ${line}`;
+		console.log(info, message ? message : '');
+	}
+
+dbug();
+dbug('hello');
+
 /**	Drag & Drop … ?
 	================================================ */
 
@@ -32,12 +44,14 @@
 			for(let key in this) if(this.hasOwnProperty(key)) yield this[key];
 		}
 	};
-
+dbug(51)
 /**	Requires
 	================================================ */
 
 	const electron = require('electron');
-	const { ipcRenderer,  } = electron;
+	const { ipcRenderer } = electron;
+
+
 
 	ipcRenderer.on('debug-data', (event,result) => {
 		console.log(result);
@@ -70,14 +84,15 @@
 	================================================ */
 
 	var renderer = new marked.Renderer();
-	renderer.paragraph = function(text) {
-		var pattern = /^(#+)(.*?)(\.(.*?))?(\s+(.*?))?$/;
-		var parts = text.match(pattern);
+	renderer.paragraph = function(tokens) {
+		let pattern = /^(#+)(.*?)(\.(.*?))?(\s+(.*?))?$/;
+		let text = tokens.text;
+		let parts = text.match(pattern);
 		if(parts) {
-			var id = parts[2]?` id="${parts[2]}"`:'';
-			var className = parts[4]?` class="${parts[4]}"`:'';
-			var level = parts[1].length;
-			var content = parts[6]||'';
+			let id = parts[2]?` id="${parts[2]}"`:'';
+			let className = parts[4]?` class="${parts[4]}"`:'';
+			let level = parts[1].length;
+			letcontent = parts[6]||'';
 			return `<h${level}${id}${className}>${content}</h${level}>`;
 		}
 		else return marked.parse(text);
@@ -86,18 +101,6 @@
 /**	Support Functions
 	================================================
 	================================================ */
-
-	function load(theDocument) {
-		return new Promise((resolve, reject) => {
-			if(!theDocument) return;
-			fsp
-			.readFile(theDocument)
-			.then(data => {
-				data = data.toString();
-				resolve(data);
-			});
-		});
-	}
 
 /**	Pager
 	================================================
@@ -112,10 +115,11 @@
 	var stateJSON = `${settingsDir}/state.json`, state={};
 
 	var rearrangeableTabs = new jx.Rearrangeable('h', 'tabgroup');
-
+	var zipFiles = {};
+dbug('before init')
 //	Main
 	init();
-
+dbug('after init')
 	function init() {
 
 		//	Toggle Documents Headings
@@ -137,12 +141,12 @@
 			li.forEach(i => {
 				i.onclick = doDocumentsTab;
 			});
-
+dbug('before promise')
 		//	Settings
 			var promise=
 
 			//	Default Settings
-				load(path.join(cwd, '/settings.json'))
+				fsp.readFile(path.join(cwd, '/settings.json'), 'utf-8')
 				.then(data => {
 					settings = JSON.parse(data);
 				})
@@ -157,7 +161,7 @@
 				.then(() => fsp.readFile(languagesJSON))
 				.then(data => {
 					languages = JSON.parse(data);
-					Object.keys(languages).forEach(l=> {
+					Object.keys(languages).forEach(l => {
 						settings.languages[l] = languages[l];
 /*
 						if(!settings.languages[l]) settings.languages[l] = languages[l];
@@ -179,43 +183,46 @@
 */
 				});
 
-					extensions={};
-					Object.keys(settings.languages).forEach(l=>{
-						settings.languages[l].extensions.forEach(e=>extensions[e]=l);
+					extensions = {};
+					Object.keys(settings.languages).forEach(l => {
+						settings.languages[l].extensions.forEach(e => {extensions[e] = l; });
 					});
 				})
 
 			//	Details
-				.then(() => documentTitle = settings.headings.title+' '+settings.version)
+				.then(() => {documentTitle = `${settings.headings.title} ${settings.version}`;})
 
 			//	About
 				.then(() => {
 					pseudoFiles.push(path.join(cwd, '/README.md'));
-					return openFile(path.join(cwd, '/README.md'));
+					return openFile(path.join(cwd, '/README.md'), {title: 'About …'});
 				})
 
 			//	Files
 				.then(() => fs.promises.stat(filesJSON))
-				.catch((error) => fs.promises.writeFile(filesJSON, `{"current":[],"recent":[],"favourites":[]}${eol}`))
+				.catch((error) => fs.promises.writeFile(filesJSON, `{"current": [], "recent": [], "favourites": []}${eol}`))
 				.then(() => fs.promises.readFile(filesJSON))
 				.then(data => {
 					try {
 						files = JSON.parse(data);
 					} catch(error) {
-						files = {"current":[],"recent":[],"favourites":[]};
+						files = {"current": [], "recent": [], "favourites": []};
 					}
-					//	Migrate favorites to favourites
-						if(!files.favourites) {
-							if(files.favorites) {
-								files.favourites = files.favorites.slice();
-								delete files.favorites;
-							}
-							else files.favourites = {};
-							updateFiles();
-						}
+					//	Migrate files JSON
+						files.current = files.current.map(f => {
+							return typeof f == 'string' ? {path: f, title: path.basename(f)} : f;
+						});
+						files.recent = files.current.map(f => {
+							return typeof f == 'string' ? {path: f, title: path.basename(f)} : f;
+						});
+						files.favourites = files.current.map(f => {
+							return typeof f == 'string' ? {path: f, title: path.basename(f)} : f;
+						});
+
+						updateFiles();
 					//	Current Files
 						if(files.current) files.current.forEach(v => {
-							openFile(v);
+							openFile(v.path, {title: v.title});
 						});
 					//	Recent Files List
 						updateDocuments();
@@ -223,8 +230,12 @@
 
 			//	State
 				.then(() => fs.promises.stat(stateJSON))
-				.catch(error => fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120,"default-path":"${home}","index-open-all":false, "content-ruled":true}${eol}`))
+				.catch(error => {
+dbug(error)
+					fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120,"default-path":"${home}","index-open-all":false, "content-ruled":true}${eol}`)
+				})
 				.then(() => fs.promises.readFile(stateJSON))
+				.catch(() => {dbug('no state');})
 				.then(data => {
 					state = JSON.parse(data);
 					state['index-open-all'] = !!state['index-open-all'];
@@ -239,6 +250,7 @@
 					//	Index
 						if(state['index-width']) document.querySelector('div#index').style.width=`${state['index-width']}px`;
 				})
+				.catch(() => {dbug('no data');})
 
 			//	Theme
 			.then(() => fs.promises.stat(`${settingsDir}/content.css`))
@@ -253,13 +265,11 @@
 
 		if(DEVELOPMENT)
 			promise
-//			.then(()=>openURL('https://pager.internotes.net/content/mssql-techniques.sql',true))
 			.then(() => {
 				pseudoFiles.push(path.join(cwd, 'data/exercises.sql'));
-				return openFile(path.join(cwd, 'data/exercises.sql'));
+				return openFile(path.join(cwd, 'data/exercises.sql'), {});
 			})
 			.then(() => tabs[0].click())
-//			.then(() => console.log('hello'))
 			;
 	}	//	End init()
 
@@ -273,7 +283,7 @@
 			if (tabs.length) tabs.forEach((tab,index) => {
 				var pathName;
 				if((pathName = `${tab.data.path}/${tab.data.fileName}`) == fileName) {
-					result = {index,tab,pathName};
+					result = {index, tab, pathName};
 				}
 			});
 			return result;
@@ -281,7 +291,7 @@
 
 	//	Update state.json
 		function updateState() {
-			fs.promises.writeFile(stateJSON, JSON.stringify(state));
+			fs.promises.writeFile(stateJSON, JSON.stringify(state), null, '\t');
 		}
 
 	//	Update files.json
@@ -289,29 +299,41 @@
 		function updateFiles(data) {
 			if(data) switch(data.action) {
 				case 'add-current':
-					if(!files.current.includes(data.pathName))  files.current.push(data.pathName);
+				//	if(!files.current.includes(data.pathName)) files.current.push(data.pathName);
+					if(!files.current.map(f => f.path).includes(data.pathName))
+						files.current.push({path: data.pathName, title: data.title});
 					break;
 				case 'remove-current':
-					files.current=files.current.filter(value=>value!=data.pathName);
+					files.current = files.current.filter(value => value.path != data.pathName);
 					break;
 				case 'add-recent':
-					if(!files.recent.includes(data.pathName))  files.recent.push(data.pathName);
+				//	if(!files.recent.includes(data.pathName)) files.recent.push(data.pathName);
+					if(!files.recent.map(f => f.path).includes(data.pathName))
+						files.recent.push({path: data.pathName, title: data.title});
 					if(files.recent.length>16) files.recent.shift();
 					break;
 				case 'remove-recent':
-					files.recent=files.recent.filter(value=>value!=data.pathName);
+					files.recent = files.recent.filter(value => value.path != data.pathName);
 					break;
 				case 'add-favourite':
-					if(!files.favourites.includes(data.pathName)) files.favourites.push(data.pathName);
+				//	if(!files.favourites.includes(data.pathName)) files.favourites.push(data.pathName);
+					if(!files.favourites.map(f => f.path).includes(data.pathName))
+						files.favourites.push({path: data.pathName, title: data.title});
 					break;
 				case 'remove-favourite':
-					files.favourites=files.favourites.filter(value=>value!=data.pathName);
+					files.favourites = files.favourites.filter(value => value.path != data.pathName);
+					break;
+				case 'change-title':
+				//	files.favourites = files.favourites.filter(value => value != data.pathName);
+					files.current.filter(f => f.path == data.pathName)[0].title = data.title;
+					files.recent.filter(f => f.path == data.pathName)[0].title = data.title;
+					files.favourites.filter(f => f.path == data.pathName)[0].title = data.title;
 					break;
 			}
-			fs.promises.writeFile(filesJSON,JSON.stringify(files));
+
+			fs.promises.writeFile(filesJSON,JSON.stringify(files, null, '\t'));
 			updateDocuments();
 		}
-
 
 	//	Documents Lists
 		function updateDocuments() {
@@ -326,10 +348,10 @@
 				if(files.recent) {
 					files.recent.forEach(v => {
 						let li = document.createElement('li');
-						let name = path.basename(v);
+						let {filepath, title} = {filepath: v.path, title: `${v.title}${v.title==path.basename(v.path) ? '' : ` - ${path.basename(v.path)}`}`};
 
-						li.innerHTML = `${name}<button>×</button>`;
-						li.href = v;
+						li.innerHTML = `${title}<button>×</button>`;
+						li.href = filepath;
 						li.onclick = doRecent;
 
 						recent.appendChild(li);
@@ -345,7 +367,7 @@
 							updateFiles({'action':'remove-recent','pathName':href});
 							break;
 						default:
-							openFile(href,true);
+							openFile(href, {remember: true});
 					}
 				}
 
@@ -358,11 +380,12 @@
 				});
 
 				if(files.current) {
-					files.current.forEach(v=>{
-						let li=document.createElement('li');
-						let name=path.basename(v);
-						li.innerHTML=`${name}`;
-						li.href = v;
+					files.current.forEach(v => {
+						let {filepath, title} = {filepath: v.path, title: `${v.title}${v.title==path.basename(v.path) ? '' : ` - ${path.basename(v.path)}`}`};
+
+						let li = document.createElement('li');
+						li.innerHTML = title;
+						li.href = filepath;
 						li.onclick = doCurrent;
 						open.appendChild(li);
 					});
@@ -377,11 +400,12 @@
 
 			//	favourite Files
 				if(files.favourites) {
-					files.favourites.forEach(v=>{
+					files.favourites.forEach(v => {
 						let li=document.createElement('li');
-						let name=path.basename(v);
-						li.innerHTML=`${name}<button>×</button>`;
-						li.href = v;
+						let {filepath, title} = {filepath: v.path, title: `${v.title}${v.title==path.basename(v.path) ? '' : ` - ${path.basename(v.path)}`}`};
+
+						li.innerHTML=`${title}<button>×</button>`;
+						li.href = filepath;
 						li.onclick = doFavourite;
 						favourites.appendChild(li);
 					});
@@ -396,7 +420,7 @@
 							updateFiles({'action':'remove-favourite','pathName':href});
 							break;
 						default:
-							openFile(href,true);
+							openFile(href, {remember: true});
 					}
 				}
 		}
@@ -495,7 +519,7 @@
 		};
 
 		function doFullScreenKeys(event) {
-			console.log(event.key);
+		//	console.log(event.key);
 			switch(event.key) {
 				case 'Escape':
 					elements.fullCSS.disabled=true;
@@ -518,7 +542,7 @@
 
 		jx.contentEditable(elements.codeElement, true);
 		elements.codeElement.onblur = event => {
-			console.log('blur');
+		//	console.log('blur');
 		};
 
 		elements.mdElement.addEventListener('click', event => {
@@ -601,23 +625,23 @@
 	fs.stat
 	================================================ */
 
-	function addDocument(text,language,fileName,path,css,extension) {
-		var tab=document.createElement('li');
+	function addDocument(text, {language, fileName, path, css, extension, title, zip=undefined}) {
+		var tab = document.createElement('li');
 			// var css='';
-			tab.textContent=fileName;
+			tab.innerHTML = `<span>${title ?? fileName}</span>`;
 			// if(language=='markdown') var css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
 
-			tab.data={text, language, fileName, path, item: 0, highlighted: 1 , css, extension, indexStatus: []};
-			tab.onclick=doTab;
+			tab.data = {text, language, fileName, path, item: 0, highlighted: 1 , css, extension, indexStatus: [], zip};
+			tab.onclick = doTab;
 
-		var close=document.createElement('button');
-			close.innerHTML='×';
-			close.onclick=closeTab.bind(tab,tab);
-			close.className='tab-close';
-		var refresh=document.createElement('button');
-			refresh.innerHTML='↻';
-			refresh.onclick=refreshTab.bind(tab);
-			refresh.className='tab-refresh';
+		var close = document.createElement('button');
+			close.innerHTML = '×';
+			close.onclick = closeTab.bind(tab,tab);
+			close.className = 'tab-close';
+		var refresh = document.createElement('button');
+			refresh.innerHTML = '↻';
+			refresh.onclick = refreshTab.bind(tab);
+			refresh.className = 'tab-refresh';
 
 		//	Add to DOM
 			tab.appendChild(close);
@@ -634,10 +658,51 @@
 			rearrangeableTabs.add(tab);
 
 		function doTab(event) {
-			if(currentTab !== undefined) currentTab.classList.remove('selected');
-			currentTab = event.target;
-			currentTab.classList.add('selected');
-			doPager(event.target.data);
+			if(event.altKey) {
+				let thisTitle = event.target;
+				let thisTab = event.currentTarget;
+				let content = thisTitle.textContent;
+				thisTitle.contentEditable = 'plaintext-only';
+
+				var range = document.createRange();
+				var selection = window.getSelection();
+				range.setStart(thisTitle, 0);
+				range.setEnd(thisTitle, thisTitle.childNodes.length);
+				selection.removeAllRanges();
+				selection.addRange(range);
+
+				thisTitle.onblur = event => {
+					event.preventDefault();
+					thisTitle.textContent = content;
+					thisTitle.contentEditable = false;
+					thisTitle.onblur = undefined;
+				};
+
+				thisTitle.onkeydown = event => {
+					if(event.key=='Enter') {
+						event.preventDefault();
+						thisTitle.onblur = undefined;
+						thisTitle.contentEditable = false;
+					//	console.log(thisTab);
+						if(!thisTitle.textContent) thisTitle.textContent = content;
+						else updateFiles({'action': 'change-title', pathName: `${thisTab.data.path}/${thisTab.data.fileName}`, title: thisTitle.textContent});
+					}
+					else if(event.key=='Escape') {
+						event.preventDefault();
+						thisTitle.onblur = undefined;
+						thisTitle.contentEditable = false;
+						thisTitle.textContent = content;
+					}
+				}
+
+dbug();
+			}
+			else {
+				if(currentTab !== undefined) currentTab.classList.remove('selected');
+				currentTab = event.currentTarget;
+				currentTab.classList.add('selected');
+				doPager(event.currentTarget.data);
+			}
 		}
 	}
 
@@ -646,8 +711,9 @@
 	================================================ */
 
 	function refreshTab(event) {
-		var file=`${currentTab.data.path}/${currentTab.data.fileName}`;
-		load(file).then(text=>currentTab.data.text=text).then(()=>currentTab.click());
+		fsp.readFile(`${currentTab.data.path}/${currentTab.data.fileName}`, 'utf-8')
+		.then(text => { currentTab.data.text = text; })
+		.then(() => { currentTab.click(); });
 	}
 
 /**	closeTab
@@ -656,30 +722,35 @@
 
 	function closeTab(tab, event) {
 		if(!this) return;
-		tabs=tabs.filter(value=>value!=tab);
-		var path=`${this.data.path}/${this.data.fileName}`;
+		let zip = tab.data.zip;
+		if (zip) for(let f in zipFiles[tab.data.zip].directory) {
+			URL.revokeObjectURL(zipFiles[zip].directory[f].blobURL);
+		}
+
+		tabs = tabs.filter(value => value != tab);
+		var path = `${this.data.path}/${this.data.fileName}`;
 		//	var path=`${tab.data.path}/${tab.data.fileName}`;
 		updateFiles({'action': 'remove-current', 'pathName': `${this.data.path}/${this.data.fileName}`});
 
-		var sibling=this.previousElementSibling||this.nextElementSibling||undefined;
+		var sibling = this.previousElementSibling || this.nextElementSibling || undefined;
 		//	var sibling=tab.previousElementSibling||tab.nextElementSibling||undefined;
 		elements.tabPane.removeChild(this);
 		//	elements.tabPane.removeChild(tab);
 //		if(tab==currentTab) {
-			currentTab=undefined;
+			currentTab = undefined;
 			if(sibling) sibling.click();
 			else {
-				elements.indexUL.innerHTML='';
-				elements.codeElement.innerHTML='';
-				document.title=documentTitle;
+				elements.indexUL.innerHTML = '';
+				elements.codeElement.innerHTML = '';
+				document.title = documentTitle;
 //				elements.h1.innerHTML=settings.headings.h1+' '+settings.version;
-				elements.contentHeading.innerHTML=settings.headings.content;
-				elements.indexHeading.innerHTML=settings.headings.index;
+				elements.contentHeading.innerHTML = settings.headings.content;
+				elements.indexHeading.innerHTML = settings.headings.index;
 
 				elements.contentDiv.classList.add('empty');
 			}
 //		}
-		if(event) event.stopPropagation();
+		event?.stopPropagation();
 	}
 
 /**	doPager
@@ -691,50 +762,55 @@
 			var br, major, minor, highlight;
 			var headingsRE, headingMajor, headingMinor, headingMiniscule, RE;
 			//	Heading Regular Expressions:
-				var breaks=settings.languages[data.language].breaks;
-				var literals=/[-\/\\^$*+.()|[\]{}]/g;
+				var breaks = settings.languages[data.language].breaks;
+				var literals = /[-\/\\^$*+.()|[\]{}]/g;
 				var lineHighlight = settings.languages[data.language].highlight;
 			//	Breaks
 				if(Array.isArray(breaks.major)) {
-					major=[];
-					breaks.major.forEach((value,i)=>major[i]=value.replace(literals,'\\$&'));
-					major=major.join('|');
+					major = [];
+					breaks.major.forEach((value, i) => {
+						major[i] = value.replace(literals,'\\$&');
+					});
+					major = major.join('|');
 				}
-				else major=breaks.major.replace(literals,'\\$&');
+				else major = breaks.major.replace(literals,'\\$&');
 				if(breaks.minor) {
 					if(Array.isArray(breaks.minor)) {
-						minor=[];
-						breaks.minor.forEach((value,i)=>minor[i]=value.replace(literals,'\\$&'));
-						minor=minor.join('|');
+						minor = [];
+						breaks.minor.forEach((value,i) => {
+							minor[i] = value.replace(literals,'\\$&');
+						});
+						minor = minor.join('|');
 					}
-					else minor=breaks.minor.replace(literals,'\\$&');
+					else minor = breaks.minor.replace(literals,'\\$&');
 				}
-				else minor=null;
-				data.br=`${major}\\s+|${minor}\\s+`;
-				data.br=`[\\r\\n]${major}\\s+|${minor}[^\\S\\r\\n]+`;	//	data.br = '[\\r\\n]\\/\\*\\*\\s+|\\/\\*[^\\S\\r\\n]+'
+				else minor = null;
+
+				data.br = `${major}\\s+|${minor}\\s+`;
+				data.br = `[\\r\\n]${major}\\s+|${minor}[^\\S\\r\\n]+`;	//	data.br = '[\\r\\n]\\/\\*\\*\\s+|\\/\\*[^\\S\\r\\n]+'
 				//	Break Regular Expressions
 
 //					headingsRE=new RegExp(`(?:\\n\\s*)(?=${data.br})`);
 //					headingsRE=new RegExp(`(?:\\n)(?=\\s*(${data.br}))`);
-					headingsRE=new RegExp(`(?:\\n)(?=(?:${minor}|${major}))`);
+					headingsRE = new RegExp(`(?:\\n)(?=(?:${minor}|${major}))`);
 					//	headingsRE = new Regexp(`(?:\\n)`)	//	/(?:\n)(?=(?:\/\*|\/\*\*))/
 
-					headingMajor=new RegExp(`^(\\s*)(${major})\\s+(.*?)\\r?\\n`);
-					headingMinor=new RegExp(`^(\\s*)(${minor})\\s+(.*?)\\r?\\n`);
+					headingMajor = new RegExp(`^(\\s*)(${major})\\s+(.*?)\\r?\\n`);
+					headingMinor = new RegExp(`^(\\s*)(${minor})\\s+(.*?)\\r?\\n`);
 
 					//	Special Case: Markdown
 
-						if(data.language=='markdown') {
-							headingsRE=/(?:\n)(?=#{1,3}[^#])/;
-							headingMajor=/^(\s*)(##[^#]*?)\s+(.*)/m;
-							headingMajor=/^(\s*)(#[^#]*?)\s+(.*)/m;
-							headingMinor=/^(\s*)(#{2,3}[^#]*?)\s+(.*)/m;
-							headingMiniscule=/^(\s*)(###[^#]*?)\s+(.*)/m;
+						if(data.language == 'markdown') {
+							headingsRE = /(?:\n)(?=#{1,3}[^#])/;
+							headingMajor = /^(\s*)(##[^#]*?)\s+(.*)/m;
+							headingMajor = /^(\s*)(#[^#]*?)\s+(.*)/m;
+							headingMinor = /^(\s*)(#{2,3}[^#]*?)\s+(.*)/m;
+							headingMiniscule = /^(\s*)(###[^#]*?)\s+(.*)/m;
 						}
 
 		//	Document Info Footer
-			elements.indexHeading.innerHTML=data.fileName;
-			elements.footerHeading.innerHTML=`Breaks: ${data.br}`;
+			elements.indexHeading.innerHTML = data.fileName;
+			elements.footerHeading.innerHTML = `Breaks: ${data.br}`;
 
 		//	Variables
 			let selected = null;
@@ -774,7 +850,7 @@
 					RE = value.match(headingMajor);
 					if(RE && RE[3]) {		//	Major Heading
 						nested = false;
-						title=RE[3];
+						title = RE[3];
 					}
 					else {
 						RE = value.match(headingMinor);
@@ -783,16 +859,19 @@
 								nested = true;
 								elements.indexUL.appendChild(li);
 
-								if(state['index-open-all']) previous.classList.add('open');
-								var button = document.createElement('button');
-									button.innerHTML = '›';
-									button.onclick = toggleHeading;
-								previous.insertAdjacentElement('afterbegin',button);
+								if(previous) {
+									if(state['index-open-all']) previous.classList.add('open');
+									var button = document.createElement('button');
+										button.innerHTML = '›';
+										button.onclick = toggleHeading;
 
-								previous.ondblclick = toggleHeading;
+									previous.insertAdjacentElement('afterbegin',button);
 
-								ul = document.createElement('ul');
-								previous.appendChild(ul);
+									previous.ondblclick = toggleHeading;
+
+									ul = document.createElement('ul');
+									previous.appendChild(ul);
+								}
 							}
 							title = RE[3];
 						}
@@ -801,7 +880,7 @@
 
 					if(!title.length) return;
 
-					li.insertAdjacentHTML('beforeend',`<span>${title}</span>`);
+					li.insertAdjacentHTML('beforeend', `<span>${title}</span>`);
 					if(data.language == 'markdown' && value.match(headingMiniscule)) li.classList.add('subtitle');
 					li.next=li.previous = undefined;
 					if(previous) {
@@ -815,8 +894,8 @@
 					if(RE[1]) {
 						var lines = value.split(/\r?\n/);
 						var indent = new RegExp(`^${RE[1]}`);
-						lines.forEach((v,i,a) => {
-							a[i]=v.replace(indent,'');
+						lines.forEach((v, i, a) => {
+							a[i] = v.replace(indent, '');
 						});
 						value = lines.join('\n');
 					}
@@ -830,9 +909,9 @@
 					li.onclick = loadItem;
 
 
-					if(nested) ul.appendChild(li);
+					if(nested) ul?.appendChild(li);
 					else elements.indexUL.appendChild(li);
-					if(i==data.item) selected = li;
+					if(i == data.item) selected = li;
 					previous = li;
 
 					if(!selected) selected = li;
@@ -851,7 +930,7 @@
 
 				if(selected) selected.click();
 			}
-			else showItem(data.text,data.fileName,true);
+			else showItem(data.text, data.fileName, true);
 
 	//	Not Empty
 		elements.contentDiv.classList.remove('empty');
@@ -889,12 +968,12 @@
 
 		}
 
-		function showItem(item, title, doHighlight) {
+		async function showItem(item, title, doHighlight) {
 			elements.footerFile.innerHTML = `${data.path}/${data.fileName}`;
 			elements.footerLanguage.innerHTML = `Language: ${data.language}`;
 			elements.iframeBody.classList.remove('markdown');
 
-			var language=['js','javascript','sql','php'].indexOf(data.language)>-1;
+			var language = ['js', 'javascript', 'sql', 'php'].indexOf(data.language)>-1;
 			elements.codeElement.textContent = item;
 
 			elements.codeElement.classList.forEach(className => {
@@ -913,14 +992,27 @@
 				else {
 					var div=document.createElement('div');
 
-					var innerHTML=marked.parse(item,{baseUrl: `${data.path}/${data.fileName}`, renderer});
+				//	var innerHTML=marked.parse(item,{baseUrl: `${data.path}/${data.fileName}`, renderer});
+					var innerHTML = marked.parse(item);
 
-					innerHTML=innerHTML.replace(/<img(.*?)src="(.*)"(.*?)>/g,function(match,p1,p2,p3,offset,string) {
-						if (p2.match(/^https?:\/\//) || p2.startsWith('/') || p2.match(/^[A-Z]:\//)) return `<img${p1}src="${p2}"${p3}>`;
-						else return `<img${p1}src="${currentTab.data.path}/${p2.replace(/^\//,'')}"${p3}>`;
+					innerHTML = innerHTML.replace(/<img(.*?)src="(.*?)"(.*?)>/g, (match, p1, p2, p3, offset, string) => {
+						if (p2.match(/^https?:\/\//) || p2.startsWith('/') || p2.match(/^[A-Z]:\//))
+							return `<img${p1}src="${p2}"${p3}>`;
+						else {
+							if(data.zip) {
+							//	let blobData = await zipFiles[data.zip].directory[`${zipFiles[data.zip].root}/${p2}`].file.buffer();
+							//	let blob = new Blob([blobData], { type: 'image/png' });
+							//	let blobURL = URL.createObjectURL(blob);
+
+						//		return `<img${p1}src="blob:do-zip:${data.zip}:${p2.replace(/^\//,'')}"${p3}>`;		//	data = data.replaceAll(/src="(?!https?:)(.*)"/g, 'src="do-zip:zipfile-tba$1"');
+								return `<img${p1}src="${zipFiles[data.zip].directory[`${zipFiles[data.zip].root}/${p2}`].blobURL}"${p3}>`;
+							}
+						//	if(data.zip) return `<img${p1}src="${data.zip}:${p2.replace(/^\//,'')}"${p3}>`;		//	data = data.replaceAll(/src="(?!https?:)(.*)"/g, 'src="do-zip:zipfile-tba$1"');
+							else return `<img${p1}src="${currentTab.data.path}/${p2.replace(/^\//,'')}"${p3}>`;
+						}
 					});
 
-					div.innerHTML=innerHTML;
+					div.innerHTML = innerHTML;
 
 	//				var doEtc = false;	if(doEtc)
 					div.querySelectorAll('pre').forEach(pre=>{
@@ -1008,79 +1100,101 @@
 	}
 
 	function pathDetails(uri) {
-		uri=normalize(uri);
+		uri = normalize(uri);
 		var path, fileName, extension, css;
 
-		path=uri.split('/');
-		fileName=path.pop();
-		path=path.join('/');
-		extension=fileName.split('.').pop();
-		css='';
+		path = uri.split('/');
+		fileName = path.pop();
+		path = path.join('/');
+		extension = fileName.split('.').pop();
+		css = '';
 		// if(extensions[extension]=='markdown') css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
 		//	if(extensions[extension]=='markdown') css=`${path}/styles.css`;
-		if(extensions[extension]=='markdown') css=`${path}/${fileName.replace(/\..*$/,'')}.css`;
+		if(extensions[extension] == 'markdown') css = `${path}/${fileName.replace(/\..*$/,'')}.css`;
 
-		return {path,fileName,extension,css};
+		return { path, fileName, extension, css};
 	}
 
-	function openFile(fileName,remember=false) {
-		var {index,tab}=getTab(fileName);
+	function openFile(fileName, {remember=false, title}) {
+		var {index, tab} = getTab(fileName);
 		if(index>-1) {
 			tab.click();
 			return;
 		}
-console.log(fileName);
-		var result=null;
-		if(fileName.match(/^https?:\/\//)) result=openURL(fileName,remember);
-		else result=openPath(fileName,remember);
+
+		var result = null;
+		if(fileName.match(/^https?:\/\//)) result = openURL(fileName, remember);
+		else result = openPath(fileName, {remember, title});
 		return result;
 
 		function virtualDocument(pathName) {
-			var {path,fileName,extension,css}=pathDetails(pathName);
+			var { path, fileName, extension, css } = pathDetails(pathName);
 			fsp.stat(pathName)
-			.then(()=>{
-				console.log(pathName);
-				return load(`${path}/${fileName}`);
-			})
-			.then(data=>{
-				data=JSON.parse(data);
-				var md=[];
+			.then(() => fps.readFile(`${path}/${fileName}`, 'utf-8'))
+			.then(data => {
+				data = JSON.parse(data);
+				var md = [];
 				fetch(data.data.url)
-				.then(response=>{
-					console.log(response);
-					return response.json();
-				})
-				.then(images=>{
-					images.forEach(image=>{
+				.then(response => response.json())
+				.then(images => {
+					images.forEach(image => {
 						md.push(`#\t${image.title}`);
 						md.push(`![${image.title}](https://javascript101.webcraft101.com/images/slides/${image.src})`);
 					});
 					data = md.join('\n\n');
-					addDocument(data,extensions['md'],fileName,path,'','md');
+				//	{language, fileName, path, css, extension, title, zip=undefined}
+					addDocument(data, {language: extensions['md'], fileName, path, css: '', extension: 'md'});
+				//	addDocument(data, extensions['md'], fileName, path, '', 'md');
 				});
-
-//					doSlides(images,'div#slides');
-				});
+			});
 		}
 
-		function openPath(pathName,remember=false) {
-			var {path,fileName,extension,css}=pathDetails(pathName);
-			if(extension=='dpf') return virtualDocument(pathName);
+		async function zipDocument(pathName, title) {
+			let { path, fileName, extension, css } = pathDetails(pathName);
+			//	let zip, directory, data, root;
+			zipFiles[pathName] = await openZip(pathName);
+			let { zip, directory, root } = zipFiles[pathName];
+			let data = await directory[`${root}/${root}.md`].file.buffer();
+			data = data.toString();
+			//	![Paintings JOIN Artists](images/6-2-paintings-inner-join-artists.png)
+
+
+		//	css = await directory[`${root}/${root}.css`].file.buffer();
+		//	css = css.toString();
+
+			css = await directory[`${root}/${root}.css`].blobURL;
+
+		//	{language, fileName, path, css, extension, title, zip=undefined}
+			addDocument(data, {language: extensions['md'], fileName, path, css, extension: 'md', zip: pathName, title});
+		//	addDocument(data, extensions['md'], fileName, path, css, 'md', pathName);
+			updateDocuments();
+			if(!remember) return;
+			updateFiles({'action': 'add-current', pathName});
+			updateFiles({'action': 'add-recent', pathName});
+		}
+
+		function openPath(pathName, {remember=false, title}) {
+			let { path, fileName, extension, css } = pathDetails(pathName);
+			if(extension == 'dpf') return virtualDocument(pathName);
+			if(['zip', 'mdzip'].includes(extension)) return zipDocument(pathName, title);
 			return fsp.stat(pathName)
-			.then(()=>{
+			.then(() => {
 //				var {path,fileName,extension,css}=pathDetails(pathName);
-				return fsp.stat(css).catch(()=>css='')
-				.then(()=>load(`${path}/${fileName}`))
-				.then(data=> {
-					addDocument(data,extensions[extension],fileName,path,css,extension);
+				return fsp.stat(css)
+				.catch(() => { css = ''; })
+				.then(() => fsp.readFile(`${path}/${fileName}`, 'utf-8'))
+				.then(data => {
+				//	{language, fileName, path, css, extension, title, zip=undefined}
+					addDocument(data, {language: extensions[extension], fileName, path, css, extension, title});
+				//	addDocument(data, extensions[extension], fileName, path, css, extension);
 				})
-				.then(()=>{
+				.then(() => {
 					updateDocuments();
 					if(!remember) return;
-					updateFiles({'action':'add-current',pathName});
-					updateFiles({'action':'add-recent',pathName});
+					updateFiles({'action': 'add-current', pathName, title});
+					updateFiles({'action': 'add-recent', pathName, title});
 				})
-				.catch(error=>{console.log(error);});
+				.catch(error => { console.log(error); });
 			})
 			.catch(error=>{
 				//	Error
@@ -1093,7 +1207,7 @@ console.log(fileName);
 						//	Remove from Current & Recent
 							files.current=files.current.filter(value=>value!=pathName);
 							files.recent=files.recent.filter(value=>value!=pathName);
-							fs.promises.writeFile(filesJSON,JSON.stringify(files,null,'\t'));
+							fs.promises.writeFile(filesJSON, JSON.stringify(files, null, '\t'));
 					});
 			});
 		}
@@ -1102,7 +1216,7 @@ console.log(fileName);
 			var data;
 			var promise, cancelled=false;
 
-			var {path,fileName,extension,css}=pathDetails(url);
+			var { path, fileName, extension, css } = pathDetails(url);
 
 	//		fetch('https://pager.internotes.net/content/mssql-techniques.sql')
 			promise=fetch(url)
@@ -1119,7 +1233,7 @@ console.log(fileName);
 					console.log(error);
 					cancelled=true;
 					files.current=files.current.filter(value=>value!=url);
-					fs.promises.writeFile(filesJSON,JSON.stringify(files));
+					fs.promises.writeFile(filesJSON,JSON.stringify(files, null, '\t'));
 				});
 			})
 			.then((text)=>{
@@ -1132,13 +1246,15 @@ console.log(fileName);
 			})
 			.then((text)=>{
 				if(cancelled) return;
-				addDocument(data,extensions[extension],fileName,path,css,extension);
+			//	{language, fileName, path, css, extension, title, zip=undefined}
+				addDocument(data, {language: extensions[extension], fileName, path, css, extension});
+			//	addDocument(data,extensions[extension],fileName,path,css,extension);
 			})
 			.then(()=>{
 				if(cancelled || !remember) return;
 				if(!files.current.includes(url)) {
 					files.current.push(url);
-					fs.promises.writeFile(filesJSON,JSON.stringify(files));
+					fs.promises.writeFile(filesJSON,JSON.stringify(files, null, '\t'));
 				}
 			});
 			return promise;
@@ -1165,14 +1281,14 @@ console.log(fileName);
 		let content = elements.iframe.document.querySelector('div#main-content');
 		while(content.children.length>1) content.lastChild.remove();
 		elements.indexUL.querySelectorAll('li').forEach(li => {
-		    let div = document.createElement('div');
-		    div.innerHTML = '<code class="language-none">Content</code>';
-		    content.append(div);
-		    let code = div.querySelector('code');
-		    code.innerHTML = Prism.highlight(li.item, Prism.languages[currentTab.data.language], currentTab.data.language);
-		    jx.addLineNumbers(code);
-		    code.resetLineNumbers();
-		    code.classList.add(`language-${currentTab.data.language}`);
+			let div = document.createElement('div');
+			div.innerHTML = '<code class="language-none">Content</code>';
+			content.append(div);
+			let code = div.querySelector('code');
+			code.innerHTML = Prism.highlight(li.item, Prism.languages[currentTab.data.language], currentTab.data.language);
+			jx.addLineNumbers(code);
+			code.resetLineNumbers();
+			code.classList.add(`language-${currentTab.data.language}`);
 		});
 		content.children[0].style['display'] = 'none';
 		elements.iframe.print();
@@ -1185,16 +1301,37 @@ console.log(fileName);
 
 //	IPC
 
-	ipcRenderer.on('DOIT',(event,action,data,more)=>{
+ipcRenderer.on('DO-ZIP', async (event, zipfile, path) => {
+//	ipcRenderer.on('file', async (event, zipfile, path) => {
+	console.log(`${zipfile} : ${path}`);
+	let data = await zipFiles[zipfile].directory[`${zipFiles[zipfile].root}/${path}`].file.buffer();
+//	let blob = new Blob(data, { type: 'image/png' });
+
+//	let reader = new FileReader();
+//	reader.readAsDataURL(blob);
+//	data = reader.result;
+
+//	return data;
+	let blob = new Blob([data], { type: 'image/png' });
+	return blob;
+//	let url = URL.createObjectURL(blob);
+//	return url;
+});
+
+	ipcRenderer.on('CLOG', (event, data, more) => {
+		console.log(data);
+	});
+
+	ipcRenderer.on('DOIT', (event, action, data, more) => {
 		switch(action) {
 			case 'open':
-				openFile(data,true);
+				openFile(data, {remember: true});
 				break;
 			case 'message':
 				footerMessage(data);
 				break;
 			case 'click':
-				var {index,tab}=getTab(data);
+				var {index,tab} = getTab(data);
 				tabs[index].click();
 				break;
 			case 'locate':
@@ -1210,30 +1347,19 @@ console.log(fileName);
 		state['default-path'] = pd.path;
 		updateState();
 		result.filePaths.forEach(f=>{
-			openFile(f,true);
+			openFile(f, {remember: true});
 		});
 		//	openFile(result.filePaths[0],true);
 console.log(result);
 	});
 
-	ipcRenderer.on('MENU',(event,data,more)=>{
+	ipcRenderer.on('MENU', (event, data, more) => {
 console.log(data);
 		switch(data) {
 			case 'NEW':
 
 				break;
 			case 'OPEN':
-/*
-					dialog.showOpenDialog({
-						title: 'Title',
-						defaultPath: localStorage.getItem('defaultPath')
-					})
-					.then(result=> {
-						if(result.canceled) return;
-						localStorage.setItem('defaultPath',path);
-						openFile(result.filePaths[0],true);
-					});
-*/
 					console.log(state);
 					console.log(state['default-path']);
 					ipcRenderer.send('open-file',{
@@ -1248,9 +1374,8 @@ console.log(data);
 						state['default-path'] = pd.path;
 						updateState();
 						result.filePaths.forEach(f=>{
-							openFile(f,true);
+							openFile(f, {remember: true});
 						});
-						//	openFile(result.filePaths[0],true);
 console.log(result);
 					});
 
@@ -1263,7 +1388,7 @@ console.log(result);
 //						value: 'https://pager.internotes.net/content/mssql-techniques.sql',
 						error: 'URL must begin with http:// or https://'
 					});
-				if(url) openFile(url,true);
+				if(url) openFile(url, {remember: true});
 				break;
 			case 'ZOOM':
 				zoom(more);
@@ -1306,11 +1431,8 @@ console.log(result);
 			case 'FINDAGAIN':
 //				findAgain();
 				break;
-			case 'ABOUT':
-//				doAbout('about');
-				break;
-			case 'INSTRUCTIONS':
-//				doAbout('instructions');
+			case 'INFO':
+				openFile(path.join(cwd, '/README.md'), {title: 'About …'});
 				break;
 			case 'MISC':
 				break;

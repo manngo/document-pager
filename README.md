@@ -1,4 +1,4 @@
-#	Document Pager 0.3.6
+#	Document Pager 0.3.7
 
 <img src="images/document-pager.png" width="140">
 
@@ -127,7 +127,7 @@ Here are the default language settings:
 		"highlight": "/*!*/"
 	},
 	"markdown": {
-		"extensions": ["md","markdown","mds"],
+		"extensions": ["md","markdown","mdzip"],
 		"breaks": { "major": ["##"]}
 	},
 	"text": {
@@ -144,9 +144,9 @@ These default settings are not in the `languages.json` file, but are built-in.
 
 You can also page through MarkDown documents. Here the `##` heading is used for paging.
 
-Markdown files are recognised by the following extensions: `.md`, `.markdown` and `.mds`, or others if you’re prepared to add your own to the `languages.json` file.
+Markdown files are recognised by the following extensions: `.md`, `.markdown` and `.mdzip`, or others if you’re prepared to add your own to the `languages.json` file.
 
-The `.mds` extension is for a future enhancement.
+See the section on Zip files for more about the `.mdzip` extension.
 
 ###	Special Headings
 
@@ -192,6 +192,12 @@ sample.md
 sample.css
 images/
 ```
+
+###	Markdown Zip Files
+
+If you have a folder similar to the structure above, you can compress the folder into a Zip file.
+
+The Zip file normally has an extension of `.zip`, but you can change to `.mdzip` if you like. For now, it doesn’t make any difference.
 
 ##	Credits
 

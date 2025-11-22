@@ -35,30 +35,12 @@
 	</header>
 	<aside id="about" data-load="/content/about.html"></aside>
 	<main>
-		<form id="control">
-<!--
-			<button type="button" name="about">About …</button>
--->
-			<label><input type="checkbox" name="show-highlight" id="control-show-highlight" checked>Show Highlighted</label>
-<!--
-			<p id="font-size">
-				<button type="button" name="zoom-smaller" id="control-zoom-smaller">-</button><label for="control-zoom-smaller">⬇︎</label>
-				<button type="button" name="zoom-default" id="control-zoom-default">•</button><label for="control-zoom-default">◼︎</label>
-				<button type="button" name="zoom-larger" id="control-zoom-larger">+</button><label for="control-zoom-larger">⬆︎</label>
-			</p>
--->
-			<label><input type="checkbox" name="show-documents" id="control-show-documents" checked>Documents</label>
-<!--
-			<label for="upload-file">Open or Drop File …</label><input type="file" name="upload" id="upload-file">
--->
-			<label><input type="checkbox" name="full-screen" id="control-full-screen">Full ScreenFull Screen</label>
-			<ul id="tabs">
-			</ul>
-		</form>
+		<ul id="tabs">
+		</ul>
 		<div id="pager">
 			<nav id="documents">
 				<ul>
-					<li id="documents-open">Open
+					<li id="documents-open">Open:
 						<ul></ul>
 					</li>
 					<li id="documents-recent">Recent
@@ -74,7 +56,15 @@
 				<div id="index">
 					<h2>Content</h2>
 					<ul></ul>
-					<p id="raw-message">Hold <span class="key">option / alt</span> for Raw Data</p>
+					<form id="control">
+						<label><input type="checkbox" name="show-documents" id="control-show-documents" checked>⇪</label>
+						<label><input type="checkbox" name="show-highlight" id="control-show-highlight" checked>Show Highlighted</label>
+						<label><input type="checkbox" name="full-screen" id="control-full-screen">Full Screen</label>
+						<p id="raw-message">
+						<!--	Hold <span class="key">option / alt</span> for Raw Data -->
+						</p>
+					</form>
+
 				</div>
 				<span class="resize" id="resize-index"></span>
 				<div id="content" class="empty">

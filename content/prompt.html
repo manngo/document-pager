@@ -21,7 +21,7 @@
 
 				var promptSize=form.getBoundingClientRect();
 
-				promptSize=JSON.stringify(promptSize);
+				promptSize=JSON.stringify(promptSize, null, '\t');
 				ipcRenderer.send('prompt-size',promptSize);
 				form.elements['ok'].onclick=ok;
 				form.elements['cancel'].onclick=cancel;
