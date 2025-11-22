@@ -193,9 +193,11 @@ sample.css
 images/
 ```
 
-###	Markdoown Zip Files
+###	Markdown Zip Files
 
 If you have a folder similar to the structure above, you can compress the folder into a Zip file.
+
+The Zip file normally has an extension of `.zip`, but you can change to `.mdzip` if you like. For now, it doesn’t make any difference.
 
 ##	Credits
 

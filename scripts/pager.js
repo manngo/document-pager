@@ -1176,7 +1176,7 @@ dbug();
 		function openPath(pathName, {remember=false, title}) {
 			let { path, fileName, extension, css } = pathDetails(pathName);
 			if(extension == 'dpf') return virtualDocument(pathName);
-			if(extension == 'zip') return zipDocument(pathName, title);
+			if(['zip', 'mdzip'].includes(extension)) return zipDocument(pathName, title);
 			return fsp.stat(pathName)
 			.then(() => {
 //				var {path,fileName,extension,css}=pathDetails(pathName);
