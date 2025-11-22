@@ -1,6 +1,6 @@
 {
 	"name": "document-pager",
-	"version": "0.3.7",
+	"version": "0.3.72",
 	"description": "Document Pager: Displays a text document in tabbed pages.",
 	"main": "main.js",
 	"repository": "https://github.com/manngo/document-pager",
