@@ -21,7 +21,7 @@ console.log('main.js');
 
 
 //	Required Modules
-	const {app, BrowserWindow, Menu, MenuItem, shell, ipcRenderer, protocol, ipcMain, dialog} = require('electron');
+	const {app, BrowserWindow, Menu, MenuItem, shell, ipcRenderer, protocol, ipcMain, dialog, globalShortcut} = require('electron');
 
 	app.commandLine.appendSwitch('disable-site-isolation-trials');
 	const path = require('path');
@@ -162,6 +162,11 @@ if(process.argv.includes('debug'))
 			console.log(`172: ${error}`);
 		}
 	);
+
+	globalShortcut.register('CmdOrCtrl+Shift+R', () => {
+		window.webContents.send('LOADCSS');
+	});
+
 
 		window.once('ready-to-show', () => {
 			window.show();

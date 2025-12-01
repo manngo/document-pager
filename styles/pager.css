@@ -443,6 +443,9 @@
 	}
 	span#footer-file {
 		border: none;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
 	}
 	span#footer-language {
 
@@ -553,6 +556,12 @@
 			qborder-radius: 8px 18px 0 0;
 			color: var(--text-colour);
 			white-space: pre;
+			span[contenteditable="plaintext-only"] {
+				outline: thin solid white;
+				outline-offset: 2px;
+				outline: none;
+				color: #eee;
+			}
 			&.selected {
 				background-color: var(--highlight-inset);
 			}

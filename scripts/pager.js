@@ -45,6 +45,7 @@ dbug('hello');
 		}
 	};
 dbug(51)
+
 /**	Requires
 	================================================ */
 
@@ -638,10 +639,11 @@ dbug(error)
 			close.innerHTML = '×';
 			close.onclick = closeTab.bind(tab,tab);
 			close.className = 'tab-close';
-		var refresh = document.createElement('button');
-			refresh.innerHTML = '↻';
-			refresh.onclick = refreshTab.bind(tab);
-			refresh.className = 'tab-refresh';
+
+//		var refresh = document.createElement('button');
+//			refresh.innerHTML = '↻';
+//			refresh.onclick = refreshTab.bind(tab);
+//			refresh.className = 'tab-refresh';
 
 		//	Add to DOM
 			tab.appendChild(close);
@@ -710,10 +712,17 @@ dbug();
 	================================================
 	================================================ */
 
-	function refreshTab(event) {
-		fsp.readFile(`${currentTab.data.path}/${currentTab.data.fileName}`, 'utf-8')
-		.then(text => { currentTab.data.text = text; })
-		.then(() => { currentTab.click(); });
+	function refreshTab(css=false) {
+		if(css) {
+			//	link.href = `${link.href.replace(/\?[^?]*$/, ``)}?${Math.random()}`;
+			if(elements.iframeCSS) elements.iframeCSS.href = `${currentTab.data.css}?${Math.random()}`;
+			currentTab.click();
+		}
+		else {
+			fsp.readFile(`${currentTab.data.path}/${currentTab.data.fileName}`, 'utf-8')
+			.then(text => { currentTab.data.text = text; })
+			.then(() => { currentTab.click(); });
+		}
 	}
 
 /**	closeTab
@@ -801,11 +810,11 @@ dbug();
 					//	Special Case: Markdown
 
 						if(data.language == 'markdown') {
-							headingsRE = /(?:\n)(?=#{1,3}[^#])/;
-							headingMajor = /^(\s*)(##[^#]*?)\s+(.*)/m;
+							headingsRE = /(?:\n)(?=#{1,4}[^#])/;
+						//	headingMajor = /^(\s*)(##[^#]*?)\s+(.*)/m;
 							headingMajor = /^(\s*)(#[^#]*?)\s+(.*)/m;
-							headingMinor = /^(\s*)(#{2,3}[^#]*?)\s+(.*)/m;
-							headingMiniscule = /^(\s*)(###[^#]*?)\s+(.*)/m;
+							headingMinor = /^(\s*)(#{2,4}[^#]*?)\s+(.*)/m;
+							headingMiniscule = /^(\s*)(####[^#]*?)\s+(.*)/m;
 						}
 
 		//	Document Info Footer
@@ -840,7 +849,16 @@ dbug();
 			elements.indexUL.innerHTML = '';
 			let nested=false, ul, previous=null;
 			let headingItems = [];
-			let items = data.text.split(headingsRE);
+			let items;
+			if(data.language == 'markdown') {
+				let text = data.text.replaceAll(/\r?\n/g, '\n')
+				text = text.replaceAll(/(\n)([ \t]*)```(.*?)\n([\s\S]*?)\n(\2*)```/g, (match, p1, p2, p3) => {
+					match = match.replace(/\n/g, '¶');
+					return match;
+				});
+				items = text.split(headingsRE);
+			}
+			else items = data.text.split(headingsRE);
 
 			if(items.length>1) {
 				let previous = undefined, selected = undefined;
@@ -882,7 +900,7 @@ dbug();
 
 					li.insertAdjacentHTML('beforeend', `<span>${title}</span>`);
 					if(data.language == 'markdown' && value.match(headingMiniscule)) li.classList.add('subtitle');
-					li.next=li.previous = undefined;
+					li.next = li.previous = undefined;
 					if(previous) {
 						previous.next = li;
 						li.previous = previous;
@@ -901,6 +919,7 @@ dbug();
 					}
 
 					li.data = data;
+					value = value.replaceAll(/¶/g, '\n');
 					li.item = value;
 					li.title = title;
 					li.i = i;
@@ -969,7 +988,7 @@ dbug();
 		}
 
 		async function showItem(item, title, doHighlight) {
-			elements.footerFile.innerHTML = `${data.path}/${data.fileName}`;
+			elements.footerFile.title = elements.footerFile.innerHTML = `${data.path}/${data.fileName}`;
 			elements.footerLanguage.innerHTML = `Language: ${data.language}`;
 			elements.iframeBody.classList.remove('markdown');
 
@@ -1025,7 +1044,7 @@ dbug();
 						}
 					});
 
-					var h2 = div.querySelector('h1,h2,h3');
+					var h2 = div.querySelector('h1, h2, h3, h4');
 					div.id=h2.id;
 					h2.id='';
 					div.className=h2.className;
@@ -1169,12 +1188,13 @@ dbug();
 		//	addDocument(data, extensions['md'], fileName, path, css, 'md', pathName);
 			updateDocuments();
 			if(!remember) return;
-			updateFiles({'action': 'add-current', pathName});
-			updateFiles({'action': 'add-recent', pathName});
+			updateFiles({'action': 'add-current', pathName, title});
+			updateFiles({'action': 'add-recent', pathName, title});
 		}
 
 		function openPath(pathName, {remember=false, title}) {
 			let { path, fileName, extension, css } = pathDetails(pathName);
+			title = title ?? fileName;
 			if(extension == 'dpf') return virtualDocument(pathName);
 			if(['zip', 'mdzip'].includes(extension)) return zipDocument(pathName, title);
 			return fsp.stat(pathName)
@@ -1353,6 +1373,10 @@ ipcRenderer.on('DO-ZIP', async (event, zipfile, path) => {
 console.log(result);
 	});
 
+	ipcRenderer.on('LOADCSS', () => {
+		refreshTab(true);
+	});
+
 	ipcRenderer.on('MENU', (event, data, more) => {
 console.log(data);
 		switch(data) {
@@ -1396,6 +1420,9 @@ console.log(result);
 			case 'LOAD':
 				refreshTab();
 				break;
+//			case 'LOADCSS':
+//				refreshTab(true);
+//				break;
 			case 'PRINTPAGE':
 				printPage();
 				break;
