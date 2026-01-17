@@ -1,17 +1,13 @@
 #	rm -rf ../release-builds/Document\ Pager*;
-npx electron-builder build
-#	electron-packager . --overwrite --platform=darwin --arch=x64 --prune=true --extend-info "info.plist" --out="../release-builds/" # --icon ./images/edit-virtual-hosts.icns;
-#	electron-packager . --overwrite --platform=darwin --arch=x64 --prune=true --out="../release-builds/" # --icon ./images/edit-virtual-hosts.icns;
-#	electron-packager . --overwrite --platform=win32 --arch=x64 --prune=true --out="../release-builds" # --icon images/edit-virtual-hosts.ico;
 
-	cd "../release-builds";
-
-	rm -rf "Document Pager MacOS";
-
-	mv "Document Pager-darwin-x64" "Document Pager MacOS";
-#	mv "Document Pager-win32-x64" "Document Pager Windows";
-
-#	zip -r -X "Document Pager MacOS.zip" "Document Pager MacOS/";
-#	zip -r -X "Document Pager Windows.zip" "Document Pager Windows/";
-
-	cd ..
+	if [ "$1" = "win" ]; then
+		npx electron-builder build --win --x64;
+	elif [ "$1" = "mac" ]; then
+		npx electron-builder build --mac --arm64;
+	else
+		npx electron-builder build
+	#	cd "../release-builds";
+	#	rm -rf "Document Pager MacOS";
+	#	mv "Document Pager-darwin-x64" "Document Pager MacOS";
+	#	cd ..
+	fi

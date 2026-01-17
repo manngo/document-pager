@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>Text Pager</title>
+	<title>Document Pager</title>
 	<meta charset="utf-8">
 	<link rel="stylesheet" type="text/css" href="styles/SourceCodePro/SourceCodePro.css">
 	<link rel="stylesheet" type="text/css" href="styles/SourceSansPro/SourceSansPro.css">
@@ -19,7 +19,6 @@
 			require('./scripts/pager.js');
 		}
 	</script>
-
 </head>
 <body>
 	<header>
@@ -54,21 +53,20 @@
 			<span class="resize"></span>
 			<div id="document">
 				<div id="index">
-					<h2>Content</h2>
-					<ul></ul>
 					<form id="control">
-						<label><input type="checkbox" name="show-documents" id="control-show-documents" checked>⇪</label>
-						<label><input type="checkbox" name="show-highlight" id="control-show-highlight" checked>Show Highlighted</label>
-						<label><input type="checkbox" name="full-screen" id="control-full-screen">Full Screen</label>
-						<p id="raw-message">
-						<!--	Hold <span class="key">option / alt</span> for Raw Data -->
-						</p>
+						<label><input type="checkbox" name="show-documents" id="control-show-documents" checked title="Show Documents Panel"><span>⇪</span></label>
+						<h2>Content</h2>
+						<label><input type="checkbox" name="show-highlight" id="control-show-highlight" title="Show Source"><span>❮ ⁄⁄ ❯</span></label>
+						<label><input type="checkbox" name="full-screen" id="control-full-screen" title="Full Screen"><span>⇪</span></label>
+						<!--p id="raw-message">
+						Hold <span class="key">option / alt</span> for Raw Data
+						</p-->
 					</form>
-
+					<ul></ul>
 				</div>
 				<span class="resize" id="resize-index"></span>
 				<div id="content" class="empty">
-					<p id="navigation"><button type="button" id="previous">«</button><button type="button" id="next">»</button></p>
+					<!--p id="navigation"><button type="button" id="previous">«</button><button type="button" id="next">»</button></p-->
 					<h2>Content</h2>
 					<iframe src="content/content.html"></iframe>
 				</div>

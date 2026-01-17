@@ -4,37 +4,6 @@
 
 	'use strict';
 
-	const { openZip } = require('../scripts/dozip.js');
-
-	function dbug(message) {
-		let error = new Error();
-		let [dummy, file, line, column] = [...error.stack.matchAll(/\n *at (.*?) \(.*:(.*?):(.*)\)/g)][1];
-		let info = `${file}: ${line}`;
-		console.log(info, message ? message : '');
-	}
-
-dbug();
-dbug('hello');
-
-/**	Drag & Drop … ?
-	================================================ */
-
-	document.ondragover = document.ondrop = (event) => {
-		// console.log('dragover | drop');
-		// event.preventDefault();
-	};
-
-	document.body.ondrop = (event) => {
-		// console.log(JSON.stringify(event.dataTransfer.files[0].path));
-		// //		openPath(event.dataTransfer.files[0].path.toString());
-		// event.preventDefault();
-	};
-
-/**	settings.js
-	================================================ */
-
-	const {DEVELOPMENT,cwd} = require('../settings.js');
-
 /**	Generic
 	================================================ */
 
@@ -44,32 +13,39 @@ dbug('hello');
 			for(let key in this) if(this.hasOwnProperty(key)) yield this[key];
 		}
 	};
-dbug(51)
+
+	function dbug(message) {
+		let error = new Error();
+		let [dummy, file, line, column] = [...error.stack.matchAll(/\n *at (.*?) \(.*:(.*?):(.*)\)/g)][1];
+		let info = `${file}: ${line}`;
+		console.log(info, message ? message : '');
+	}
+
+	function fixPath(path) {
+		return path.replaceAll(/\\/g, '/');
+	}
+
+/**	settings.js
+	================================================ */
+
+	const {DEVELOPMENT, cwd} = require('../settings.js');
 
 /**	Requires
+	================================================
 	================================================ */
 
 	const electron = require('electron');
 	const { ipcRenderer } = electron;
 
-
-
-	ipcRenderer.on('debug-data', (event,result) => {
-		console.log(result);
-	});
-
-	var { home } = JSON.parse(ipcRenderer.sendSync('init'));
-	var settingsDir = `${home}/.document-pager`;
-
 	const path = require('path');
-	const fs = require('fs');
-	const fsp = fs.promises;
-	const normalize = require('normalize-path');
-	const temp=require('temp').track();
+	const fsp = require('fs').promises;
 
 	//	Others
 		const {jx, DOM, JSONFile} = require('../scripts/utilities.js');
-		const marked = require('marked');
+		const { openZip } = require('../scripts/dozip.js');
+
+	var { home } = JSON.parse(ipcRenderer.sendSync('init'));
+	var settingsDir = `${home}/.document-pager`;
 
 /**	Environment
 	================================================ */
@@ -78,14 +54,15 @@ dbug(51)
 	const eol = process.platform === 'win32' ? '\r\n' : '\n';
 	const os = require('os');
 
-/**	Extensions
+/**	Marked
 	================================================
-	`${data.path}/${data.fileName}`
+	`${data.filePath}/${data.fileName}`
 	image(string href, string title, string text)
 	================================================ */
 
-	var renderer = new marked.Renderer();
-	renderer.paragraph = function(tokens) {
+	const marked = require('marked');
+	const markedRenderer = new marked.Renderer();
+	markedRenderer.paragraph = function(tokens) {
 		let pattern = /^(#+)(.*?)(\.(.*?))?(\s+(.*?))?$/;
 		let text = tokens.text;
 		let parts = text.match(pattern);
@@ -99,179 +76,183 @@ dbug(51)
 		else return marked.parse(text);
 	};
 
-/**	Support Functions
-	================================================
-	================================================ */
-
 /**	Pager
 	================================================
 	================================================ */
 
 //	Globals
-	var settings, languages, extensions;
+	let settings = {}, languages = {}, extensions = {}, pending = [];
 	var documentTitle;
 
-	var languagesJSON = `${settingsDir}/languages.json`;
-	var filesJSON = `${settingsDir}/files.json`, files = {}, pseudoFiles = [];
-	var stateJSON = `${settingsDir}/state.json`, state={};
+	let userData = {
+		languages: {
+			path: `${settingsDir}/languages.json`,
+			data: {},
+		},
+		files: {
+			path: `${settingsDir}/files.json`,
+			data: {},
+			async write() {
+				for(let section in userData.files.data) userData.files.data[section].forEach(f => {
+					f.title = f.title ?? path.basename(f.path);
+				});
+				fsp.writeFile(userData.files.path, JSON.stringify(userData.files.data, null, '\t'));
+			},
+		},
+		state: {
+			path: `${settingsDir}/state.json`,
+			data: {},
+			async write() {
+				fsp.writeFile(userData.state.path, JSON.stringify(userData.state.data, null, '\t'));
+			},
+		},
+	};
+
+	var pseudoFiles = [];
 
 	var rearrangeableTabs = new jx.Rearrangeable('h', 'tabgroup');
 	var zipFiles = {};
-dbug('before init')
+
+//	Components
+
+	function toggleDocumentHeadings() {
+		let li = document.querySelectorAll('nav#documents>ul>li');
+		let documentsTab = undefined;
+		function doDocumentsTab(event) {
+			if(this != event.target) return;
+
+			if(this == documentsTab) this.classList.toggle('open');
+			else {
+				if(documentsTab) documentsTab.classList.remove('open');
+				documentsTab = this;
+				documentsTab.classList.add('open');
+			}
+
+			userData.state.data['documents-toggle'] = this.id;
+			userData.state.write();
+		}
+		li.forEach(i => {
+			i.onclick = doDocumentsTab;
+		});
+	}
+
 //	Main
 	init();
-dbug('after init')
-	function init() {
 
-		//	Toggle Documents Headings
-			var li = document.querySelectorAll('nav#documents>ul>li');
-			var documentsTab = undefined;
-			function doDocumentsTab(event) {
-				if(this != event.target) return;
+	async function init() {
+		toggleDocumentHeadings();
 
-				if(this == documentsTab) this.classList.toggle('open');
-				else {
-					if(documentsTab) documentsTab.classList.remove('open');
-					documentsTab = this;
-					documentsTab.classList.add('open');
-				}
+		//	Default Settings
+			settings = await fsp.readFile(path.join(cwd, '/settings.json'), 'utf-8');
+			settings = JSON.parse(settings);
 
-				state['documents-toggle'] = this.id;
-				updateState();
-			}
-			li.forEach(i => {
-				i.onclick = doDocumentsTab;
+		//	Home Directory
+			try { await fsp.stat(settingsDir); }
+			catch { await fsp.mkdir(settingsDir); }
+
+		//	Languages
+			try { await fsp.stat(userData.languages.path); }
+			catch { await fsp.writeFile(userData.languages.path,'{}'); }
+
+			languages = await fsp.readFile(userData.languages.path, 'utf-8');
+			languages = JSON.parse(languages);
+			Object.keys(languages).forEach(l => {
+				settings.languages[l] = languages[l];
 			});
-dbug('before promise')
-		//	Settings
-			var promise=
 
-			//	Default Settings
-				fsp.readFile(path.join(cwd, '/settings.json'), 'utf-8')
-				.then(data => {
-					settings = JSON.parse(data);
-				})
+			//extensions = {};
+			Object.keys(settings.languages).forEach(l => {
+				settings.languages[l].extensions.forEach(e => {extensions[e] = l; });
+			});
 
-			//	Home Directory
-				.then(() => fsp.stat(settingsDir))
-				.catch(() => { fsp.mkdir(settingsDir); })
+		//	Details
+			let documentTitle = `${settings.headings.title} ${settings.version}`;
 
-			//	Languages
-				.then(() => fsp.stat(languagesJSON))
-				.catch(() => fsp.writeFile(languagesJSON,'{}'))
-				.then(() => fsp.readFile(languagesJSON))
-				.then(data => {
-					languages = JSON.parse(data);
-					Object.keys(languages).forEach(l => {
-						settings.languages[l] = languages[l];
-/*
-						if(!settings.languages[l]) settings.languages[l] = languages[l];
-						else {
-							settings.languages[l] = languages[l];
-							if(languages[l].extensions) languages[l].extensions.forEach(ext => settings.languages[l].extensions.push(ext));
-							if(languages[l].breaks) {
-								if(languages[l].breaks.major) {
-									if(!settings.languages[l].breaks.major) settings.languages[l].breaks.major = [];
-									languages[l].breaks.major.forEach(br => settings.languages[l].breaks.major.push(br));
-								}
-								if(languages[l].breaks.minor) {
-									if(!settings.languages[l].breaks.minor) settings.languages[l].breaks.minor = [];
-									languages[l].breaks.minor.forEach(br => settings.languages[l].breaks.minor.push(br));
-								}
-							}
+		//	About
+			pseudoFiles.push({path: path.join(cwd, '/README.md'), title: 'About …'});
+//			openFile(path.join(cwd, '/README.md'), {title: 'About …'});
 
-						}
-*/
-				});
-
-					extensions = {};
-					Object.keys(settings.languages).forEach(l => {
-						settings.languages[l].extensions.forEach(e => {extensions[e] = l; });
+		//	Files
+			try {
+				await fsp.stat(userData.files.path);
+				let files = await fsp.readFile(userData.files.path, 'utf-8');
+				userData.files.data = JSON.parse(files);
+				//	Fix paths (still?)
+					for(let section in userData.files.data) userData.files.data[section].forEach(f => {
+						f.path = fixPath(f.path);
 					});
-				})
+			}
+			catch {
+				userData.files.data = {"current": [], "recent": [], "favourites": []};
+				userData.files.write();
+			}
 
-			//	Details
-				.then(() => {documentTitle = `${settings.headings.title} ${settings.version}`;})
+			updateFiles();
 
-			//	About
-				.then(() => {
-					pseudoFiles.push(path.join(cwd, '/README.md'));
-					return openFile(path.join(cwd, '/README.md'), {title: 'About …'});
-				})
+		//	Current Files
+			if(pseudoFiles) pseudoFiles.forEach(v => {
+				openFile(v.path, {title: v.title});
+			});
+			if(userData.files.data.current) userData.files.data.current.forEach(v => {
+				openFile(v.path, {title: v.title});
+			});
 
-			//	Files
-				.then(() => fs.promises.stat(filesJSON))
-				.catch((error) => fs.promises.writeFile(filesJSON, `{"current": [], "recent": [], "favourites": []}${eol}`))
-				.then(() => fs.promises.readFile(filesJSON))
-				.then(data => {
-					try {
-						files = JSON.parse(data);
-					} catch(error) {
-						files = {"current": [], "recent": [], "favourites": []};
-					}
-					//	Migrate files JSON
-						files.current = files.current.map(f => {
-							return typeof f == 'string' ? {path: f, title: path.basename(f)} : f;
-						});
-						files.recent = files.current.map(f => {
-							return typeof f == 'string' ? {path: f, title: path.basename(f)} : f;
-						});
-						files.favourites = files.current.map(f => {
-							return typeof f == 'string' ? {path: f, title: path.basename(f)} : f;
-						});
+		//	Recent Files List
 
-						updateFiles();
-					//	Current Files
-						if(files.current) files.current.forEach(v => {
-							openFile(v.path, {title: v.title});
-						});
-					//	Recent Files List
-						updateDocuments();
-				})
+			updateDocuments();
 
-			//	State
-				.then(() => fs.promises.stat(stateJSON))
-				.catch(error => {
-dbug(error)
-					fs.promises.writeFile(stateJSON,`{"show-documents":false,"documents-width":120,"index-width":120,"default-path":"${home}","index-open-all":false, "content-ruled":true}${eol}`)
-				})
-				.then(() => fs.promises.readFile(stateJSON))
-				.catch(() => {dbug('no state');})
-				.then(data => {
-					state = JSON.parse(data);
-					state['index-open-all'] = !!state['index-open-all'];
-					state['content-ruled'] = !!state['content-ruled'];
-					//	For now, default path:
-						if(!state['default-path']) state['default-path'] = home;
-					//	Documents Pane
-						document.querySelector('main').classList.toggle('show-documents', state['documents-width']);
-						if(state['documents-width']) document.querySelector('nav#documents').style.width = `${state['documents-width']}px`;
-						if(state['documents-toggle']) document.querySelector(`li#${state['documents-toggle']}`).classList.add('open');
-						document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content').classList.toggle('ruled',!!state['content-ruled']);
-					//	Index
-						if(state['index-width']) document.querySelector('div#index').style.width=`${state['index-width']}px`;
-				})
-				.catch(() => {dbug('no data');})
+		//	State
+			try {
+				await fsp.stat(userData.state.path);
+				let state = await fsp.readFile(userData.state.path, 'utf-8');
+				userData.state.data = JSON.parse(state);
+				userData.state.data['index-open-all'] = !!userData.state.data['index-open-all'];
+				userData.state.data['content-ruled'] = !!userData.state.data['content-ruled'];
+				//	For now, default path:
+					if(!userData.state.data['default-path']) userData.state.data['default-path'] = home;
+				//	Documents Pane
+					document.querySelector('main').classList.toggle('show-documents', userData.state.data['documents-width']);
+					if(userData.state.data['documents-width']) document.querySelector('nav#documents').style.width = `${userData.state.data['documents-width']}px`;
+					if(userData.state.data['documents-toggle']) document.querySelector(`li#${userData.state.data['documents-toggle']}`).classList.add('open');
+					document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content').classList.toggle('ruled',!!userData.state.data['content-ruled']);
+				//	Index
+					if(userData.state.data['index-width']) document.querySelector('div#index').style.width=`${userData.state.data['index-width']}px`;
+			}
+			catch {
+				userData.state.data = {
+					"show-documents": false,
+					"documents-width": 120,
+					"index-width": 120,
+					"default-path": home,
+					"index-open-all": false,
+					"content-ruled": true,
+				};
+ dbug('no state');
+				await userData.state.write();
+			}
 
-			//	Theme
-			.then(() => fs.promises.stat(`${settingsDir}/content.css`))
-			.catch(() => { console.log('no content.css'); })
-			.then(() => {
-				console.log('content.css');
+		//	Theme
+			try {
+				await fsp.stat(`${settingsDir}/content.css`);
 				document.querySelector('div#content>iframe').contentWindow.document.querySelector('head').insertAdjacentHTML('beforeend',`<link rel="stylesheet" href="${settingsDir}/content.css">`);
-			})
-		;
-		//	End Settings
+			}
+			catch {
+				console.log('no content.css');
+			}
+
+		//	open pending files
+			pending.forEach(p => {
+				openFile(p, {remember: true});
+			});
 
 
-		if(DEVELOPMENT)
-			promise
-			.then(() => {
-				pseudoFiles.push(path.join(cwd, 'data/exercises.sql'));
-				return openFile(path.join(cwd, 'data/exercises.sql'), {});
-			})
-			.then(() => tabs[0].click())
-			;
+		document.addEventListener('keydown', event => {
+			if(event.altKey && event.key=='Alt') {
+				event.preventDefault();
+			//	console.log('alt');
+			}
+		});
+
 	}	//	End init()
 
 	//	get Tab Number
@@ -283,145 +264,122 @@ dbug(error)
 			};
 			if (tabs.length) tabs.forEach((tab,index) => {
 				var pathName;
-				if((pathName = `${tab.data.path}/${tab.data.fileName}`) == fileName) {
+				if((pathName = `${tab.data.filePath}/${tab.data.fileName}`) == fileName) {
 					result = {index, tab, pathName};
 				}
 			});
 			return result;
 		}
 
-	//	Update state.json
-		function updateState() {
-			fs.promises.writeFile(stateJSON, JSON.stringify(state), null, '\t');
-		}
-
 	//	Update files.json
 		//	data={action, pathName}
 		function updateFiles(data) {
+			let file;
 			if(data) switch(data.action) {
 				case 'add-current':
-				//	if(!files.current.includes(data.pathName)) files.current.push(data.pathName);
-					if(!files.current.map(f => f.path).includes(data.pathName))
-						files.current.push({path: data.pathName, title: data.title});
+					if(!userData.files.data.current.map(f => f.path).includes(data.pathName))
+						userData.files.data.current.push({path: data.pathName, title: data.title});
 					break;
 				case 'remove-current':
-					files.current = files.current.filter(value => value.path != data.pathName);
+					userData.files.data.current = userData.files.data.current.filter(value => value.path != data.pathName);
 					break;
 				case 'add-recent':
-				//	if(!files.recent.includes(data.pathName)) files.recent.push(data.pathName);
-					if(!files.recent.map(f => f.path).includes(data.pathName))
-						files.recent.push({path: data.pathName, title: data.title});
-					if(files.recent.length>16) files.recent.shift();
+					if(!userData.files.data.recent.map(f => f.path).includes(data.pathName))
+						userData.files.data.recent.push({path: data.pathName, title: data.title});
+					if(userData.files.data.recent.length > 16) userData.files.data.recent.shift();
 					break;
 				case 'remove-recent':
-					files.recent = files.recent.filter(value => value.path != data.pathName);
+					userData.files.data.recent = userData.files.data.recent.filter(value => value.path != data.pathName);
 					break;
 				case 'add-favourite':
-				//	if(!files.favourites.includes(data.pathName)) files.favourites.push(data.pathName);
-					if(!files.favourites.map(f => f.path).includes(data.pathName))
-						files.favourites.push({path: data.pathName, title: data.title});
+					if(!userData.files.data.favourites.map(f => f.path).includes(data.pathName))
+						userData.files.data.favourites.push({path: data.pathName, title: data.title});
 					break;
 				case 'remove-favourite':
-					files.favourites = files.favourites.filter(value => value.path != data.pathName);
+					userData.files.data.favourites = userData.files.data.favourites.filter(value => value.path != data.pathName);
 					break;
 				case 'change-title':
-				//	files.favourites = files.favourites.filter(value => value != data.pathName);
-					files.current.filter(f => f.path == data.pathName)[0].title = data.title;
-					files.recent.filter(f => f.path == data.pathName)[0].title = data.title;
-					files.favourites.filter(f => f.path == data.pathName)[0].title = data.title;
+					currentTab.data.title = data.title;
+					if(file = userData.files.data.current.filter(f => f.path == data.pathName)[0]) file.title = data.title;
+					if(file = userData.files.data.recent.filter(f => f.path == data.pathName)[0]) file.title = data.title;
+					if(file = userData.files.data.favourites.filter(f => f.path == data.pathName)[0]) file.title = data.title;
+					elements.indexHeading.innerHTML = data.title &&  data.title!=data.fileName ? `${data.title}<span>${data.fileName}</span>` : data.fileName;
+
+					updateDocuments();
+
 					break;
 			}
 
-			fs.promises.writeFile(filesJSON,JSON.stringify(files, null, '\t'));
+			userData.files.write();
+
 			updateDocuments();
 		}
 
 	//	Documents Lists
 		function updateDocuments() {
-			let open = elements.documents.querySelector('li#documents-open>ul');
-			open.innerHTML = '';
-			let recent = elements.documents.querySelector('li#documents-recent>ul');
-			recent.innerHTML = '';
-			let favourites = elements.documents.querySelector('li#documents-favourite>ul');
-			favourites.innerHTML = '';
+			let sections = {
+				open: elements.documents.querySelector('li#documents-open>ul'),
+				recent: elements.documents.querySelector('li#documents-recent>ul'),
+				favourites: elements.documents.querySelector('li#documents-favourite>ul'),
+			};
 
-			//	Recent Files
-				if(files.recent) {
-					files.recent.forEach(v => {
-						let li = document.createElement('li');
-						let {filepath, title} = {filepath: v.path, title: `${v.title}${v.title==path.basename(v.path) ? '' : ` - ${path.basename(v.path)}`}`};
+			sections['open'].innerHTML = '';
+			sections['recent'].innerHTML = '';
+			sections['favourites'].innerHTML = '';
 
-						li.innerHTML = `${title}<button>×</button>`;
-						li.href = filepath;
-						li.onclick = doRecent;
+			//	Add File to Nav Panel
+				function addFile(section, file, action=undefined, close=false) {
+					let li = document.createElement('li');
+				//	let { filepath, title } = { filepath: file.path, title: `${file.title}${file.title==path.basename(file.path) ? '' : `<br>${path.basename(file.path)}`}` };
+					let text = `${file.title}${file.title==path.basename(file.path) ? '' : `<br>${path.basename(file.path)}`}`;
+					li.innerHTML = close ? `${text}<button>×</button>` : text;;
+					li.href = file.path;
+					li.title = file.title;
+					li.section = section;
 
-						recent.appendChild(li);
-					});
+					li.onclick = action;
+					sections[section].appendChild(li);
 				}
 
-				function doRecent(event) {
-					console.log(event);
-					var href = this.href;
-					switch(event.target.nodeName) {
-						case 'button':
-						case 'BUTTON':
-							updateFiles({'action':'remove-recent','pathName':href});
-							break;
-						default:
-							openFile(href, {remember: true});
-					}
-				}
-
-			//	Current Files
-				pseudoFiles.forEach(v=>{
-					let li=document.createElement('li');
-					let name=path.basename(v);
-					li.innerHTML=`<a href="doit:click:${v}">${name}</a>`;
-					open.appendChild(li);
+			//	Open Pseudo Files
+				pseudoFiles.forEach(v => {
+					addFile('open', v, doCurrent, false);
+//					let li=document.createElement('li');
+//					let name=path.basename(v);
+//					li.innerHTML=`<a href="doit:click:${v}">${name}</a>`;
+//					sections['open'].appendChild(li);
 				});
 
-				if(files.current) {
-					files.current.forEach(v => {
-						let {filepath, title} = {filepath: v.path, title: `${v.title}${v.title==path.basename(v.path) ? '' : ` - ${path.basename(v.path)}`}`};
-
-						let li = document.createElement('li');
-						li.innerHTML = title;
-						li.href = filepath;
-						li.onclick = doCurrent;
-						open.appendChild(li);
-					});
-				}
+			//	Add Other Files
+				userData.files.data.current?.forEach(v => {
+					addFile('open', v, doCurrent, false);
+				});
+				userData.files.data.recent?.forEach(v => {
+					addFile('recent', v, doFile, true);
+				});
+				userData.files.data.favourites?.forEach(v => {
+					addFile('favourites', v, doFile, true);
+				});
 
 				function doCurrent(event) {
 					console.log(event);
 					var href = this.href;
-					var {index,tab}=getTab(href);
+					var {index, tab} = getTab(href);
 					tabs[index].click();
 				}
 
-			//	favourite Files
-				if(files.favourites) {
-					files.favourites.forEach(v => {
-						let li=document.createElement('li');
-						let {filepath, title} = {filepath: v.path, title: `${v.title}${v.title==path.basename(v.path) ? '' : ` - ${path.basename(v.path)}`}`};
-
-						li.innerHTML=`${title}<button>×</button>`;
-						li.href = filepath;
-						li.onclick = doFavourite;
-						favourites.appendChild(li);
-					});
-				}
-
-				function doFavourite(event) {
+				function doFile(event) {
 					console.log(event);
-					var href = this.href;
+					let [pathName, title] = [event.currentTarget.href, event.currentTarget.title];
 					switch(event.target.nodeName) {
 						case 'button':
 						case 'BUTTON':
-							updateFiles({'action':'remove-favourite','pathName':href});
+						//	let index = files[section]
+							userData.files.data[event.currentTarget.section] = userData.files.data[event.currentTarget.section].filter(f => f.path != pathName);
+							userData.files.write();
 							break;
 						default:
-							openFile(href, {remember: true});
+							openFile(pathName, { remember: true, title });
 					}
 				}
 		}
@@ -442,7 +400,7 @@ dbug(error)
 	//	Elements
 		var elements = {
 			//	Header
-				h1: document.querySelector('h1'),
+//				h1: document.querySelector('h1'),
 				formControl: document.querySelector('form#control'),
 			//	Main
 				tabPane: document.querySelector('ul#tabs'),
@@ -451,25 +409,25 @@ dbug(error)
 				documents: document.querySelector('nav#documents'),
 			//	Index
 				indexDiv: document.querySelector('div#index'),
-				indexHeading: document.querySelector('div#index>h2'),
+				indexHeading: document.querySelector('div#index h2'),
 				indexUL: document.querySelector('div#index>ul'),
 				resizeIndex: document.querySelector('div#pager>span#resize-index'),
 			//	Content
 				contentDiv: document.querySelector('div#content'),
 				contentHeading: document.querySelector('div#content>h2'),
-				divContentPre: document.querySelector('div#content>pre'),
+//				divContentPre: document.querySelector('div#content>pre'),
 				iframe: document.querySelector('div#content>iframe').contentWindow,
 				iframeCSS: document.querySelector('div#content>iframe').contentWindow.document.querySelector('link#additional-css'),
 				iframeBody: document.querySelector('div#content>iframe').contentWindow.document.querySelector('body'),
 				mainContent: document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content'),
 				codeElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content>div>code'),
 				mdElement: document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content>div>div.md'),
-				highlightButton: document.querySelector('button#highlight'),
-				smallerButton: document.querySelector('button#smaller'),
-				defaultButton: document.querySelector('button#default'),
-				largerButton: document.querySelector('button#larger'),
-				previousButton: document.querySelector('button#previous'),
-				nextButton: document.querySelector('button#next'),
+//				highlightButton: document.querySelector('button#highlight'),
+//				smallerButton: document.querySelector('button#smaller'),
+//				defaultButton: document.querySelector('button#default'),
+//				largerButton: document.querySelector('button#larger'),
+				//	previousButton: document.querySelector('button#previous'),
+				//	nextButton: document.querySelector('button#next'),
 			//	Footer
 				footerFile: document.querySelector('span#footer-file'),
 				footerMessage: document.querySelector('span#footer-message'),
@@ -478,11 +436,11 @@ dbug(error)
 			//	Full Screen
 				fullCSS: document.querySelector('link#full-css'),
 		};
+		document.body.classList.add(process.platform);
 
-//		codeFontSize = getComputedStyle(document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content')).getPropertyValue('--font-size');
 		codeFontSize = getComputedStyle(document.querySelector('div#content>iframe').contentWindow.document.querySelector('html')).getPropertyValue('--font-size');
 		codeFontSize = codeFontSize.match(/((\d*)(\.\d+)?)([a-z]+)/);
-		codeFontSize = {size: codeFontSize[1], units: codeFontSize[4]};
+		codeFontSize = { size: codeFontSize[1], units: codeFontSize[4] };
 		originalCodeFontSize = codeFontSize.size;
 
 	//	Adjust Elements
@@ -490,9 +448,9 @@ dbug(error)
 		//	jx.resize(elements.pager,'--index-width',elements.resizeIndex);
 		document.querySelectorAll('span.resize').forEach(span=>{
 			jx.resize(span, width => {
-				state['documents-width'] = parseInt(getComputedStyle(elements.documents).width);
-				state['index-width'] = parseInt(getComputedStyle(elements.indexDiv).width);
-				updateState();
+				userData.state.data['documents-width'] = parseInt(getComputedStyle(elements.documents).width);
+				userData.state.data['index-width'] = parseInt(getComputedStyle(elements.indexDiv).width);
+				userData.state.write();
 			});
 		});
 
@@ -508,14 +466,14 @@ dbug(error)
 
 		elements.formControl.elements['show-documents'].onclick = event => {
 			elements.main.classList.toggle('show-documents',this.checked);
-			state['show-documents']=this.checked;
-			updateState();
+			userData.state.data['show-documents']=this.checked;
+			userData.state.write();
 		};
 		elements.main.classList.toggle('show-documents', elements.formControl.elements['show-documents'].checked);
 
 		elements.formControl.elements['full-screen'].onclick = event => {
-			elements.fullCSS.disabled=false;
-			document.addEventListener('keyup',doFullScreenKeys);
+			elements.fullCSS.disabled = false;
+			document.addEventListener('keyup', doFullScreenKeys);
 //			focusedWindow.webContents.on('before-input-event',doFullScreenKeys);
 		};
 
@@ -523,8 +481,8 @@ dbug(error)
 		//	console.log(event.key);
 			switch(event.key) {
 				case 'Escape':
-					elements.fullCSS.disabled=true;
-					document.removeEventListener('keyup',doFullScreenKeys);
+					elements.fullCSS.disabled = true;
+					document.removeEventListener('keyup', doFullScreenKeys);
 					break;
 				case 'ArrowRight':
 					elements.nextButton.click();
@@ -626,13 +584,16 @@ dbug(error)
 	fs.stat
 	================================================ */
 
-	function addDocument(text, {language, fileName, path, css, extension, title, zip=undefined}) {
+	function addDocument(text, {language, fileName, filePath, css, extension, title, zip=undefined}) {
 		var tab = document.createElement('li');
 			// var css='';
 			tab.innerHTML = `<span>${title ?? fileName}</span>`;
-			// if(language=='markdown') var css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
+			// if(language=='markdown') var css=`${filePath}/${fileName.replace(/\..*$/,'')}/styles.css`;
 
-			tab.data = {text, language, fileName, path, item: 0, highlighted: 1 , css, extension, indexStatus: [], zip};
+			tab.data = {text, language, fileName, filePath, title: '?', item: 0, highlighted: 1 , css, extension, indexStatus: [], zip};
+//			tab.data.docTitle = title;
+//	dbug('do I need docTitle?')
+			tab.data.title = title;
 			tab.onclick = doTab;
 
 		var close = document.createElement('button');
@@ -661,8 +622,11 @@ dbug(error)
 
 		function doTab(event) {
 			if(event.altKey) {
-				let thisTitle = event.target;
+				event.preventDefault();
+			//	let thisTitle = event.target;
+			//	let thisTitle = event.currentTarget.closest('li').querySelector('span');
 				let thisTab = event.currentTarget;
+				let thisTitle = thisTab.querySelector('span');
 				let content = thisTitle.textContent;
 				thisTitle.contentEditable = 'plaintext-only';
 
@@ -681,13 +645,19 @@ dbug(error)
 				};
 
 				thisTitle.onkeydown = event => {
+					if(event.altKey) event.preventDefault();
 					if(event.key=='Enter') {
 						event.preventDefault();
 						thisTitle.onblur = undefined;
 						thisTitle.contentEditable = false;
 					//	console.log(thisTab);
 						if(!thisTitle.textContent) thisTitle.textContent = content;
-						else updateFiles({'action': 'change-title', pathName: `${thisTab.data.path}/${thisTab.data.fileName}`, title: thisTitle.textContent});
+						else updateFiles({
+							action: 'change-title',
+							pathName: `${thisTab.data.filePath}/${thisTab.data.fileName}`,
+							title: thisTitle.textContent,
+							fileName: thisTab.data.fileName,
+						});
 					}
 					else if(event.key=='Escape') {
 						event.preventDefault();
@@ -696,8 +666,6 @@ dbug(error)
 						thisTitle.textContent = content;
 					}
 				}
-
-dbug();
 			}
 			else {
 				if(currentTab !== undefined) currentTab.classList.remove('selected');
@@ -719,7 +687,7 @@ dbug();
 			currentTab.click();
 		}
 		else {
-			fsp.readFile(`${currentTab.data.path}/${currentTab.data.fileName}`, 'utf-8')
+			fsp.readFile(`${currentTab.data.filePath}/${currentTab.data.fileName}`, 'utf-8')
 			.then(text => { currentTab.data.text = text; })
 			.then(() => { currentTab.click(); });
 		}
@@ -737,9 +705,9 @@ dbug();
 		}
 
 		tabs = tabs.filter(value => value != tab);
-		var path = `${this.data.path}/${this.data.fileName}`;
-		//	var path=`${tab.data.path}/${tab.data.fileName}`;
-		updateFiles({'action': 'remove-current', 'pathName': `${this.data.path}/${this.data.fileName}`});
+		var path = `${this.data.filePath}/${this.data.fileName}`;
+		//	var path=`${tab.data.filePath}/${tab.data.fileName}`;
+		updateFiles({'action': 'remove-current', 'pathName': `${this.data.filePath}/${this.data.fileName}`});
 
 		var sibling = this.previousElementSibling || this.nextElementSibling || undefined;
 		//	var sibling=tab.previousElementSibling||tab.nextElementSibling||undefined;
@@ -818,7 +786,7 @@ dbug();
 						}
 
 		//	Document Info Footer
-			elements.indexHeading.innerHTML = data.fileName;
+			elements.indexHeading.innerHTML = data.title &&  data.title!=data.fileName ? `${data.title}<span>${data.fileName}</span>` : data.fileName;
 			elements.footerHeading.innerHTML = `Breaks: ${data.br}`;
 
 		//	Variables
@@ -878,7 +846,7 @@ dbug();
 								elements.indexUL.appendChild(li);
 
 								if(previous) {
-									if(state['index-open-all']) previous.classList.add('open');
+									if(userData.state.data['index-open-all']) previous.classList.add('open');
 									var button = document.createElement('button');
 										button.innerHTML = '›';
 										button.onclick = toggleHeading;
@@ -963,16 +931,16 @@ dbug();
 			let title = event.currentTarget.title;
 			let i = event.currentTarget.i;
 
-			elements.previousButton.onclick = elements.nextButton.onclick = null;
-			let p, n;
-			if(p = event.currentTarget.previous) elements.previousButton.onclick = event => {
-					p.click();
-				};
-			if(n = event.currentTarget.next) elements.nextButton.onclick = event=> {
-					n.click();
-				};
+		//	elements.previousButton.onclick = elements.nextButton.onclick = null;
+		//	let p, n;
+		//	if(p = event.currentTarget.previous) elements.previousButton.onclick = event => {
+		//			p.click();
+		//		};
+		//	if(n = event.currentTarget.next) elements.nextButton.onclick = event=> {
+		//			n.click();
+		//		};
 
-			var doHighlight = elements.formControl.elements['show-highlight'].checked?!event.altKey:event.altKey;
+			var doHighlight = elements.formControl.elements['show-highlight'].checked ? event.altKey : !event.altKey;
 			currentItem = data.li = event.currentTarget;
 
 			if(selected) selected.classList.remove('selected');
@@ -988,7 +956,7 @@ dbug();
 		}
 
 		async function showItem(item, title, doHighlight) {
-			elements.footerFile.title = elements.footerFile.innerHTML = `${data.path}/${data.fileName}`;
+			elements.footerFile.title = elements.footerFile.innerHTML = `${data.filePath}/${data.fileName}`;
 			elements.footerLanguage.innerHTML = `Language: ${data.language}`;
 			elements.iframeBody.classList.remove('markdown');
 
@@ -1011,7 +979,7 @@ dbug();
 				else {
 					var div=document.createElement('div');
 
-				//	var innerHTML=marked.parse(item,{baseUrl: `${data.path}/${data.fileName}`, renderer});
+				//	var innerHTML=marked.parse(item,{baseUrl: `${data.filePath}/${data.fileName}`, renderer});
 					var innerHTML = marked.parse(item);
 
 					innerHTML = innerHTML.replace(/<img(.*?)src="(.*?)"(.*?)>/g, (match, p1, p2, p3, offset, string) => {
@@ -1019,15 +987,9 @@ dbug();
 							return `<img${p1}src="${p2}"${p3}>`;
 						else {
 							if(data.zip) {
-							//	let blobData = await zipFiles[data.zip].directory[`${zipFiles[data.zip].root}/${p2}`].file.buffer();
-							//	let blob = new Blob([blobData], { type: 'image/png' });
-							//	let blobURL = URL.createObjectURL(blob);
-
-						//		return `<img${p1}src="blob:do-zip:${data.zip}:${p2.replace(/^\//,'')}"${p3}>`;		//	data = data.replaceAll(/src="(?!https?:)(.*)"/g, 'src="do-zip:zipfile-tba$1"');
 								return `<img${p1}src="${zipFiles[data.zip].directory[`${zipFiles[data.zip].root}/${p2}`].blobURL}"${p3}>`;
 							}
-						//	if(data.zip) return `<img${p1}src="${data.zip}:${p2.replace(/^\//,'')}"${p3}>`;		//	data = data.replaceAll(/src="(?!https?:)(.*)"/g, 'src="do-zip:zipfile-tba$1"');
-							else return `<img${p1}src="${currentTab.data.path}/${p2.replace(/^\//,'')}"${p3}>`;
+							else return `<img${p1}src="${currentTab.data.filePath}/${p2.replace(/^\//,'')}"${p3}>`;
 						}
 					});
 
@@ -1045,17 +1007,17 @@ dbug();
 					});
 
 					var h2 = div.querySelector('h1, h2, h3, h4');
-					div.id=h2.id;
-					h2.id='';
+					div.id = h2.id;
+					h2.id = '';
 					div.className=h2.className;
 					div.classList.add(h2.tagName.toLowerCase());
 					h2.removeAttribute('id');
 					h2.removeAttribute('class');
-					elements.mdElement.innerHTML=div.outerHTML;
+					elements.mdElement.innerHTML = div.outerHTML;
 					elements.iframeBody.classList.add('markdown');
 
 					//	var open=null;
-					elements.iframeBody.querySelectorAll('li').forEach(li=>{
+					elements.iframeBody.querySelectorAll('li').forEach(li => {
 						li.addEventListener('click',function(event) {
 							this.classList.toggle('selected');
 							event.stopPropagation();
@@ -1085,9 +1047,8 @@ dbug();
 				}
 			}
 
-//				elements.iframeCSS.href=`${data.css}`;
-
-			document.title=documentTitle+': '+data.fileName+' — '+title;
+			document.title = `${data.docTitle}${data.docTitle!=data.fileName ? ` | ${data.fileName}` : ''} - ${title}`;
+			document.title = `${data.title}${data.title!=data.fileName ? ` | ${data.fileName}` : ''} - ${title}`;
 //			elements.h1.innerHTML=documentTitle+': '+data.fileName+' — '+title;
 			elements.contentHeading.innerHTML=title;
 			elements.codeElement.resetLineNumbers(lineHighlight);
@@ -1119,24 +1080,25 @@ dbug();
 	}
 
 	function pathDetails(uri) {
-		uri = normalize(uri);
-		var path, fileName, extension, css;
+		if(!uri) return undefined;
+		uri = fixPath(path.normalize(uri));
+		var filePath, fileName, extension, css;
 
-		path = uri.split('/');
-		fileName = path.pop();
-		path = path.join('/');
+		filePath = uri.split('/');
+		fileName = filePath.pop();
+		filePath = filePath.join('/');
 		extension = fileName.split('.').pop();
-		css = '';
-		// if(extensions[extension]=='markdown') css=`${path}/${fileName.replace(/\..*$/,'')}/styles.css`;
-		//	if(extensions[extension]=='markdown') css=`${path}/styles.css`;
-		if(extensions[extension] == 'markdown') css = `${path}/${fileName.replace(/\..*$/,'')}.css`;
 
-		return { path, fileName, extension, css};
+		css = '';
+		if(extensions[extension] == 'markdown') css = `${filePath}/${fileName.replace(/\..*$/,'')}.css`;
+
+		return { filePath, fileName, extension, css};
 	}
 
 	function openFile(fileName, {remember=false, title}) {
+		fileName = fixPath(fileName);
 		var {index, tab} = getTab(fileName);
-		if(index>-1) {
+		if(index > -1) {		//	already open
 			tab.click();
 			return;
 		}
@@ -1147,9 +1109,9 @@ dbug();
 		return result;
 
 		function virtualDocument(pathName) {
-			var { path, fileName, extension, css } = pathDetails(pathName);
+			var { filePath, fileName, extension, css } = pathDetails(pathName);
 			fsp.stat(pathName)
-			.then(() => fps.readFile(`${path}/${fileName}`, 'utf-8'))
+			.then(() => fps.readFile(`${filePath}/${fileName}`, 'utf-8'))
 			.then(data => {
 				data = JSON.parse(data);
 				var md = [];
@@ -1161,52 +1123,50 @@ dbug();
 						md.push(`![${image.title}](https://javascript101.webcraft101.com/images/slides/${image.src})`);
 					});
 					data = md.join('\n\n');
-				//	{language, fileName, path, css, extension, title, zip=undefined}
-					addDocument(data, {language: extensions['md'], fileName, path, css: '', extension: 'md'});
-				//	addDocument(data, extensions['md'], fileName, path, '', 'md');
+					addDocument(data, {language: extensions['md'], fileName, filePath, css: '', extension: 'md'});
 				});
 			});
 		}
 
 		async function zipDocument(pathName, title) {
-			let { path, fileName, extension, css } = pathDetails(pathName);
+			let { filePath, fileName, extension, css } = pathDetails(pathName);
 			//	let zip, directory, data, root;
 			zipFiles[pathName] = await openZip(pathName);
 			let { zip, directory, root } = zipFiles[pathName];
+			if(!directory[`${root}/${root}.md`]) {
+dbug('zip does not include md file');
+				return;
+			}
 			let data = await directory[`${root}/${root}.md`].file.buffer();
 			data = data.toString();
-			//	![Paintings JOIN Artists](images/6-2-paintings-inner-join-artists.png)
-
-
-		//	css = await directory[`${root}/${root}.css`].file.buffer();
-		//	css = css.toString();
-
 			css = await directory[`${root}/${root}.css`].blobURL;
+			addDocument(data, {language: extensions['md'], fileName, filePath, css, extension: 'md', zip: pathName, title});
 
-		//	{language, fileName, path, css, extension, title, zip=undefined}
-			addDocument(data, {language: extensions['md'], fileName, path, css, extension: 'md', zip: pathName, title});
-		//	addDocument(data, extensions['md'], fileName, path, css, 'md', pathName);
 			updateDocuments();
+
 			if(!remember) return;
 			updateFiles({'action': 'add-current', pathName, title});
 			updateFiles({'action': 'add-recent', pathName, title});
 		}
 
 		function openPath(pathName, {remember=false, title}) {
-			let { path, fileName, extension, css } = pathDetails(pathName);
-			title = title ?? fileName;
+			let { filePath, fileName, extension, css } = pathDetails(pathName);
 			if(extension == 'dpf') return virtualDocument(pathName);
+
 			if(['zip', 'mdzip'].includes(extension)) return zipDocument(pathName, title);
+			if(extension in extensions === false) {
+dbug(`invalid path extension: ${extension}`)
+				return;
+			};
+
+			title = title ?? fileName;
 			return fsp.stat(pathName)
 			.then(() => {
-//				var {path,fileName,extension,css}=pathDetails(pathName);
 				return fsp.stat(css)
 				.catch(() => { css = ''; })
-				.then(() => fsp.readFile(`${path}/${fileName}`, 'utf-8'))
+				.then(() => fsp.readFile(`${filePath}/${fileName}`, 'utf-8'))
 				.then(data => {
-				//	{language, fileName, path, css, extension, title, zip=undefined}
-					addDocument(data, {language: extensions[extension], fileName, path, css, extension, title});
-				//	addDocument(data, extensions[extension], fileName, path, css, extension);
+					addDocument(data, {language: extensions[extension], fileName, filePath, css, extension, title});
 				})
 				.then(() => {
 					updateDocuments();
@@ -1222,12 +1182,12 @@ dbug();
 						buttons: ['OK'],
 						message: `Oh Dear. The File ${pathName} appears to have disappeared.`
 					})
-					.then(()=>{
+					.then(() => {
 						console.log(`Error: The File ${pathName} appears to have disappeared.`);
 						//	Remove from Current & Recent
-							files.current=files.current.filter(value=>value!=pathName);
-							files.recent=files.recent.filter(value=>value!=pathName);
-							fs.promises.writeFile(filesJSON, JSON.stringify(files, null, '\t'));
+							userData.files.data.current = userData.files.data.current.filter(value => value != pathName);
+							userData.files.data.recent = userData.files.data.recent.filter(value => value != pathName);
+							userData.files.write();
 					});
 			});
 		}
@@ -1236,9 +1196,12 @@ dbug();
 			var data;
 			var promise, cancelled=false;
 
-			var { path, fileName, extension, css } = pathDetails(url);
+			var { filePath, fileName, extension, css } = pathDetails(url);
+			if(extension in extensions === false) {
+dbug(`invalid url extension: ${extension}`)
+				return;
+			};
 
-	//		fetch('https://pager.internotes.net/content/mssql-techniques.sql')
 			promise=fetch(url)
 			.then(response=>{
 				if(!response.ok) throw new Error(`Oh Dear. The file ${url} is not available.`);
@@ -1251,9 +1214,9 @@ dbug();
 				})
 				.then(()=>{
 					console.log(error);
-					cancelled=true;
-					files.current=files.current.filter(value=>value!=url);
-					fs.promises.writeFile(filesJSON,JSON.stringify(files, null, '\t'));
+					cancelled = true;
+					userData.files.data.current = userData.files.data.current.filter(value=>value!=url);
+					fsp.writeFile(userData.files.path, JSON.stringify(userData.files.data, null, '\t'));
 				});
 			})
 			.then((text)=>{
@@ -1266,15 +1229,13 @@ dbug();
 			})
 			.then((text)=>{
 				if(cancelled) return;
-			//	{language, fileName, path, css, extension, title, zip=undefined}
-				addDocument(data, {language: extensions[extension], fileName, path, css, extension});
-			//	addDocument(data,extensions[extension],fileName,path,css,extension);
+				addDocument(data, {language: extensions[extension], fileName, filePath, css, extension});
 			})
 			.then(()=>{
 				if(cancelled || !remember) return;
-				if(!files.current.includes(url)) {
-					files.current.push(url);
-					fs.promises.writeFile(filesJSON,JSON.stringify(files, null, '\t'));
+				if(!userData.files.data.current.includes(url)) {
+					userData.files.data.current.push(url);
+					fsp.writeFile(userData.files.path, JSON.stringify(userData.files.data, null, '\t'));
 				}
 			});
 			return promise;
@@ -1282,14 +1243,14 @@ dbug();
 	}
 
 	function save() {
-		var file=`${currentTab.data.path}/${currentTab.data.fileName}`;
+		var file = `${currentTab.data.filePath}/${currentTab.data.fileName}`;
 		if(!file) return;
-		var text=currentTab.data.text.trim()+'\n';
-		if(platform=='win32') text=text.split(/\r?\n/).join('\r\n');
+		var text = currentTab.data.text.trim()+'\n';
+		if(platform == 'win32') text = text.split(/\r?\n/).join('\r\n');
 		elements.mainContent.blur();
-		fsp.writeFile(file,text)
-		.then(()=>console.log('ok'))
-		.catch(error=>console.log(error));
+		fsp.writeFile(file, text)
+		.then(() => console.log('ok'))
+		.catch(error => console.log(error));
 	}
 
 	function printPage() {
@@ -1321,28 +1282,12 @@ dbug();
 
 //	IPC
 
-ipcRenderer.on('DO-ZIP', async (event, zipfile, path) => {
-//	ipcRenderer.on('file', async (event, zipfile, path) => {
-	console.log(`${zipfile} : ${path}`);
-	let data = await zipFiles[zipfile].directory[`${zipFiles[zipfile].root}/${path}`].file.buffer();
-//	let blob = new Blob(data, { type: 'image/png' });
-
-//	let reader = new FileReader();
-//	reader.readAsDataURL(blob);
-//	data = reader.result;
-
-//	return data;
-	let blob = new Blob([data], { type: 'image/png' });
-	return blob;
-//	let url = URL.createObjectURL(blob);
-//	return url;
-});
-
 	ipcRenderer.on('CLOG', (event, data, more) => {
-		console.log(data);
+		dbug(data);
 	});
 
 	ipcRenderer.on('DOIT', (event, action, data, more) => {
+//	dbug(action)
 		switch(action) {
 			case 'open':
 				openFile(data, {remember: true});
@@ -1360,43 +1305,51 @@ ipcRenderer.on('DO-ZIP', async (event, zipfile, path) => {
 		}
 	});
 
-	ipcRenderer.on('open-file-paths',(event,result)=>{
+	ipcRenderer.on('open-file-paths', (event, result) => {
 		if(result.canceled) return;
 		var pd = pathDetails(result.filePaths[0]);
 		localStorage.setItem('defaultPath',pd.path);
-		state['default-path'] = pd.path;
-		updateState();
-		result.filePaths.forEach(f=>{
-			openFile(f, {remember: true});
+		userData.state.data['default-path'] = pd.path;
+		userData.state.write();
+		result.filePaths.forEach(f => {
+			openFile(fixPath(f), {remember: true});
 		});
 		//	openFile(result.filePaths[0],true);
-console.log(result);
+//	console.log(result);
 	});
 
 	ipcRenderer.on('LOADCSS', () => {
 		refreshTab(true);
 	});
 
+	ipcRenderer.on('DROPPED', (event, data) => {	//	files dropped on startup
+		pending.push(data);
+	});
+	ipcRenderer.on('DROP', (event, data) => {		//	files dropped after startup
+		openFile(data, {remember: true});
+	});
+
 	ipcRenderer.on('MENU', (event, data, more) => {
-console.log(data);
+//	console.log(data);
 		switch(data) {
 			case 'NEW':
 
 				break;
 			case 'OPEN':
-					console.log(state);
-					console.log(state['default-path']);
+					console.log(userData.state.data);
+					console.log(userData.state.data['default-path']);
 					ipcRenderer.send('open-file',{
 						title: 'Title',
 						//	defaultPath: localStorage.getItem('defaultPath')
-						defaultPath: state['default-path']
+						defaultPath: userData.state.data['default-path'],
+						properties: ['openFile', 'multiSelections']
 					});
 					ipcRenderer.on('open-file-paths?',(event,result)=>{
 						if(result.canceled) return;
 						var pd = pathDetails(result.filePaths[0]);
 						localStorage.setItem('defaultPath',pd.path);
-						state['default-path'] = pd.path;
-						updateState();
+						userData.state.data['default-path'] = pd.path;
+						userData.state.write();
 						result.filePaths.forEach(f=>{
 							openFile(f, {remember: true});
 						});
@@ -1405,7 +1358,7 @@ console.log(result);
 
 				break;
 			case 'URL':
-				var url=ipcRenderer.sendSync('prompt',{
+				var url = ipcRenderer.sendSync('prompt',{
 						message: 'Enter a URL:',
 						pattern: 'https?://.+',
 						value: 'https://',
@@ -1446,10 +1399,10 @@ console.log(result);
 				elements.formControl.elements['show-documents'].click();
 				break;
 			case 'FAVOURITE':
-				updateFiles({'action':'add-favourite','pathName':`${currentTab.data.path}/${currentTab.data.fileName}`});
+				updateFiles({'action':'add-favourite','pathName':`${currentTab.data.filePath}/${currentTab.data.fileName}`, 'title':currentTab.data.title});
 				break;
 			case 'UNFAVOURITE':
-				updateFiles({'action':'remove-favourite','pathName':`${currentTab.data.path}/${currentTab.data.fileName}`});
+				updateFiles({'action':'remove-favourite','pathName':`${currentTab.data.filePath}/${currentTab.data.fileName}`});
 				break;
 
 			case 'FIND':
