@@ -1,49 +1,56 @@
 'use strict';
-console.log('main.js');
+
+//	Required Modules
+	const {app, BrowserWindow, Menu, MenuItem, shell, protocol, ipcMain, dialog, globalShortcut} = require('electron');
+	const path = require('path');
 
 //	Global Variables
 	var window, menu;
+	var paths = [];
+
+function dbug(message='dbug') {
+	let error = new Error();
+	let [dummy, file, line, column] = [...error.stack.matchAll(/\n *at (.*?) \(.*:(.*?):(.*)\)/g)][1];
+	let date = new Date();
+	date = date.toString().slice(16,24);
+	let info = `${date}: ${line}${message ? ` - ${message}` : ''}`;
+	return info;
+}
+console.log(dbug())
+
+//	Startup
+	let theLock = app.requestSingleInstanceLock();				//	If second instance, this sends the first instance the 'second-instance' event
+	if(theLock) {												//	First Instance?
+
+console.log(dbug('theLock'))
+
+		app.on('second-instance', (event, argv, cwd) => {		//	Subsqeuent signal from attempted second instance
+console.log(dbug('second-instance'))
+
+			let argPaths = argv.slice(1).filter(a => a.slice(0,2) != '--');
+			window.webContents.send('CLOG', dbug(JSON.stringify(argPaths, null, '\t')));
+			argPaths.forEach(path => {
+				window?.webContents.send('DROP', path);
+			});
+		});
+	}
+	else {														//	No, so forget it
+		app.quit();
+	}
+
+	console.log(dbug())
+
 
 //	Settings
 	const {DEVELOPMENT} = require('./settings.js');
-
-	if(DEVELOPMENT && process.platform == 'darwin') {
-	//	require('electron-reload')(__dirname);
-	//	require('electron-reload')(__dirname, {
-	//	// Note that the path to electron may vary according to the main file
-	//		electron: require(`${__dirname}/node_modules/.bin/electron`)
-	//	});
-		try {
-			require('electron-reloader')(module);
-		}
-		catch {}
-	}
-
-
-//	Required Modules
-	const {app, BrowserWindow, Menu, MenuItem, shell, ipcRenderer, protocol, ipcMain, dialog, globalShortcut} = require('electron');
-
-	app.commandLine.appendSwitch('disable-site-isolation-trials');
-	const path = require('path');
-
-//	Startup
-
-	// if(app.requestSingleInstanceLock()) {
-	//     app.on('second-instance', (event, argv, cwd) => {
-	//         console.log(JSON.stringify(argv, null, '\t'));
-	//         window.webContents.send('DOIT','message',JSON.stringify(argv, null, '\t'));
-	//     });
-	// }
-	// else {
-	//     app.quit();
-	// }
 
 //	Menu
 	//	click: function (menuItem, focusedWindow) { focusedWindow.webContents.undo(); }
 
 	function send(menuItem) {
-		window.webContents.send('MENU',menuItem.id);
+		window.webContents.send('MENU', menuItem.id);
 	}
+console.log(dbug())
 
 	menu = [
 		{
@@ -58,11 +65,11 @@ console.log('main.js');
 			submenu: [
 				//                {	label: `New Document`, accelerator: 'CmdOrCtrl+N', id:'NEW', click: send },
 				{	label: `Open …`, accelerator: 'CmdOrCtrl+O', id:'OPEN', click: send },
+				{	label: `Open URL …`, accelerator: 'CmdOrCtrl+Shift+O', id:'URL', click: send },
 				{	label: `Reload`, accelerator: 'CmdOrCtrl+R', id:'LOAD', click: send },
-//				{	label: `Open URL …`, accelerator: 'CmdOrCtrl+Shift+O', id:'URL', click: send },
 				{	label: `Close`, accelerator: 'CmdOrCtrl+W', id:'CLOSE', click: send },
 				{	label: `Save`, accelerator: 'CmdOrCtrl+S', id:'SAVE', click: send },
-//				{	label: `Save As …`, accelerator: 'CmdOrCtrl+Shift+S', id:'SAVEAS', click: send },
+				{	label: `Save As …`, accelerator: 'CmdOrCtrl+Shift+S', id:'SAVEAS', click: send },
 
 				{	type:'separator' },
 				{	label: `Set as Favourite`, accelerator: 'CmdOrCtrl+Y', id:'FAVOURITE', click: send},
@@ -77,6 +84,7 @@ console.log('main.js');
 			submenu: [
 				{	role: `undo`, accelerator: 'CmdOrCtrl+Z' },
 				{	type:'separator' },
+				{	role: 'cut', accelerator: 'CmdOrCtrl+X' },
 				{	role: 'copy', accelerator: 'CmdOrCtrl+C' },
 				{	role: 'paste', accelerator: 'CmdOrCtrl+V' },
 				{	role: 'selectAll', accelerator: 'CmdOrCtrl+A' },
@@ -112,7 +120,7 @@ console.log('main.js');
 		}
 	];
 
-	var developmentMenu=[{
+	var developmentMenu = [{
 		label: 'Development',
 		submenu: [
 			{	label: 'Show Development Tools', click: function (menuItem, focusedWindow) { window.webContents.openDevTools(); } },
@@ -120,15 +128,10 @@ console.log('main.js');
 		]
 	}];
 
-//	if(DEVELOPMENT) menu=menu.concat(developmentMenu);
-//if(DEVELOPMENT) window.webContents.openDevTools({mode: 'detach'});
-//if(process.argv.includes('debug')) window.webContents.openDevTools({mode: 'detach'});
-if(process.argv.includes('debug'))
-	menu=menu.concat(developmentMenu);
+	if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
 
 //	Init
 	function init() {
-
 		window = new BrowserWindow({
 			width: 1200,
 			height: 800,
@@ -138,54 +141,40 @@ if(process.argv.includes('debug'))
 				enableRemoteModule: true,
 			}
 		});
-//	window.webContents.send('debug-data', process);
+		window.setTitle('Document Pager hahaha');
+		window.loadFile(`${__dirname}/index.html`);
+		if(DEVELOPMENT) window.webContents.openDevTools({mode: 'detach'});
 
-	protocol.registerStringProtocol(
-		'doit',
-		(request, callback) => {
-			let [dummy, action, data, more] = request.url.split(/:/);
-			window.webContents.send('DOIT', action, data, more);
-		},
-		error => {}
-	);
-//	protocol.registerStringProtocol(
-	protocol.interceptFileProtocol(
-		'do-zip',
-	//	'file',
-		async (request, callback) => {
-			let [dummy, zipfile, path] = request.url.split(/:/);
-		//	window.webContents.send('DO-ZIP', zipfile, path);
-			let data = window.webContents.send('DO-ZIP', zipfile, path);
-		//	callback(data);
-		},
-		error => {
-			console.log(`172: ${error}`);
-		}
-	);
-
-	globalShortcut.register('CmdOrCtrl+Shift+R', () => {
-		window.webContents.send('LOADCSS');
-	});
-
+/*
+		protocol.registerStringProtocol(
+			'doit',
+			(request, callback) => {
+				let [dummy, action, data, more] = request.url.split(/:/);
+				window.webContents.send('DOIT', action, data, more);
+			},
+			error => {}
+		);
+/*/
+		protocol.handle('doit', request => {
+			console.log(request)
+//			try {
+//				let [dummy, action, data, more] = request.url.split(/:/);
+//				window.webContents.send('DOIT', action, data, more);
+//			} catch(errror) {
+//				console.error(request.url)
+//			}
+		});
+//*/
+		globalShortcut.register('CmdOrCtrl+Shift+R', () => {
+			window.webContents.send('LOADCSS');
+		});
 
 		window.once('ready-to-show', () => {
 			window.show();
 		});
 
-		window.setTitle('Document Pager');
-		menu=Menu.buildFromTemplate(menu);
-/*	not working for main menuy
-		menu.addListener('menu-will-show',event=>{
-			dbug(event);
-		});
-*/
+		menu = Menu.buildFromTemplate(menu);
 		Menu.setApplicationMenu(menu);
-
-		window.loadURL(path.join('file://',  __dirname, '/index.html'));
-		if(DEVELOPMENT) window.webContents.openDevTools({mode: 'detach'});
-		// if(DEVELOPMENT) window.webContents.openDevTools();
-
-	//	window.webContents.setDevToolsWebContents(devtools.webContents);
 
 		window.on('closed', () => {
 			window = null;
@@ -195,6 +184,7 @@ if(process.argv.includes('debug'))
 //	Events
 
 	app.on('ready', init);
+
 	app.on('window-all-closed', () => {
 		//	if (process.platform !== 'darwin')
 		app.quit();
@@ -203,20 +193,15 @@ if(process.argv.includes('debug'))
 		if (window === null) init();
 	});
 
-	process.argv.forEach(av => {
-	//	window.webContents.send('CLOG',`${info}${message ? ` - ${message}` : ''}`);
-	//	window.webContents.send('CLOG',av);
-	});
-
 	app.on('open-file', onOpen);
 	app.on('open-url', onOpen);
 
-	function onOpen(path) {
+	function onOpen(event, path) {
+		paths.push(path);
 		if(!path) return;
-		dbug(JSON.stringify(arguments, null, '\t'));
-		window.webContents.send('DOIT', 'open', path);
+		window?.webContents.send('DROP', path);
 	}
-
+/*
 //  Prompt
 	var prompt, promptResponse;
 	var promptOptions = {
@@ -227,14 +212,12 @@ if(process.argv.includes('debug'))
 
 	function doPrompt(parent, callback) {
 		prompt = new BrowserWindow({
-//            width: 1400, height: 200,
 			width: 400,
 			frame: false,
 			parent,
 			show: true,
 			modal: true,
 			alwaysOnTop: true,
-//            title: options.title,
 			title: 'This space for rent …',
 			webPreferences : {
 				nodeIntegration: true,
@@ -273,9 +256,11 @@ if(process.argv.includes('debug'))
 	// ipcMain.on('message-box',(event,data)=>{
 	// 	dialog.showMessageBoxSync(window,data);
 	// });
+*/
+//	From renderer
 
 	ipcMain.handle('message-box', (event, data) => {
-	    dialog.showMessageBox(window,data);
+		dialog.showMessageBox(window,data);
 	});
 
 	ipcMain.on('open-file', (event, data) => {
@@ -292,4 +277,21 @@ if(process.argv.includes('debug'))
 	ipcMain.on('init', (event, data) => {
 		var home = `${app.getPath('home')}`;
 		event.returnValue = JSON.stringify({home}, null, '\t');
+
+		window.webContents.send('CLOG', dbug(process.argv));
+		paths.push(...process.argv.slice(1));
+
+
+		window.webContents.send('CLOG', dbug(paths));
+		paths.forEach(path => {
+			window?.webContents.send('DROPPED', path);
+		});
+
+//		window.webContents.send('CLOG', dbug(process.argv));
+
+//		process.argv.forEach(av => {
+//			window.webContents.send('CLOG', dbug(av));
+//		});
+
 	});
+console.log(dbug())

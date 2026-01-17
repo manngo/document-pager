@@ -208,3 +208,13 @@ The Markdown Parser is [Marked](https://marked.js.org/).
 This application does what it does and doesn’t do what it doesn’t do.
 
 E & OE. Share & Enjoy
+
+##	Features & Changes
+
+-	Change: Layout
+-	Change:	Colour Scheme
+-	New Feature:	Drag document over Icon opens file
+-	New Feature:	Windows is now Single Instance (?)
+-	New Feature:	Opens markdown in Zip Files
+-	New Feature:	Rename titles (use option-click on tab)
+-	New Feature:	Document Titles
