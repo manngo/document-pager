@@ -4,6 +4,13 @@
 
 	'use strict';
 
+/**	settings.js
+	================================================ */
+
+//	const {DEVELOPMENT, cwd} = require('../settings.js');
+//	const DEVELOPMENT = true;
+//	const cwd = __dirname;
+
 /**	Generic
 	================================================ */
 
@@ -25,11 +32,6 @@
 		return path.replaceAll(/\\/g, '/');
 	}
 
-/**	settings.js
-	================================================ */
-
-	const {DEVELOPMENT, cwd} = require('../settings.js');
-
 /**	Requires
 	================================================
 	================================================ */
@@ -44,7 +46,7 @@
 		const {jx, DOM, JSONFile} = require('../scripts/utilities.js');
 		const { openZip } = require('../scripts/dozip.js');
 
-	var { home } = JSON.parse(ipcRenderer.sendSync('init'));
+	var { home, cwd } = JSON.parse(ipcRenderer.sendSync('init'));
 	var settingsDir = `${home}/.document-pager`;
 
 /**	Environment
@@ -53,6 +55,7 @@
 	const platform = process.platform;
 	const eol = process.platform === 'win32' ? '\r\n' : '\n';
 	const os = require('os');
+	const shortcutKey = process.platform === 'darwin' ? KeyboardEvent.metaKey : KeyboardEvent.ctrlKey;
 
 /**	Marked
 	================================================
@@ -116,6 +119,9 @@
 //	Components
 
 	function toggleDocumentHeadings() {
+	//	let ul = document.querySelector('nav#documents>ul');
+	//	let li = ul.querySelectorAll('li');
+	//	let documentsTab = ul.querySelector('li.open');
 		let li = document.querySelectorAll('nav#documents>ul>li');
 		let documentsTab = undefined;
 		function doDocumentsTab(event) {
@@ -208,12 +214,14 @@
 				userData.state.data = JSON.parse(state);
 				userData.state.data['index-open-all'] = !!userData.state.data['index-open-all'];
 				userData.state.data['content-ruled'] = !!userData.state.data['content-ruled'];
+				userData.state.data['development'] = !!userData.state.data['development'];
 				//	For now, default path:
 					if(!userData.state.data['default-path']) userData.state.data['default-path'] = home;
 				//	Documents Pane
 					document.querySelector('main').classList.toggle('show-documents', userData.state.data['documents-width']);
 					if(userData.state.data['documents-width']) document.querySelector('nav#documents').style.width = `${userData.state.data['documents-width']}px`;
-					if(userData.state.data['documents-toggle']) document.querySelector(`li#${userData.state.data['documents-toggle']}`).classList.add('open');
+				//	if(userData.state.data['documents-toggle']) document.querySelector(`li#${userData.state.data['documents-toggle']}`).classList.add('open');
+					if(userData.state.data['documents-toggle']) document.querySelector(`li#${userData.state.data['documents-toggle']}`).click();
 					document.querySelector('div#content>iframe').contentWindow.document.querySelector('div#main-content').classList.toggle('ruled',!!userData.state.data['content-ruled']);
 				//	Index
 					if(userData.state.data['index-width']) document.querySelector('div#index').style.width=`${userData.state.data['index-width']}px`;
@@ -226,6 +234,7 @@
 					"default-path": home,
 					"index-open-all": false,
 					"content-ruled": true,
+					"development": false,
 				};
  dbug('no state');
 				await userData.state.write();
@@ -473,30 +482,58 @@
 
 		elements.formControl.elements['full-screen'].onclick = event => {
 			elements.fullCSS.disabled = false;
-			document.addEventListener('keyup', doFullScreenKeys);
+//			document.addEventListener('keyup', doFullScreenKeys);
 //			focusedWindow.webContents.on('before-input-event',doFullScreenKeys);
 		};
 
-		function doFullScreenKeys(event) {
-		//	console.log(event.key);
-			switch(event.key) {
+		function doKey(key) {
+			var selected = index.querySelector('li.selected');
+			var group = index.querySelector('div#index>ul>li.selected');
+			switch (key) {
 				case 'Escape':
-					elements.fullCSS.disabled = true;
-					document.removeEventListener('keyup', doFullScreenKeys);
-					break;
-				case 'ArrowRight':
-					elements.nextButton.click();
-					break;
-				case 'ArrowLeft':
-					elements.previousButton.click();
-					break;
-				case 'ArrowUp':
-					elements.indexUL.firstElementChild.click();
+					if(!elements.fullCSS.disabled) elements.fullCSS.disabled = true
 					break;
 				case 'ArrowDown':
-					elements.indexUL.lastElementChild.click();
+					var next = selected.nextElementSibling;
+					if(next) {
+						next.click();
+						next.scrollIntoViewIfNeeded(false);
+					}
+					break;
+				case 'ArrowUp':
+					var next = selected.previousElementSibling;
+					if(next) {
+						next.click();
+						next.scrollIntoViewIfNeeded(false);
+					}
+					else {
+						var grandParent = selected.parentNode.parentNode;
+						if(grandParent.tagName == 'LI') grandParent.click();
+					}
+					break;
+				case 'ArrowRight':
+					if(group) {
+						group.classList.add('open');
+						group.querySelector('li').click();
+					}
+					break;
+				case 'ArrowLeft':
+					if(group) group.classList.remove('open');
+					else {
+						var grandParent = selected.parentNode.parentNode;
+						grandParent.click();
+					}
 					break;
 			}
+
+		}
+
+		function doFullScreenKeys(event) {
+			if(event.key == 'Escape') {
+				elements.fullCSS.disabled = true;
+				document.removeEventListener('keyup', doFullScreenKeys);
+			}
+			else doKey(event.key);
 		}
 
 		jx.contentEditable(elements.codeElement, true);
@@ -536,47 +573,12 @@
 */
 		var index = document.querySelector('div#index');
 		index.tabIndex=1;
-		index.onkeydown = event => {
-			//	console.log(event.key);
-			var selected = index.querySelector('li.selected');
-			var group = index.querySelector('div#index>ul>li.selected');
-			//	console.log(selected);
-			//	console.log(group);
-			switch (event.key) {
-				case 'ArrowDown':
-					var next = selected.nextElementSibling;
-					if(next) {
-						next.click();
-						next.scrollIntoViewIfNeeded(false);
-					}
-					break;
-				case 'ArrowUp':
-					var next = selected.previousElementSibling;
-					if(next) {
-						next.click();
-						next.scrollIntoViewIfNeeded(false);
-					}
-					else {
-						var grandParent = selected.parentNode.parentNode;
-						if(grandParent.tagName == 'LI') grandParent.click();
-					}
-					break;
-				case 'ArrowRight':
-					if(group) {
-						group.classList.add('open');
-						group.querySelector('li').click();
-					}
-					break;
-				case 'ArrowLeft':
-					if(group) group.classList.remove('open');
-					else {
-						var grandParent = selected.parentNode.parentNode;
-						grandParent.click();
-					}
-					break;
-			}
-
-		};
+//		index.onkeydown = event => {
+//			doKey(event.key);
+//		};
+		document.addEventListener('keyup', event => {
+			doKey(event.key);
+		});
 
 /**	Add Document
 	================================================
@@ -598,7 +600,7 @@
 
 		var close = document.createElement('button');
 			close.innerHTML = '×';
-			close.onclick = closeTab.bind(tab,tab);
+			close.onclick = closeTab.bind(tab, tab);
 			close.className = 'tab-close';
 
 //		var refresh = document.createElement('button');
@@ -674,6 +676,16 @@
 				doPager(event.currentTarget.data);
 			}
 		}
+	}
+
+/**	Navigate Tabs
+	================================================
+	================================================ */
+
+	function gotoTab(which=1) {
+		let selected = tabs.findIndex(t => t.classList.contains('selected'));
+		selected = Math.min(Math.max(0, selected + which), tabs.length-1);
+		tabs[selected].click();
 	}
 
 /**	refreshTab
@@ -1185,10 +1197,12 @@ dbug(`invalid path extension: ${extension}`)
 					.then(() => {
 						console.log(`Error: The File ${pathName} appears to have disappeared.`);
 						//	Remove from Current & Recent
-							userData.files.data.current = userData.files.data.current.filter(value => value != pathName);
-							userData.files.data.recent = userData.files.data.recent.filter(value => value != pathName);
+							userData.files.data.current = userData.files.data.current.filter(value => value.path != pathName);
+							userData.files.data.recent = userData.files.data.recent.filter(value => value.path != pathName);
 							userData.files.write();
+							updateDocuments();
 					});
+					console.log(`Error: The File ${pathName} still appears to have disappeared.`);
 			});
 		}
 
@@ -1318,10 +1332,6 @@ dbug(`invalid url extension: ${extension}`)
 //	console.log(result);
 	});
 
-	ipcRenderer.on('LOADCSS', () => {
-		refreshTab(true);
-	});
-
 	ipcRenderer.on('DROPPED', (event, data) => {	//	files dropped on startup
 		pending.push(data);
 	});
@@ -1383,7 +1393,7 @@ console.log(result);
 				printDocument();
 				break;
 			case 'CLOSE':
-				closeTab.call(currentTab);
+				closeTab.call(currentTab, currentTab);
 				break;
 			case 'HIGHLIGHT':
 				elements.formControl.elements['show-highlight'].checked=more;
@@ -1414,6 +1424,17 @@ console.log(result);
 			case 'INFO':
 				openFile(path.join(cwd, '/README.md'), {title: 'About …'});
 				break;
+
+			case 'LOADCSS':
+				refreshTab(true);
+				break;
+			case 'PREVIOUS':
+				gotoTab(-1);
+				break;
+			case 'NEXT':
+				gotoTab(1);
+				break;
+
 			case 'MISC':
 				break;
 		}

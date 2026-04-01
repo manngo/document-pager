@@ -1,6 +1,6 @@
 {
 	"name": "document-pager",
-	"version": "0.3.76",
+	"version": "0.3.77",
 	"description": "Document Pager: Displays a text document in tabbed pages.",
 	"main": "main.js",
 	"repository": "https://github.com/manngo/document-pager",
@@ -36,7 +36,8 @@
 					"arm64"
 				]
 			},
-			"icon": "images/document-pager.icns"
+			"icon": "images/document-pager.icns",
+			"notarize": true
 		},
 		"win": {
 			"target": [
@@ -48,7 +49,8 @@
 				}
 			],
 			"icon": "images/document-pager.ico",
-			"forceCodeSigning": false
+			"forceCodeSigning": false,
+			"signAndEditExecutable": false
 		},
 		"nsis": {
 			"oneClick": false,

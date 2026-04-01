@@ -4,6 +4,8 @@
 		npx electron-builder build --win --x64;
 	elif [ "$1" = "mac" ]; then
 		npx electron-builder build --mac --arm64;
+	elif [ "$1" = "test" ]; then
+		npx electron-builder build --mac --arm64 --config test.json;
 	else
 		npx electron-builder build
 	#	cd "../release-builds";

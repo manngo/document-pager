@@ -1,4 +1,4 @@
-#	Document Pager 0.3.76
+#	Document Pager 0.3.77
 
 <img src="images/document-pager.png" width="140">
 
@@ -217,4 +217,12 @@ E & OE. Share & Enjoy
 -	New Feature:	Windows is now Single Instance (?)
 -	New Feature:	Opens markdown in Zip Files
 -	New Feature:	Rename titles (use option-click on tab)
--	New Feature:	Document Titles
+-	New Feature:	Select Previous & Left Tabs
+-	New Feature:	Reload CSS
+-	New Feature:	Multiple Windows
+
+###	Multiple Windows
+
+It’s now possible to duplicate the window. For now it’s mainly to allow you to show different document at the same time, and can be particularly useful if you muse multiple screens.
+
+At this point, opening and closing documents on the different windows may produce unpredictable results once you close or quit.

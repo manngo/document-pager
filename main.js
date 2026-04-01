@@ -3,9 +3,10 @@
 //	Required Modules
 	const {app, BrowserWindow, Menu, MenuItem, shell, protocol, ipcMain, dialog, globalShortcut} = require('electron');
 	const path = require('path');
+//	const shortcutKey = process.platform === 'darwin' ? KeyboardEvent.metaKey : KeyboardEvent.ctrlKey;
 
 //	Global Variables
-	var window, menu;
+	var window, menu, menuTemplate;
 	var paths = [];
 
 function dbug(message='dbug') {
@@ -38,11 +39,11 @@ console.log(dbug('second-instance'))
 		app.quit();
 	}
 
-	console.log(dbug())
+console.log(dbug())
 
 
 //	Settings
-	const {DEVELOPMENT} = require('./settings.js');
+//	const {DEVELOPMENT} = require('./settings.js');
 
 //	Menu
 	//	click: function (menuItem, focusedWindow) { focusedWindow.webContents.undo(); }
@@ -52,18 +53,20 @@ console.log(dbug('second-instance'))
 	}
 console.log(dbug())
 
-	menu = [
+	menuTemplate = [
 		{
 			label: 'Document Pager',
 			submenu: [
 				{	label: `Show Documents`,  accelerator: 'CmdOrCtrl+D', id:'DOCUMENTS', click: send},
-				{	role: `quit`, accelerator: 'CmdOrCtrl+Q' }
+				{	role: `quit`, accelerator: 'CmdOrCtrl+Q' },
+				{	type: 'separator' },
+				{	label: `New Window`, accelerator: 'CmdOrCtrl+N', id:'NEWWINDOW', click: init},
 			]
 		},
 		{
 			label: 'File',
 			submenu: [
-				//                {	label: `New Document`, accelerator: 'CmdOrCtrl+N', id:'NEW', click: send },
+//				{	label: `New Document`, accelerator: 'CmdOrCtrl+N', id:'NEW', click: send },
 				{	label: `Open …`, accelerator: 'CmdOrCtrl+O', id:'OPEN', click: send },
 				{	label: `Open URL …`, accelerator: 'CmdOrCtrl+Shift+O', id:'URL', click: send },
 				{	label: `Reload`, accelerator: 'CmdOrCtrl+R', id:'LOAD', click: send },
@@ -71,12 +74,14 @@ console.log(dbug())
 				{	label: `Save`, accelerator: 'CmdOrCtrl+S', id:'SAVE', click: send },
 				{	label: `Save As …`, accelerator: 'CmdOrCtrl+Shift+S', id:'SAVEAS', click: send },
 
-				{	type:'separator' },
+				{	type: 'separator' },
 				{	label: `Set as Favourite`, accelerator: 'CmdOrCtrl+Y', id:'FAVOURITE', click: send},
 				{	label: `Unset as Favourite`, accelerator: 'CmdOrCtrl+Shift+Y', id:'UNFAVOURITE', click: send},
-				{	type:'separator' },
+				{	type: 'separator' },
 				{	label: `Print Page`,  accelerator: 'CmdOrCtrl+P', id:'PRINTPAGE', click: send},
 				{	label: `Print Document`,  accelerator: 'Shift+CmdOrCtrl+P', id:'PRINTDOCUMENT', click: send},
+				{	type: 'separator' },
+				{	label: `Reload CSS`, accelerator: 'CmdOrCtrl+Shift+R', id:'LOADCSS', click: send},
 			]
 		},
 		{
@@ -103,23 +108,26 @@ console.log(dbug())
 				{	label: 'Zoom In', accelerator: 'CmdOrCtrl+plus', id: 'ZOOM', click: ()=>{window.webContents.send('MENU','ZOOM',1);} },
 				{	label: 'Zoom Out', accelerator: 'CmdOrCtrl+-', id: 'ZOOM', click: ()=>{window.webContents.send('MENU','ZOOM',-1);} },
 				{	label: 'Reset Zoom', accelerator: 'CmdOrCtrl+0', id:'ZOOM', click: ()=>{window.webContents.send('MENU','ZOOM',0);} },
+				{	type:'separator' },
+				{	label: `Previous Tab`, accelerator: 'CmdOrCtrl+Alt+Left', id:'PREVIOUS', click: send},
+				{	label: `Next Tab`, accelerator: 'CmdOrCtrl+Alt+Right', id:'NEXT', click: send},
 			]
 		},
 		{
 			role: 'help',
 			submenu: [
-				{	label: 'About …', id: 'INFO', click: send },
+				{	label: 'About … ?', id: 'INFO', click: send },
 				{	type:'separator' },
 				{	label: 'Document Pager Home', icon: path.join(__dirname, 'images/external.png'), click: () => { shell.openExternal('https://github.com/manngo/document-pager'); } },
 				{	label: 'Internotes Pager', icon: path.join(__dirname,'images/external.png'), click: () => { shell.openExternal('https://pager.internotes.net/'); } },
 				{	id: 'debug-separator', type:'separator' },
 			//	{	id: 'debug-developer-tools', label: 'Show Development Tools', click: function (menuItem, focusedWindow) { window.webContents.openDevTools({mode: 'detach'}); } },
-				{	id: 'debug-developer-tools', label: 'Show Development Tools', click: function (menuItem, focusedWindow) { window.webContents.openDevTools(); } },
+				{	id: 'debug-developer-tools', label: 'Show Development Tools', click: function (menuItem, focusedWindow) { window.webContents.openDevTools({mode: 'detach'}); } },
 //				{	id: 'debug-developer-tools', label: JSON.stringify(process.argv, null, '\t'), click: function (menuItem, focusedWindow) { window.webContents.openDevTools({mode: 'detach'}); } },
 			]
 		}
 	];
-
+/*
 	var developmentMenu = [{
 		label: 'Development',
 		submenu: [
@@ -127,8 +135,9 @@ console.log(dbug())
 			{	label: 'Show Development Detached', click: function (menuItem, focusedWindow) { window.webContents.openDevTools({mode: 'detach'}); } },
 		]
 	}];
-
-	if(process.argv.includes('debug')) menu=menu.concat(developmentMenu);
+*/
+//	if(process.argv.includes('debug'))
+//window.webContents.openDevTools({mode: 'detach'});
 
 //	Init
 	function init() {
@@ -143,7 +152,8 @@ console.log(dbug())
 		});
 		window.setTitle('Document Pager hahaha');
 		window.loadFile(`${__dirname}/index.html`);
-		if(DEVELOPMENT) window.webContents.openDevTools({mode: 'detach'});
+//	if(DEVELOPMENT)
+//	window.webContents.openDevTools({mode: 'detach'});
 
 /*
 		protocol.registerStringProtocol(
@@ -155,25 +165,27 @@ console.log(dbug())
 			error => {}
 		);
 /*/
-		protocol.handle('doit', request => {
-			console.log(request)
+//		protocol.handle('doit', request => {
+//			console.log(request)
 //			try {
 //				let [dummy, action, data, more] = request.url.split(/:/);
 //				window.webContents.send('DOIT', action, data, more);
 //			} catch(errror) {
 //				console.error(request.url)
 //			}
-		});
+//		});
 //*/
-		globalShortcut.register('CmdOrCtrl+Shift+R', () => {
-			window.webContents.send('LOADCSS');
-		});
+
+//		window.addEventListener('keyup', (event) => {
+
+//		});
+
 
 		window.once('ready-to-show', () => {
 			window.show();
 		});
 
-		menu = Menu.buildFromTemplate(menu);
+		menu = Menu.buildFromTemplate(menuTemplate);
 		Menu.setApplicationMenu(menu);
 
 		window.on('closed', () => {
@@ -276,7 +288,9 @@ console.log(dbug())
 
 	ipcMain.on('init', (event, data) => {
 		var home = `${app.getPath('home')}`;
-		event.returnValue = JSON.stringify({home}, null, '\t');
+		module.exports = {DEVELOPMENT: false, cwd: __dirname};
+
+		event.returnValue = JSON.stringify({home, cwd: __dirname}, null, '\t');
 
 		window.webContents.send('CLOG', dbug(process.argv));
 		paths.push(...process.argv.slice(1));
