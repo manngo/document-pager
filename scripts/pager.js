@@ -386,6 +386,7 @@
 						//	let index = files[section]
 							userData.files.data[event.currentTarget.section] = userData.files.data[event.currentTarget.section].filter(f => f.path != pathName);
 							userData.files.write();
+							updateDocuments();
 							break;
 						default:
 							openFile(pathName, { remember: true, title });
@@ -777,25 +778,19 @@
 
 				data.br = `${major}\\s+|${minor}\\s+`;
 				data.br = `[\\r\\n]${major}\\s+|${minor}[^\\S\\r\\n]+`;	//	data.br = '[\\r\\n]\\/\\*\\*\\s+|\\/\\*[^\\S\\r\\n]+'
+
 				//	Break Regular Expressions
-
-//					headingsRE=new RegExp(`(?:\\n\\s*)(?=${data.br})`);
-//					headingsRE=new RegExp(`(?:\\n)(?=\\s*(${data.br}))`);
-					headingsRE = new RegExp(`(?:\\n)(?=(?:${minor}|${major}))`);
-					//	headingsRE = new Regexp(`(?:\\n)`)	//	/(?:\n)(?=(?:\/\*|\/\*\*))/
-
-					headingMajor = new RegExp(`^(\\s*)(${major})\\s+(.*?)\\r?\\n`);
-					headingMinor = new RegExp(`^(\\s*)(${minor})\\s+(.*?)\\r?\\n`);
-
-					//	Special Case: Markdown
-
-						if(data.language == 'markdown') {
-							headingsRE = /(?:\n)(?=#{1,4}[^#])/;
-						//	headingMajor = /^(\s*)(##[^#]*?)\s+(.*)/m;
-							headingMajor = /^(\s*)(#[^#]*?)\s+(.*)/m;
-							headingMinor = /^(\s*)(#{2,4}[^#]*?)\s+(.*)/m;
-							headingMiniscule = /^(\s*)(####[^#]*?)\s+(.*)/m;
-						}
+					if(data.language != 'markdown') {
+						headingsRE = new RegExp(`(?:\\n)(?=(?:${minor}|${major}))`);
+						headingMajor = new RegExp(`^(\\s*)(${major})\\s+(.*?)\\r?\\n`);
+						headingMinor = new RegExp(`^(\\s*)(${minor})\\s+(.*?)\\r?\\n`);
+					}
+					else {
+						headingsRE = /(?:\n)(?=#{1,4}[^#])/;
+						headingMajor = /^(\s*)(#{1,2}[^#]*?)\s+(.*)/m;
+						headingMinor = /^(\s*)(#{3,4}[^#]*?)\s+(.*)/m;
+						headingMiniscule = /^(\s*)(####[^#]*?)\s+(.*)/m;
+					}
 
 		//	Document Info Footer
 			elements.indexHeading.innerHTML = data.title &&  data.title!=data.fileName ? `${data.title}<span>${data.fileName}</span>` : data.fileName;

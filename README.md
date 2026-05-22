@@ -1,4 +1,4 @@
-#	Document Pager 0.3.77
+#	Document Pager 0.3.78
 
 <img src="images/document-pager.png" width="140">
 

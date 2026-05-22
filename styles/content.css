@@ -136,6 +136,7 @@
 		&>div#main-content>div {
 			border: none;
 			&>div.md {
+				font-size: 2.5vw;
 				white-space: normal;
 				padding: 1rem;
 				width: 100%;
@@ -143,7 +144,6 @@
 					height: calc(100vh - 1rem);
 					&[class*="language-"] {
 						font-family: "Source Code Pro", monospace;
-						font-size: 1rem;
 						qpadding: .5em 0;
 						line-height: var(--line-height);
 					}
